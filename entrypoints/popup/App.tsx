@@ -9,6 +9,7 @@ import {
   settingsItem,
   type ExtensionSettings,
 } from '@/lib/settings';
+import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
 
 import { HomeScreen } from './screens/HomeScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
@@ -50,6 +51,14 @@ function App() {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const saveTimerRef = useRef<number | null>(null);
   const shouldReduceMotion = useReducedMotion();
+  const uiLanguage = getUiLanguage();
+  const uiDirection = getUiDirection(uiLanguage);
+
+  useEffect(() => {
+    document.documentElement.lang = uiLanguage;
+    document.documentElement.dir = uiDirection;
+    document.title = t('appTitle');
+  }, [uiDirection, uiLanguage]);
 
   useEffect(() => {
     let active = true;
@@ -83,17 +92,17 @@ function App() {
     () => [
       {
         screen: 'translation',
-        title: 'Translation',
+        title: t('titleTranslation'),
         icon: <Languages size={17} />,
       },
       {
         screen: 'interaction',
-        title: 'Interaction',
+        title: t('titleInteraction'),
         icon: <MousePointerClick size={17} />,
       },
       {
         screen: 'provider',
-        title: 'Provider',
+        title: t('titleProvider'),
         icon: <KeyRound size={17} />,
       },
     ],
@@ -135,7 +144,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell" aria-busy={!loaded}>
+    <main className="app-shell" aria-busy={!loaded} dir={uiDirection} lang={uiLanguage}>
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={screen}

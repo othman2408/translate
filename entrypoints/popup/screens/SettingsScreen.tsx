@@ -1,6 +1,7 @@
 import { Database, Languages, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
 
 import { AppHeader } from '../components/AppHeader';
@@ -31,7 +32,7 @@ export function SettingsScreen({
   const meta = getScreenMeta(screen);
 
   return (
-    <section className="screen screen--settings" aria-label={`${meta.title} settings`}>
+    <section className="screen screen--settings" aria-label={t('settingsScreenAria', meta.title)}>
       <AppHeader
         title={meta.title}
         icon={meta.icon}
@@ -61,17 +62,17 @@ function getScreenMeta(screen: SettingsScreenName): {
   switch (screen) {
     case 'translation':
       return {
-        title: 'Translation',
+        title: t('titleTranslation'),
         icon: <Languages size={19} />,
       };
     case 'interaction':
       return {
-        title: 'Interaction',
+        title: t('titleInteraction'),
         icon: <Zap size={19} />,
       };
     case 'provider':
       return {
-        title: 'Provider',
+        title: t('titleProvider'),
         icon: <Database size={19} />,
       };
   }

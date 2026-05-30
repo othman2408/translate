@@ -1,0 +1,212 @@
+{
+  "extName": {
+    "message": "Translate"
+  },
+  "extDescription": {
+    "message": "Translate selected text from any webpage with your own Google Translate API key."
+  },
+  "actionBack": {
+    "message": "Back"
+  },
+  "actionClose": {
+    "message": "Close"
+  },
+  "actionCopyTranslation": {
+    "message": "Copy translation"
+  },
+  "actionReset": {
+    "message": "Reset"
+  },
+  "appTitle": {
+    "message": "Translate"
+  },
+  "ariaSettingsGroups": {
+    "message": "Settings groups"
+  },
+  "ariaTranslateSettings": {
+    "message": "Translate settings"
+  },
+  "cacheTranslations": {
+    "message": "Cache translations"
+  },
+  "closeOnOutsideClick": {
+    "message": "Close on outside click"
+  },
+  "contextMenuTranslateSelection": {
+    "message": "Translate selected text"
+  },
+  "dictionaryTitle": {
+    "message": "Dictionary"
+  },
+  "errorApiKeyRejected": {
+    "message": "The Google API key was rejected."
+  },
+  "errorBackgroundUnavailable": {
+    "message": "The extension background worker is not available. Try again in a moment."
+  },
+  "errorEmptyProviderResponse": {
+    "message": "Google Translate returned an empty response."
+  },
+  "errorGoogleProvider": {
+    "message": "Google Translate could not complete the request."
+  },
+  "errorMissingApiKey": {
+    "message": "Add your Google Cloud Translation API key in the extension settings."
+  },
+  "errorNetwork": {
+    "message": "Could not reach Google Translate. Check your connection and try again."
+  },
+  "errorQuota": {
+    "message": "Google Translate quota was exceeded."
+  },
+  "errorSelectText": {
+    "message": "Select some text to translate."
+  },
+  "footerCached": {
+    "message": "cached"
+  },
+  "footerLanguagePair": {
+    "message": "$1 to $2"
+  },
+  "footerToLanguage": {
+    "message": "To $1"
+  },
+  "groupBehavior": {
+    "message": "Behavior"
+  },
+  "groupGoogleCloud": {
+    "message": "Google Cloud"
+  },
+  "groupLanguages": {
+    "message": "Languages"
+  },
+  "groupSelection": {
+    "message": "Selection"
+  },
+  "groupSettings": {
+    "message": "Settings"
+  },
+  "infoLocalOnlyStorage": {
+    "message": "Local-only storage"
+  },
+  "inputApiKey": {
+    "message": "AIza..."
+  },
+  "labelApiKey": {
+    "message": "API key"
+  },
+  "labelFrom": {
+    "message": "From"
+  },
+  "labelOriginal": {
+    "message": "Original"
+  },
+  "labelPopupStyle": {
+    "message": "Popup style"
+  },
+  "labelTo": {
+    "message": "To"
+  },
+  "labelTrigger": {
+    "message": "Trigger"
+  },
+  "languageAr": {
+    "message": "Arabic"
+  },
+  "languageAuto": {
+    "message": "Auto detect"
+  },
+  "languageDe": {
+    "message": "German"
+  },
+  "languageEn": {
+    "message": "English"
+  },
+  "languageEs": {
+    "message": "Spanish"
+  },
+  "languageFr": {
+    "message": "French"
+  },
+  "languageHi": {
+    "message": "Hindi"
+  },
+  "languageId": {
+    "message": "Indonesian"
+  },
+  "languageIt": {
+    "message": "Italian"
+  },
+  "languageJa": {
+    "message": "Japanese"
+  },
+  "languageKo": {
+    "message": "Korean"
+  },
+  "languageNl": {
+    "message": "Dutch"
+  },
+  "languagePl": {
+    "message": "Polish"
+  },
+  "languagePt": {
+    "message": "Portuguese"
+  },
+  "languageRu": {
+    "message": "Russian"
+  },
+  "languageSv": {
+    "message": "Swedish"
+  },
+  "languageTr": {
+    "message": "Turkish"
+  },
+  "languageUr": {
+    "message": "Urdu"
+  },
+  "languageZhCn": {
+    "message": "Chinese (Simplified)"
+  },
+  "languageZhTw": {
+    "message": "Chinese (Traditional)"
+  },
+  "noteSelectedTextOnly": {
+    "message": "Only selected text is sent to the translation provider."
+  },
+  "optionBubble": {
+    "message": "Bubble"
+  },
+  "optionClick": {
+    "message": "Click"
+  },
+  "optionDictionary": {
+    "message": "Dictionary"
+  },
+  "optionInstant": {
+    "message": "Instant"
+  },
+  "providerDescription": {
+    "message": "Google Cloud Translation Basic v2"
+  },
+  "saved": {
+    "message": "Saved"
+  },
+  "settingsScreenAria": {
+    "message": "$1 settings"
+  },
+  "titleInteraction": {
+    "message": "Interaction"
+  },
+  "titleProvider": {
+    "message": "Provider"
+  },
+  "titleTranslation": {
+    "message": "Translation"
+  },
+  "translationTitle": {
+    "message": "Translate"
+  },
+  "translatingTo": {
+    "message": "Translating to $1..."
+  }
+}

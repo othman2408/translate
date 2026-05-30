@@ -1,6 +1,8 @@
 import { Button } from '@base-ui/react';
 import { ChevronRight } from 'lucide-react';
 
+import { t } from '@/lib/i18n';
+
 import { AppHeader } from '../components/AppHeader';
 import type { NavItem, SaveState as SaveStateValue, Screen } from '../types';
 
@@ -14,13 +16,13 @@ export function HomeScreen({
   onNavigate: (screen: Screen) => void;
 }) {
   return (
-    <section className="screen screen--home" aria-label="Translate settings">
+    <section className="screen screen--home" aria-label={t('ariaTranslateSettings')}>
       <AppHeader
-        title="Translate"
+        title={t('appTitle')}
         saveState={saveState}
       />
 
-      <section className="grouped-list" aria-label="Settings groups">
+      <section className="grouped-list" aria-label={t('ariaSettingsGroups')}>
         {navItems.map((item) => (
           <Button
             key={item.screen}
