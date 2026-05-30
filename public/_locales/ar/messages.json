@@ -215,6 +215,15 @@
   "settingsScreenAria": {
     "message": "إعدادات $1"
   },
+  "siteToggleCurrentSite": {
+    "message": "الموقع الحالي"
+  },
+  "siteToggleUnavailable": {
+    "message": "لا يوجد موقع محدد"
+  },
+  "siteToggleUnsupported": {
+    "message": "متاح في صفحات الويب العادية"
+  },
   "titleInteraction": {
     "message": "التفاعل"
   },
@@ -225,7 +234,7 @@
     "message": "المزود"
   },
   "titleTranslation": {
-    "message": "الترجمة"
+    "message": "اللغة"
   },
   "translationTitle": {
     "message": "ترجمة"

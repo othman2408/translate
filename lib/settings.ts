@@ -16,6 +16,7 @@ export type ExtensionSettings = {
   closeOnOutsideClick: boolean;
   appLanguage: AppLanguage;
   themeMode: ThemeMode;
+  disabledHosts: string[];
 };
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -28,6 +29,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   closeOnOutsideClick: true,
   appLanguage: 'auto',
   themeMode: 'system',
+  disabledHosts: [],
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {

@@ -24,14 +24,14 @@ import './App.css';
 
 const screenVariants: Variants = {
   initial: (direction: NavigationDirection) => ({
-    x: direction === 'forward' ? 420 : -420,
+    x: direction === 'forward' ? 380 : -380,
     zIndex: direction === 'forward' ? 2 : 0,
   }),
   animate: {
     x: 0,
   },
   exit: (direction: NavigationDirection) => ({
-    x: direction === 'forward' ? -420 : 420,
+    x: direction === 'forward' ? -380 : 380,
     zIndex: direction === 'forward' ? 0 : 2,
   }),
 };
@@ -184,7 +184,14 @@ function App() {
 
   function renderScreen(screenName: Screen) {
     if (screenName === 'home') {
-      return <HomeScreen navItems={navItems} saveState={saveState} onNavigate={navigateTo} />;
+      return (
+        <HomeScreen
+          navItems={navItems}
+          settings={settings}
+          onNavigate={navigateTo}
+          onUpdate={updateSetting}
+        />
+      );
     }
 
     return (

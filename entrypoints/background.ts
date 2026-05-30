@@ -4,6 +4,7 @@ import { getCacheKey, getCachedTranslation, setCachedTranslation } from '@/lib/c
 import { t } from '@/lib/i18n';
 import { isRuntimeMessage, type TranslationErrorCode, type TranslationResponse } from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
+import { getHttpHost, isHostDisabled } from '@/lib/sites';
 
 const CONTEXT_MENU_ID = 'translate-bubble-selection';
 const GOOGLE_TRANSLATE_ENDPOINT = 'https://translation.googleapis.com/language/translate/v2';
@@ -37,6 +38,10 @@ export default defineBackground(() => {
       return;
     }
 
+    if (await isTabDisabled(tab.url)) {
+      return;
+    }
+
     try {
       await browser.tabs.sendMessage(tab.id, {
         type: 'SHOW_CONTEXT_TRANSLATION',
@@ -55,6 +60,16 @@ export default defineBackground(() => {
     return translateText(message.text, message.sourceLanguage, message.targetLanguage);
   });
 });
+
+async function isTabDisabled(tabUrl: string | undefined): Promise<boolean> {
+  const host = getHttpHost(tabUrl);
+  if (!host) {
+    return false;
+  }
+
+  const settings = await getSettings();
+  return isHostDisabled(host, settings.disabledHosts);
+}
 
 async function setupContextMenu(): Promise<void> {
   try {

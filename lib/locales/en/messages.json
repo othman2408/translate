@@ -215,6 +215,15 @@
   "settingsScreenAria": {
     "message": "$1 settings"
   },
+  "siteToggleCurrentSite": {
+    "message": "Current site"
+  },
+  "siteToggleUnavailable": {
+    "message": "No website selected"
+  },
+  "siteToggleUnsupported": {
+    "message": "Available on normal web pages"
+  },
   "titleInteraction": {
     "message": "Interaction"
   },
@@ -225,7 +234,7 @@
     "message": "Provider"
   },
   "titleTranslation": {
-    "message": "Translation"
+    "message": "Language"
   },
   "translationTitle": {
     "message": "Translate"
