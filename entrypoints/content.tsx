@@ -1,5 +1,6 @@
 import { browser, createShadowRootUi, defineContentScript } from '#imports';
 import type { Root } from 'react-dom/client';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   AlertCircle,
@@ -23,6 +24,26 @@ import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-dire
 import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
 
 type OverlayStatus = 'hidden' | 'icon' | 'loading' | 'result' | 'error';
+type TextSide = 'original' | 'translation';
+
+type TokenPart = {
+  partIndex: number;
+  text: string;
+  isWordLike: boolean;
+  wordIndex?: number;
+};
+
+type TokenRange = {
+  startPartIndex: number;
+  endPartIndex: number;
+};
+
+type AlignmentState = {
+  selectedSide: TextSide;
+  selectedRange: TokenRange;
+  matchedRange?: TokenRange;
+  status: 'idle' | 'loading' | 'no-match';
+};
 
 type OverlayPosition = {
   left: number;
@@ -34,17 +55,24 @@ type OverlayState = {
   position: OverlayPosition;
   selectedText: string;
   translation?: TranslationResponse;
+  alignment?: AlignmentState;
   copied: boolean;
   settings: ExtensionSettings;
 };
 
 const HIDDEN_POSITION: OverlayPosition = { left: -9999, top: -9999 };
 const MAX_SELECTION_LENGTH = 5000;
+const MAX_ALIGNMENT_WORDS = 12;
+const MAX_ALIGNMENT_CHARACTERS = 160;
+const DEFAULT_MIN_ALIGNMENT_SIMILARITY = 0.46;
 const ICON_SIZE = 38;
+const POPUP_WIDTH = 360;
+const POPUP_MAX_HEIGHT = 440;
 
 let settings: ExtensionSettings = DEFAULT_SETTINGS;
 let reactRoot: Root | undefined;
 let latestRequestId = 0;
+let latestAlignmentRequestId = 0;
 let lastInstantKey = '';
 let lastPointerPosition: OverlayPosition = { left: Math.round(window.innerWidth / 2), top: 120 };
 let suppressSelectionHandlingUntil = 0;
@@ -53,6 +81,7 @@ let overlayState: OverlayState = {
   status: 'hidden',
   position: HIDDEN_POSITION,
   selectedText: '',
+  alignment: undefined,
   copied: false,
   settings,
 };
@@ -94,7 +123,7 @@ export default defineContentScript({
     ui.mount();
 
     ctx.addEventListener(document, 'pointermove', (event) => {
-      lastPointerPosition = clampPosition({ left: event.clientX, top: event.clientY + 12 }, 360, 220);
+      lastPointerPosition = clampPopupPosition({ left: event.clientX, top: event.clientY + 12 });
     });
 
     ctx.addEventListener(document, 'mouseup', () => {
@@ -181,11 +210,13 @@ async function requestTranslation(text = overlayState.selectedText, position = o
   lastInstantKey = requestKey;
 
   const requestId = ++latestRequestId;
+  latestAlignmentRequestId += 1;
   updateOverlay({
     status: 'loading',
-    position: clampPosition(position, 360, 220),
+    position: clampPopupPosition(position),
     selectedText: normalizedText,
     translation: undefined,
+    alignment: undefined,
     copied: false,
   });
 
@@ -216,6 +247,7 @@ async function requestTranslation(text = overlayState.selectedText, position = o
   updateOverlay({
     status: response.ok ? 'result' : 'error',
     translation: response,
+    alignment: undefined,
   });
 }
 
@@ -267,6 +299,10 @@ function clampPosition(position: OverlayPosition, width: number, height: number)
   };
 }
 
+function clampPopupPosition(position: OverlayPosition): OverlayPosition {
+  return clampPosition(position, POPUP_WIDTH, Math.min(POPUP_MAX_HEIGHT, window.innerHeight - 24));
+}
+
 function updateOverlay(nextState: Partial<OverlayState>): void {
   overlayState = { ...overlayState, ...nextState };
   renderOverlay();
@@ -274,11 +310,13 @@ function updateOverlay(nextState: Partial<OverlayState>): void {
 
 function hideOverlay(): void {
   latestRequestId += 1;
+  latestAlignmentRequestId += 1;
   updateOverlay({
     status: 'hidden',
     position: HIDDEN_POSITION,
     selectedText: '',
     translation: undefined,
+    alignment: undefined,
     copied: false,
   });
 }
@@ -294,6 +332,10 @@ function renderOverlay(): void {
       onClose={() => {
         suppressSelectionHandling();
         hideOverlay();
+      }}
+      onTokenRangeSelected={(side, range, originalParts, translationParts) => {
+        suppressSelectionHandling();
+        void alignTokenRange(side, range, originalParts, translationParts);
       }}
       onCopy={() => {
         suppressSelectionHandling();
@@ -321,20 +363,50 @@ function TranslateOverlay({
   state,
   onTranslate,
   onClose,
+  onTokenRangeSelected,
   onCopy,
 }: {
   state: OverlayState;
   onTranslate: () => void;
   onClose: () => void;
+  onTokenRangeSelected: (
+    side: TextSide,
+    range: TokenRange,
+    originalParts: TokenPart[],
+    translationParts: TokenPart[],
+  ) => void;
   onCopy: () => void;
 }) {
-  if (state.status === 'hidden') {
-    return null;
-  }
-
   const style = {
     transform: `translate3d(${state.position.left}px, ${state.position.top}px, 0)`,
   };
+
+  const isDictionary = state.settings.popupMode === 'dictionary';
+  const title = isDictionary
+    ? t('dictionaryTitle', undefined, state.settings.appLanguage)
+    : t('translationTitle', undefined, state.settings.appLanguage);
+  const response = state.translation;
+  const uiLanguage = getUiLanguage(state.settings.appLanguage);
+  const uiDirection = getUiDirection(uiLanguage);
+  const originalDirection = getTextDirection(state.selectedText, state.settings.sourceLanguage);
+  const originalLanguage = getTextLanguage(state.settings.sourceLanguage);
+  const resultText = response?.ok ? response.translatedText : '';
+  const resultDirection = getTextDirection(resultText, response?.ok ? response.targetLanguage : state.settings.targetLanguage);
+  const resultLanguage = getTextLanguage(response?.ok ? response.targetLanguage : state.settings.targetLanguage);
+  const originalParts = useMemo(
+    () => tokenizeText(state.selectedText, originalLanguage ?? state.settings.sourceLanguage),
+    [originalLanguage, state.selectedText, state.settings.sourceLanguage],
+  );
+  const translationParts = useMemo(
+    () => tokenizeText(resultText, resultLanguage ?? state.settings.targetLanguage),
+    [resultLanguage, resultText, state.settings.targetLanguage],
+  );
+  const errorText = response && !response.ok ? response.error.message : '';
+  const errorDirection = getTextDirection(errorText, 'en');
+
+  if (state.status === 'hidden') {
+    return null;
+  }
 
   if (state.status === 'icon') {
     return (
@@ -350,21 +422,6 @@ function TranslateOverlay({
       </button>
     );
   }
-
-  const isDictionary = state.settings.popupMode === 'dictionary';
-  const title = isDictionary
-    ? t('dictionaryTitle', undefined, state.settings.appLanguage)
-    : t('translationTitle', undefined, state.settings.appLanguage);
-  const response = state.translation;
-  const uiLanguage = getUiLanguage(state.settings.appLanguage);
-  const uiDirection = getUiDirection(uiLanguage);
-  const originalDirection = getTextDirection(state.selectedText, state.settings.sourceLanguage);
-  const originalLanguage = getTextLanguage(state.settings.sourceLanguage);
-  const resultText = response?.ok ? response.translatedText : '';
-  const resultDirection = getTextDirection(resultText, response?.ok ? response.targetLanguage : state.settings.targetLanguage);
-  const resultLanguage = getTextLanguage(response?.ok ? response.targetLanguage : state.settings.targetLanguage);
-  const errorText = response && !response.ok ? response.error.message : '';
-  const errorDirection = getTextDirection(errorText, 'en');
 
   return (
     <section
@@ -390,19 +447,6 @@ function TranslateOverlay({
         </button>
       </header>
 
-      {isDictionary && (
-        <div className="translation-card__original">
-          <span>{t('labelOriginal', undefined, state.settings.appLanguage)}</span>
-          <p
-            dir={originalDirection}
-            lang={originalLanguage}
-            style={{ textAlign: getTextAlign(originalDirection) }}
-          >
-            {state.selectedText}
-          </p>
-        </div>
-      )}
-
       {state.status === 'loading' && (
         <div className="translation-card__status">
           <LoaderCircle className="spin" size={18} />
@@ -418,14 +462,31 @@ function TranslateOverlay({
 
       {state.status === 'result' && response?.ok && (
         <>
-          <p
-            className="translation-card__result"
-            dir={resultDirection}
-            lang={resultLanguage}
-            style={{ textAlign: getTextAlign(resultDirection) }}
-          >
-            {response.translatedText}
-          </p>
+          <TokenTextBlock
+            alignment={state.alignment}
+            className="translation-card__original"
+            direction={originalDirection}
+            label={t('labelOriginal', undefined, state.settings.appLanguage)}
+            language={originalLanguage}
+            originalParts={originalParts}
+            parts={originalParts}
+            side="original"
+            translationParts={translationParts}
+            onRangeSelected={onTokenRangeSelected}
+          />
+
+          <TokenTextBlock
+            alignment={state.alignment}
+            className="translation-card__translation"
+            direction={resultDirection}
+            label={t('titleTranslation', undefined, state.settings.appLanguage)}
+            language={resultLanguage}
+            originalParts={originalParts}
+            parts={translationParts}
+            side="translation"
+            translationParts={translationParts}
+            onRangeSelected={onTokenRangeSelected}
+          />
           <footer className="translation-card__footer">
             <span dir={uiDirection} lang={uiLanguage}>
               {response.detectedSourceLanguage
@@ -462,6 +523,551 @@ function TranslateOverlay({
       )}
     </section>
   );
+}
+
+function TokenTextBlock({
+  alignment,
+  className,
+  direction,
+  label,
+  language,
+  originalParts,
+  parts,
+  side,
+  translationParts,
+  onRangeSelected,
+}: {
+  alignment?: AlignmentState;
+  className: string;
+  direction: ReturnType<typeof getTextDirection>;
+  label: string;
+  language?: string;
+  originalParts: TokenPart[];
+  parts: TokenPart[];
+  side: TextSide;
+  translationParts: TokenPart[];
+  onRangeSelected: (
+    side: TextSide,
+    range: TokenRange,
+    originalParts: TokenPart[],
+    translationParts: TokenPart[],
+  ) => void;
+}) {
+  const [dragRange, setDragRange] = useState<TokenRange | undefined>();
+  const selectedRange = getSideRange(alignment, side, 'selected');
+  const matchedRange = getSideRange(alignment, side, 'matched');
+
+  return (
+    <div className={`${className} translation-card__text-block`}>
+      <span className="translation-card__text-label">{label}</span>
+      <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}>
+        {parts.map((part) => renderTokenPart({
+          dragRange,
+          matchedRange,
+          onRangeSelected,
+          originalParts,
+          part,
+          selectedRange,
+          setDragRange,
+          side,
+          translationParts,
+        }))}
+      </p>
+    </div>
+  );
+}
+
+function renderTokenPart({
+  dragRange,
+  matchedRange,
+  onRangeSelected,
+  originalParts,
+  part,
+  selectedRange,
+  setDragRange,
+  side,
+  translationParts,
+}: {
+  dragRange?: TokenRange;
+  matchedRange?: TokenRange;
+  onRangeSelected: (
+    side: TextSide,
+    range: TokenRange,
+    originalParts: TokenPart[],
+    translationParts: TokenPart[],
+  ) => void;
+  originalParts: TokenPart[];
+  part: TokenPart;
+  selectedRange?: TokenRange;
+  setDragRange: Dispatch<SetStateAction<TokenRange | undefined>>;
+  side: TextSide;
+  translationParts: TokenPart[];
+}) {
+  if (!part.isWordLike) {
+    return <span key={part.partIndex}>{part.text}</span>;
+  }
+
+  const ownRange = { startPartIndex: part.partIndex, endPartIndex: part.partIndex };
+  const isSelected = isPartInRange(part, selectedRange);
+  const isMatched = isPartInRange(part, matchedRange);
+  const isPreview = isPartInRange(part, dragRange);
+  const className = [
+    'translation-token',
+    isSelected ? 'translation-token--selected' : '',
+    isMatched ? 'translation-token--matched' : '',
+    isPreview && !isRangeEqual(dragRange, selectedRange) ? 'translation-token--preview' : '',
+  ].filter(Boolean).join(' ');
+
+  const selectRange = (range: TokenRange) => {
+    setDragRange(undefined);
+    onRangeSelected(side, normalizeRange(range), originalParts, translationParts);
+  };
+
+  return (
+    <span
+      key={part.partIndex}
+      className={className}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        selectRange(ownRange);
+      }}
+      onPointerCancel={() => setDragRange(undefined)}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        setDragRange(ownRange);
+      }}
+      onPointerEnter={() => {
+        setDragRange((currentRange) => currentRange
+          ? normalizeRange({ ...currentRange, endPartIndex: part.partIndex })
+          : currentRange);
+      }}
+      onPointerUp={(event) => {
+        event.preventDefault();
+        selectRange(dragRange ?? ownRange);
+      }}
+    >
+      {part.text}
+    </span>
+  );
+}
+
+function normalizeRange(range: TokenRange): TokenRange {
+  return range.startPartIndex <= range.endPartIndex
+    ? range
+    : { startPartIndex: range.endPartIndex, endPartIndex: range.startPartIndex };
+}
+
+function isRangeEqual(first?: TokenRange, second?: TokenRange): boolean {
+  return Boolean(
+    first &&
+    second &&
+    first.startPartIndex === second.startPartIndex &&
+    first.endPartIndex === second.endPartIndex,
+  );
+}
+
+function isPartInRange(part: TokenPart, range?: TokenRange): boolean {
+  if (!range) {
+    return false;
+  }
+
+  const normalizedRange = normalizeRange(range);
+  return part.partIndex >= normalizedRange.startPartIndex && part.partIndex <= normalizedRange.endPartIndex;
+}
+
+function getSideRange(
+  alignment: AlignmentState | undefined,
+  side: TextSide,
+  rangeType: 'selected' | 'matched',
+): TokenRange | undefined {
+  if (!alignment) {
+    return undefined;
+  }
+
+  if (rangeType === 'selected') {
+    return alignment.selectedSide === side ? alignment.selectedRange : undefined;
+  }
+
+  return alignment.selectedSide !== side ? alignment.matchedRange : undefined;
+}
+
+function getWordCount(parts: TokenPart[], range: TokenRange): number {
+  return parts.filter((part) => part.isWordLike && isPartInRange(part, range)).length;
+}
+
+function getRangeText(parts: TokenPart[], range: TokenRange): string {
+  const normalizedRange = normalizeRange(range);
+  return parts
+    .filter((part) => part.partIndex >= normalizedRange.startPartIndex && part.partIndex <= normalizedRange.endPartIndex)
+    .map((part) => part.text)
+    .join('');
+}
+
+function tokenizeText(text: string, language?: string): TokenPart[] {
+  if (!text) {
+    return [];
+  }
+
+  if ('Segmenter' in Intl) {
+    const segmenter = new Intl.Segmenter(
+      language && language !== 'auto' ? language : undefined,
+      { granularity: 'word' },
+    );
+    let wordIndex = 0;
+
+    return Array.from(segmenter.segment(text)).map((segment, index) => {
+      const isWordLike = Boolean(segment.isWordLike);
+      const part: TokenPart = {
+        partIndex: index,
+        text: segment.segment,
+        isWordLike,
+      };
+
+      if (isWordLike) {
+        part.wordIndex = wordIndex;
+        wordIndex += 1;
+      }
+
+      return part;
+    });
+  }
+
+  let wordIndex = 0;
+  const segments = text.match(/[\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}]+/gu) ?? [text];
+  return segments.map((segment, index) => {
+    const isWordLike = /[\p{L}\p{N}]/u.test(segment);
+    const part: TokenPart = {
+      partIndex: index,
+      text: segment,
+      isWordLike,
+    };
+
+    if (isWordLike) {
+      part.wordIndex = wordIndex;
+      wordIndex += 1;
+    }
+
+    return part;
+  });
+}
+
+async function alignTokenRange(
+  side: TextSide,
+  rawRange: TokenRange,
+  originalParts: TokenPart[],
+  translationParts: TokenPart[],
+): Promise<void> {
+  if (!overlayState.translation?.ok) {
+    return;
+  }
+
+  const sourceParts = side === 'original' ? originalParts : translationParts;
+  const targetParts = side === 'original' ? translationParts : originalParts;
+  const range = normalizeRange(rawRange);
+  const phrase = getRangeText(sourceParts, range).trim();
+  const selectedAlignment: AlignmentState = {
+    selectedSide: side,
+    selectedRange: range,
+    status: 'loading',
+  };
+
+  if (
+    !phrase ||
+    getWordCount(sourceParts, range) > MAX_ALIGNMENT_WORDS ||
+    phrase.length > MAX_ALIGNMENT_CHARACTERS
+  ) {
+    updateOverlay({ alignment: { ...selectedAlignment, status: 'no-match' } });
+    return;
+  }
+
+  updateOverlay({ alignment: selectedAlignment });
+
+  const requestId = ++latestAlignmentRequestId;
+  const translatedPhrase = await translateAlignmentPhrase(side, phrase);
+  if (requestId !== latestAlignmentRequestId || !overlayState.translation?.ok) {
+    return;
+  }
+
+  if (!translatedPhrase) {
+    updateOverlay({ alignment: { ...selectedAlignment, status: 'no-match' } });
+    return;
+  }
+
+  const matchedRange = findBestTokenRange(
+    [translatedPhrase, phrase],
+    targetParts,
+    getRangeWordCenterRatio(sourceParts, range),
+  );
+  updateOverlay({
+    alignment: {
+      ...selectedAlignment,
+      matchedRange,
+      status: matchedRange ? 'idle' : 'no-match',
+    },
+  });
+}
+
+async function translateAlignmentPhrase(side: TextSide, phrase: string): Promise<string | undefined> {
+  const currentTranslation = overlayState.translation;
+  if (!currentTranslation?.ok) {
+    return undefined;
+  }
+
+  const targetLanguage = side === 'original'
+    ? currentTranslation.targetLanguage
+    : getResolvedSourceLanguage(currentTranslation);
+  const sourceLanguage = side === 'original'
+    ? settings.sourceLanguage
+    : currentTranslation.targetLanguage;
+
+  if (!targetLanguage) {
+    return undefined;
+  }
+
+  const message: TranslateTextMessage = {
+    type: 'TRANSLATE_TEXT',
+    text: phrase,
+    sourceLanguage,
+    targetLanguage,
+  };
+
+  try {
+    const response = await browser.runtime.sendMessage(message) as TranslationResponse;
+    return response.ok ? response.translatedText : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getResolvedSourceLanguage(response: TranslationResponse | undefined): string | undefined {
+  if (!response?.ok) {
+    return undefined;
+  }
+
+  if (response.detectedSourceLanguage) {
+    return response.detectedSourceLanguage;
+  }
+
+  return settings.sourceLanguage === 'auto' ? undefined : settings.sourceLanguage;
+}
+
+function findBestTokenRange(
+  queries: string[] | string,
+  targetParts: TokenPart[],
+  expectedCenterRatio?: number,
+): TokenRange | undefined {
+  const normalizedQueries = Array.from(new Set(
+    (Array.isArray(queries) ? queries : [queries])
+      .map((query) => normalizeAlignmentText(query))
+      .filter(Boolean),
+  ));
+
+  if (normalizedQueries.length === 0) {
+    return undefined;
+  }
+
+  const wordParts = getWordParts(targetParts);
+  if (wordParts.length === 0) {
+    return undefined;
+  }
+
+  let bestRange: TokenRange | undefined;
+  let bestScore = 0;
+
+  normalizedQueries.forEach((normalizedQuery) => {
+    const queryWordCount = getNormalizedWords(normalizedQuery).length || 1;
+    const minWords = queryWordCount <= 2 ? 1 : Math.max(1, Math.floor(queryWordCount * 0.45));
+    const maxWords = Math.min(wordParts.length, Math.max(5, Math.ceil(queryWordCount * 2.8) + 2));
+
+    for (let length = minWords; length <= maxWords; length += 1) {
+      for (let start = 0; start <= wordParts.length - length; start += 1) {
+        const range = getPartRangeFromWordRange(wordParts, start, start + length - 1);
+        const normalizedCandidate = normalizeAlignmentText(getRangeText(targetParts, range));
+
+        if (!normalizedCandidate) {
+          continue;
+        }
+
+        const baseScore = scoreAlignmentCandidate(normalizedQuery, normalizedCandidate);
+        const positionScore = expectedCenterRatio === undefined
+          ? 1
+          : scorePositionProximity(getWordRangeCenterRatio(start, start + length - 1, wordParts.length), expectedCenterRatio);
+        const score = baseScore * (0.92 + (positionScore * 0.08));
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestRange = range;
+        }
+      }
+    }
+  });
+
+  return bestRange && bestScore >= getMinimumAlignmentScore(normalizedQueries) ? bestRange : undefined;
+}
+
+function normalizeAlignmentText(text: string): string {
+  return text
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/\u0640/g, '')
+    .replace(/[إأآٱا]/g, 'ا')
+    .replace(/[ىی]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function scoreAlignmentCandidate(normalizedQuery: string, normalizedCandidate: string): number {
+  if (normalizedQuery === normalizedCandidate) {
+    return 1;
+  }
+
+  const lengthRatio = getLengthRatio(normalizedQuery, normalizedCandidate);
+  if (normalizedCandidate.includes(normalizedQuery)) {
+    return 0.88 + (lengthRatio * 0.1);
+  }
+
+  if (normalizedQuery.includes(normalizedCandidate)) {
+    return 0.8 + (lengthRatio * 0.12);
+  }
+
+  const characterScore = diceCoefficient(normalizedQuery, normalizedCandidate);
+  const tokenScore = tokenOverlapScore(normalizedQuery, normalizedCandidate);
+  return Math.max(characterScore, tokenScore) * (0.82 + (lengthRatio * 0.18));
+}
+
+function getMinimumAlignmentScore(normalizedQueries: string[]): number {
+  const longestQueryLength = Math.max(...normalizedQueries.map((query) => query.replace(/\s+/g, '').length));
+
+  if (longestQueryLength <= 3) {
+    return 0.78;
+  }
+
+  if (longestQueryLength <= 8) {
+    return 0.58;
+  }
+
+  return DEFAULT_MIN_ALIGNMENT_SIMILARITY;
+}
+
+function getLengthRatio(first: string, second: string): number {
+  const firstLength = first.replace(/\s+/g, '').length;
+  const secondLength = second.replace(/\s+/g, '').length;
+
+  if (firstLength === 0 || secondLength === 0) {
+    return 0;
+  }
+
+  return Math.min(firstLength, secondLength) / Math.max(firstLength, secondLength);
+}
+
+function getNormalizedWords(text: string): string[] {
+  return text.split(' ').filter(Boolean);
+}
+
+function tokenOverlapScore(first: string, second: string): number {
+  const firstWords = new Set(getNormalizedWords(first));
+  const secondWords = new Set(getNormalizedWords(second));
+  if (firstWords.size === 0 || secondWords.size === 0) {
+    return 0;
+  }
+
+  let intersectionSize = 0;
+  firstWords.forEach((word) => {
+    if (secondWords.has(word)) {
+      intersectionSize += 1;
+    }
+  });
+
+  return (2 * intersectionSize) / (firstWords.size + secondWords.size);
+}
+
+function getRangeWordCenterRatio(parts: TokenPart[], range: TokenRange): number | undefined {
+  const selectedWordIndexes = parts
+    .filter((part) => part.isWordLike && isPartInRange(part, range) && part.wordIndex !== undefined)
+    .map((part) => part.wordIndex as number);
+  const wordParts = getWordParts(parts);
+
+  if (selectedWordIndexes.length === 0 || wordParts.length === 0) {
+    return undefined;
+  }
+
+  const firstWordIndex = selectedWordIndexes[0];
+  const lastWordIndex = selectedWordIndexes[selectedWordIndexes.length - 1];
+  return getWordRangeCenterRatio(firstWordIndex, lastWordIndex, wordParts.length);
+}
+
+function getWordRangeCenterRatio(startWordIndex: number, endWordIndex: number, wordCount: number): number {
+  if (wordCount <= 1) {
+    return 0.5;
+  }
+
+  return ((startWordIndex + endWordIndex) / 2) / (wordCount - 1);
+}
+
+function scorePositionProximity(candidateCenterRatio: number, expectedCenterRatio: number): number {
+  return Math.max(0, 1 - Math.abs(candidateCenterRatio - expectedCenterRatio));
+}
+
+function getWordParts(parts: TokenPart[]): TokenPart[] {
+  return parts.filter((part) => part.isWordLike);
+}
+
+function getPartRangeFromWordRange(wordParts: TokenPart[], startWordIndex: number, endWordIndex: number): TokenRange {
+  return {
+    startPartIndex: wordParts[startWordIndex].partIndex,
+    endPartIndex: wordParts[endWordIndex].partIndex,
+  };
+}
+
+function getBigrams(text: string): Map<string, number> {
+  const compactText = text.replace(/\s+/g, '');
+  if (compactText.length <= 1) {
+    return new Map(compactText ? [[compactText, 1]] : []);
+  }
+
+  const bigrams = new Map<string, number>();
+  for (let index = 0; index < compactText.length - 1; index += 1) {
+    const bigram = compactText.slice(index, index + 2);
+    bigrams.set(bigram, (bigrams.get(bigram) ?? 0) + 1);
+  }
+
+  return bigrams;
+}
+
+function diceCoefficient(first: string, second: string): number {
+  if (first === second) {
+    return 1;
+  }
+
+  const firstBigrams = getBigrams(first);
+  const secondBigrams = getBigrams(second);
+  if (firstBigrams.size === 0 || secondBigrams.size === 0) {
+    return 0;
+  }
+
+  let firstTotal = 0;
+  let secondTotal = 0;
+  let intersectionTotal = 0;
+
+  firstBigrams.forEach((count, bigram) => {
+    firstTotal += count;
+    intersectionTotal += Math.min(count, secondBigrams.get(bigram) ?? 0);
+  });
+  secondBigrams.forEach((count) => {
+    secondTotal += count;
+  });
+
+  return (2 * intersectionTotal) / (firstTotal + secondTotal);
 }
 
 function handleOutsidePointerDown(event: Event): void {
@@ -521,6 +1127,8 @@ const overlayCss = `
     --translate-error: #a13b14;
     --translate-border: rgba(21, 35, 58, 0.12);
     --translate-border-soft: rgba(21, 35, 58, 0.08);
+    --translate-scrollbar-thumb: rgba(60, 60, 67, 0.28);
+    --translate-scrollbar-thumb-hover: rgba(60, 60, 67, 0.42);
     --translate-shadow-icon: 0 12px 30px rgba(17, 24, 39, 0.24);
     --translate-shadow-icon-hover: 0 14px 36px rgba(17, 24, 39, 0.28);
     --translate-shadow-card: 0 18px 50px rgba(17, 24, 39, 0.28);
@@ -545,6 +1153,8 @@ const overlayCss = `
     --translate-error: #ffb4a2;
     --translate-border: rgba(235, 235, 245, 0.16);
     --translate-border-soft: rgba(235, 235, 245, 0.1);
+    --translate-scrollbar-thumb: rgba(235, 235, 245, 0.28);
+    --translate-scrollbar-thumb-hover: rgba(235, 235, 245, 0.42);
     --translate-shadow-icon: 0 12px 30px rgba(0, 0, 0, 0.42);
     --translate-shadow-icon-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
     --translate-shadow-card: 0 18px 50px rgba(0, 0, 0, 0.46);
@@ -564,6 +1174,8 @@ const overlayCss = `
       --translate-error: #ffb4a2;
       --translate-border: rgba(235, 235, 245, 0.16);
       --translate-border-soft: rgba(235, 235, 245, 0.1);
+      --translate-scrollbar-thumb: rgba(235, 235, 245, 0.28);
+      --translate-scrollbar-thumb-hover: rgba(235, 235, 245, 0.42);
       --translate-shadow-icon: 0 12px 30px rgba(0, 0, 0, 0.42);
       --translate-shadow-icon-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
       --translate-shadow-card: 0 18px 50px rgba(0, 0, 0, 0.46);
@@ -649,18 +1261,7 @@ const overlayCss = `
     line-height: 1.45;
   }
 
-  .translation-card__result {
-    margin: 0;
-    padding: 16px;
-    max-height: 260px;
-    overflow: auto;
-    font-size: 15px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    unicode-bidi: plaintext;
-  }
-
-  .translation-card__original {
+  .translation-card__text-block {
     margin: 12px 12px 0;
     padding: 10px;
     border-radius: 8px;
@@ -668,21 +1269,84 @@ const overlayCss = `
     color: var(--translate-secondary);
   }
 
-  .translation-card__original span,
+  .translation-card__translation {
+    margin-top: 8px;
+    padding: 8px 10px 0;
+    background: transparent;
+  }
+
+  .translation-card__text-label,
   .translation-card__footer {
     font-size: 11px;
     color: var(--translate-muted);
   }
 
-  .translation-card__original p {
+  .translation-card__text-block p {
     margin: 4px 0 0;
-    max-height: 96px;
+    max-height: 82px;
     overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--translate-scrollbar-thumb) transparent;
     font-size: 13px;
     line-height: 1.45;
     color: var(--translate-text);
     white-space: pre-wrap;
     unicode-bidi: plaintext;
+    user-select: none;
+  }
+
+  .translation-card__translation p {
+    max-height: 150px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .translation-card__text-block p::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .translation-card__text-block p::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .translation-card__text-block p::-webkit-scrollbar-thumb {
+    min-height: 32px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-color: var(--translate-scrollbar-thumb);
+    background-clip: content-box;
+  }
+
+  .translation-card__text-block p::-webkit-scrollbar-thumb:hover {
+    background-color: var(--translate-scrollbar-thumb-hover);
+  }
+
+  .translation-token {
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0 1px;
+    transition: background-color 120ms ease, color 120ms ease, outline-color 120ms ease;
+  }
+
+  .translation-token--selected {
+    background: rgba(10, 132, 255, 0.2);
+    color: var(--translate-text);
+  }
+
+  .translation-token--matched {
+    background: rgba(52, 199, 89, 0.2);
+    color: var(--translate-text);
+  }
+
+  .translation-token--preview {
+    outline: 1px solid var(--translate-blue);
+    background: var(--translate-hover);
+  }
+
+  .translation-token:focus-visible {
+    outline: 2px solid var(--translate-blue);
+    outline-offset: 1px;
   }
 
   .translation-card__footer {

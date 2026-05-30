@@ -1,3 +1,4 @@
+import { browser } from '#imports';
 import { Button } from '@base-ui/react';
 import { ChevronRight } from 'lucide-react';
 
@@ -15,6 +16,8 @@ export function HomeScreen({
   saveState: SaveStateValue;
   onNavigate: (screen: Screen) => void;
 }) {
+  const appVersion = browser.runtime.getManifest().version;
+
   return (
     <section className="screen screen--home" aria-label={t('ariaTranslateSettings')}>
       <AppHeader
@@ -40,6 +43,8 @@ export function HomeScreen({
           </Button>
         ))}
       </section>
+
+      <p className="app-version">v{appVersion}</p>
     </section>
   );
 }
