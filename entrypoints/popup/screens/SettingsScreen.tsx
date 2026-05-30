@@ -1,8 +1,8 @@
-import { Database, Languages, Zap } from 'lucide-react';
+import { Database, Languages, Settings2, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { t } from '@/lib/i18n';
-import type { ExtensionSettings } from '@/lib/settings';
+import type { ExtensionSettings as ExtensionSettingsModel } from '@/lib/settings';
 
 import { AppHeader } from '../components/AppHeader';
 import type {
@@ -11,6 +11,7 @@ import type {
   SettingsScreen as SettingsScreenName,
 } from '../types';
 import { InteractionSettings } from './InteractionSettings';
+import { ExtensionSettings as ExtensionSettingsScreen } from './ExtensionSettings';
 import { ProviderSettings } from './ProviderSettings';
 import { TranslationSettings } from './TranslationSettings';
 
@@ -23,7 +24,7 @@ export function SettingsScreen({
   onReset,
 }: {
   screen: SettingsScreenName;
-  settings: ExtensionSettings;
+  settings: ExtensionSettingsModel;
   saveState: SaveStateValue;
   onBack: () => void;
   onUpdate: SettingUpdateHandler;
@@ -49,7 +50,11 @@ export function SettingsScreen({
       )}
 
       {screen === 'provider' && (
-        <ProviderSettings settings={settings} onUpdate={onUpdate} onReset={onReset} />
+        <ProviderSettings settings={settings} onUpdate={onUpdate} />
+      )}
+
+      {screen === 'extension' && (
+        <ExtensionSettingsScreen settings={settings} onUpdate={onUpdate} onReset={onReset} />
       )}
     </section>
   );
@@ -74,6 +79,11 @@ function getScreenMeta(screen: SettingsScreenName): {
       return {
         title: t('titleProvider'),
         icon: <Database size={19} />,
+      };
+    case 'extension':
+      return {
+        title: t('titleExtension'),
+        icon: <Settings2 size={19} />,
       };
   }
 }

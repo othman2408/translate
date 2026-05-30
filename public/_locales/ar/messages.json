@@ -77,6 +77,9 @@
   "groupGoogleCloud": {
     "message": "Google Cloud"
   },
+  "groupInterface": {
+    "message": "الواجهة"
+  },
   "groupLanguages": {
     "message": "اللغات"
   },
@@ -94,6 +97,9 @@
   },
   "labelApiKey": {
     "message": "مفتاح API"
+  },
+  "labelExtensionLanguage": {
+    "message": "لغة الإضافة"
   },
   "labelFrom": {
     "message": "من"
@@ -185,6 +191,9 @@
   "optionInstant": {
     "message": "فوري"
   },
+  "optionSystemLanguage": {
+    "message": "تلقائي"
+  },
   "providerDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -196,6 +205,9 @@
   },
   "titleInteraction": {
     "message": "التفاعل"
+  },
+  "titleExtension": {
+    "message": "الإضافة"
   },
   "titleProvider": {
     "message": "المزود"

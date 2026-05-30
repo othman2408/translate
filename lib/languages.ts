@@ -1,4 +1,4 @@
-import { t, type I18nKey } from './i18n';
+import { t, type AppLanguage, type I18nKey } from './i18n';
 
 export type LanguageOption = {
   code: string;
@@ -31,14 +31,17 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export const TARGET_LANGUAGE_OPTIONS = LANGUAGE_OPTIONS.filter((language) => language.code !== 'auto');
 
-export function localizeLanguageOptions(options: LanguageOption[]): LanguageOption[] {
+export function localizeLanguageOptions(
+  options: LanguageOption[],
+  appLanguage?: AppLanguage,
+): LanguageOption[] {
   return options.map((option) => ({
     ...option,
-    name: t(option.nameKey),
+    name: t(option.nameKey, undefined, appLanguage),
   }));
 }
 
-export function getLanguageName(code: string): string {
+export function getLanguageName(code: string, appLanguage?: AppLanguage): string {
   const language = LANGUAGE_OPTIONS.find((option) => option.code === code);
-  return language ? t(language.nameKey) : code;
+  return language ? t(language.nameKey, undefined, appLanguage) : code;
 }

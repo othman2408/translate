@@ -1,5 +1,5 @@
-import { Button, Field, Input } from '@base-ui/react';
-import { RotateCcw, ShieldCheck } from 'lucide-react';
+import { Field, Input } from '@base-ui/react';
+import { ShieldCheck } from 'lucide-react';
 
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
@@ -10,11 +10,9 @@ import type { SettingUpdateHandler } from '../types';
 export function ProviderSettings({
   settings,
   onUpdate,
-  onReset,
 }: {
   settings: ExtensionSettings;
   onUpdate: SettingUpdateHandler;
-  onReset: () => void;
 }) {
   return (
     <div className="settings-stack">
@@ -46,17 +44,6 @@ export function ProviderSettings({
         </div>
       </GroupedSection>
 
-      <GroupedSection label={t('groupSettings')}>
-        <div className="setting-row">
-          <span className="setting-row__copy">
-            <strong className="setting-label">{t('actionReset')}</strong>
-          </span>
-          <Button className="danger-soft-button" type="button" onClick={onReset}>
-            <RotateCcw size={14} />
-            {t('actionReset')}
-          </Button>
-        </div>
-      </GroupedSection>
     </div>
   );
 }

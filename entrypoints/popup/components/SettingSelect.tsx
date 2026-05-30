@@ -1,7 +1,10 @@
 import { Field, Select } from '@base-ui/react';
 import { Check, ChevronDown } from 'lucide-react';
 
-import { getLanguageName, type LanguageOption } from '@/lib/languages';
+export type SettingSelectOption = {
+  label: string;
+  value: string;
+};
 
 export function SettingSelect({
   label,
@@ -13,10 +16,10 @@ export function SettingSelect({
   label: string;
   description?: string;
   value: string;
-  options: LanguageOption[];
+  options: SettingSelectOption[];
   onValueChange: (value: string) => void;
 }) {
-  const items = options.map((option) => ({ label: option.name, value: option.code }));
+  const selectedOption = options.find((option) => option.value === value);
 
   return (
     <Field.Root className="setting-row">
@@ -28,7 +31,7 @@ export function SettingSelect({
       </span>
       <Select.Root<string>
         value={value}
-        items={items}
+        items={options}
         onValueChange={(nextValue) => {
           if (typeof nextValue === 'string') {
             onValueChange(nextValue);
@@ -36,7 +39,13 @@ export function SettingSelect({
         }}
       >
         <Select.Trigger className="select-trigger" aria-label={label}>
-          <Select.Value>{(selectedValue) => getLanguageName(selectedValue ?? value)}</Select.Value>
+          <Select.Value>
+            {(selectedValue) => (
+              options.find((option) => option.value === selectedValue)?.label
+              ?? selectedOption?.label
+              ?? value
+            )}
+          </Select.Value>
           <Select.Icon className="select-trigger__icon">
             <ChevronDown size={14} />
           </Select.Icon>
@@ -51,12 +60,12 @@ export function SettingSelect({
               <Select.List className="select-list">
                 {options.map((option) => (
                   <Select.Item
-                    key={option.code}
+                    key={option.value}
                     className="select-item"
-                    value={option.code}
-                    label={option.name}
+                    value={option.value}
+                    label={option.label}
                   >
-                    <Select.ItemText>{option.name}</Select.ItemText>
+                    <Select.ItemText>{option.label}</Select.ItemText>
                     <Select.ItemIndicator className="select-item__indicator">
                       <Check size={13} />
                     </Select.ItemIndicator>

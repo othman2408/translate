@@ -13,8 +13,17 @@ export function TranslationSettings({
   settings: ExtensionSettings;
   onUpdate: SettingUpdateHandler;
 }) {
-  const languageOptions = localizeLanguageOptions(LANGUAGE_OPTIONS);
-  const targetLanguageOptions = localizeLanguageOptions(TARGET_LANGUAGE_OPTIONS);
+  const languageOptions = localizeLanguageOptions(LANGUAGE_OPTIONS, settings.appLanguage).map((option) => ({
+    label: option.name,
+    value: option.code,
+  }));
+  const targetLanguageOptions = localizeLanguageOptions(
+    TARGET_LANGUAGE_OPTIONS,
+    settings.appLanguage,
+  ).map((option) => ({
+    label: option.name,
+    value: option.code,
+  }));
 
   return (
     <div className="settings-stack">

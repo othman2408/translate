@@ -204,7 +204,7 @@ async function requestTranslation(text = overlayState.selectedText, position = o
       ok: false,
       error: {
         code: 'network',
-        message: t('errorBackgroundUnavailable'),
+        message: t('errorBackgroundUnavailable', undefined, settings.appLanguage),
       },
     };
   }
@@ -342,7 +342,7 @@ function TranslateOverlay({
         className="translate-icon-button"
         style={style}
         type="button"
-        title={t('translationTitle')}
+        title={t('translationTitle', undefined, state.settings.appLanguage)}
         onClick={onTranslate}
       >
         <Languages size={18} strokeWidth={2.3} />
@@ -351,9 +351,11 @@ function TranslateOverlay({
   }
 
   const isDictionary = state.settings.popupMode === 'dictionary';
-  const title = isDictionary ? t('dictionaryTitle') : t('translationTitle');
+  const title = isDictionary
+    ? t('dictionaryTitle', undefined, state.settings.appLanguage)
+    : t('translationTitle', undefined, state.settings.appLanguage);
   const response = state.translation;
-  const uiLanguage = getUiLanguage();
+  const uiLanguage = getUiLanguage(state.settings.appLanguage);
   const uiDirection = getUiDirection(uiLanguage);
   const originalDirection = getTextDirection(state.selectedText, state.settings.sourceLanguage);
   const originalLanguage = getTextLanguage(state.settings.sourceLanguage);
@@ -376,14 +378,19 @@ function TranslateOverlay({
           {isDictionary ? <BookOpen size={16} /> : <Languages size={16} />}
           <span>{title}</span>
         </div>
-        <button className="icon-control" type="button" title={t('actionClose')} onClick={onClose}>
+        <button
+          className="icon-control"
+          type="button"
+          title={t('actionClose', undefined, state.settings.appLanguage)}
+          onClick={onClose}
+        >
           <X size={16} />
         </button>
       </header>
 
       {isDictionary && (
         <div className="translation-card__original">
-          <span>{t('labelOriginal')}</span>
+          <span>{t('labelOriginal', undefined, state.settings.appLanguage)}</span>
           <p
             dir={originalDirection}
             lang={originalLanguage}
@@ -398,7 +405,11 @@ function TranslateOverlay({
         <div className="translation-card__status">
           <LoaderCircle className="spin" size={18} />
           <span dir={uiDirection} lang={uiLanguage}>
-            {t('translatingTo', getLanguageName(state.settings.targetLanguage))}
+            {t(
+              'translatingTo',
+              getLanguageName(state.settings.targetLanguage, state.settings.appLanguage),
+              state.settings.appLanguage,
+            )}
           </span>
         </div>
       )}
@@ -417,13 +428,22 @@ function TranslateOverlay({
             <span dir={uiDirection} lang={uiLanguage}>
               {response.detectedSourceLanguage
                 ? t('footerLanguagePair', [
-                  getLanguageName(response.detectedSourceLanguage),
-                  getLanguageName(response.targetLanguage),
-                ])
-                : t('footerToLanguage', getLanguageName(response.targetLanguage))}
-              {response.fromCache ? ` - ${t('footerCached')}` : ''}
+                  getLanguageName(response.detectedSourceLanguage, state.settings.appLanguage),
+                  getLanguageName(response.targetLanguage, state.settings.appLanguage),
+                ], state.settings.appLanguage)
+                : t(
+                  'footerToLanguage',
+                  getLanguageName(response.targetLanguage, state.settings.appLanguage),
+                  state.settings.appLanguage,
+                )}
+              {response.fromCache ? ` - ${t('footerCached', undefined, state.settings.appLanguage)}` : ''}
             </span>
-            <button className="icon-control" type="button" title={t('actionCopyTranslation')} onClick={onCopy}>
+            <button
+              className="icon-control"
+              type="button"
+              title={t('actionCopyTranslation', undefined, state.settings.appLanguage)}
+              onClick={onCopy}
+            >
               {state.copied ? <Check size={16} /> : <Copy size={16} />}
             </button>
           </footer>

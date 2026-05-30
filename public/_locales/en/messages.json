@@ -77,6 +77,9 @@
   "groupGoogleCloud": {
     "message": "Google Cloud"
   },
+  "groupInterface": {
+    "message": "Interface"
+  },
   "groupLanguages": {
     "message": "Languages"
   },
@@ -94,6 +97,9 @@
   },
   "labelApiKey": {
     "message": "API key"
+  },
+  "labelExtensionLanguage": {
+    "message": "Extension language"
   },
   "labelFrom": {
     "message": "From"
@@ -185,6 +191,9 @@
   "optionInstant": {
     "message": "Instant"
   },
+  "optionSystemLanguage": {
+    "message": "Automatic"
+  },
   "providerDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -196,6 +205,9 @@
   },
   "titleInteraction": {
     "message": "Interaction"
+  },
+  "titleExtension": {
+    "message": "Extension"
   },
   "titleProvider": {
     "message": "Provider"
