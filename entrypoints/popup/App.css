@@ -15,6 +15,8 @@
   --color-red: #ff3b30;
   --shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.12);
   --shadow-control: 0 2px 8px rgba(0, 0, 0, 0.13);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-control: 180ms;
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -426,6 +428,7 @@ p {
 }
 
 .segmented-control__button {
+  position: relative;
   min-width: 0;
   height: 28px;
   border: 0;
@@ -437,12 +440,25 @@ p {
   font-weight: 650;
   line-height: 1;
   padding: 0 8px;
+  overflow: hidden;
+  transition: color var(--duration-control) var(--ease-out-quint);
 }
 
 .segmented-control__button[data-active="true"] {
-  background: #ffffff;
   color: var(--color-label);
+}
+
+.segmented-control__thumb {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  background: #ffffff;
   box-shadow: var(--shadow-control);
+}
+
+.segmented-control__label {
+  position: relative;
+  z-index: 1;
 }
 
 .switch {
@@ -469,6 +485,7 @@ p {
   background: #ffffff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
   transform: translateX(0);
+  transition: transform var(--duration-control) var(--ease-out-quint);
 }
 
 .switch[data-checked] .switch-thumb {
