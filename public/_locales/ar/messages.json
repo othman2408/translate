@@ -1,0 +1,212 @@
+{
+  "extName": {
+    "message": "ترجمة"
+  },
+  "extDescription": {
+    "message": "ترجم النص المحدد من أي صفحة ويب باستخدام مفتاح Google Translate API الخاص بك."
+  },
+  "actionBack": {
+    "message": "رجوع"
+  },
+  "actionClose": {
+    "message": "إغلاق"
+  },
+  "actionCopyTranslation": {
+    "message": "نسخ الترجمة"
+  },
+  "actionReset": {
+    "message": "إعادة ضبط"
+  },
+  "appTitle": {
+    "message": "ترجمة"
+  },
+  "ariaSettingsGroups": {
+    "message": "مجموعات الإعدادات"
+  },
+  "ariaTranslateSettings": {
+    "message": "إعدادات الترجمة"
+  },
+  "cacheTranslations": {
+    "message": "تخزين الترجمات مؤقتا"
+  },
+  "closeOnOutsideClick": {
+    "message": "الإغلاق عند النقر خارج النافذة"
+  },
+  "contextMenuTranslateSelection": {
+    "message": "ترجمة النص المحدد"
+  },
+  "dictionaryTitle": {
+    "message": "القاموس"
+  },
+  "errorApiKeyRejected": {
+    "message": "تم رفض مفتاح Google API."
+  },
+  "errorBackgroundUnavailable": {
+    "message": "عامل الخلفية الخاص بالإضافة غير متاح. حاول مرة أخرى بعد لحظات."
+  },
+  "errorEmptyProviderResponse": {
+    "message": "أعاد Google Translate استجابة فارغة."
+  },
+  "errorGoogleProvider": {
+    "message": "تعذر على Google Translate إكمال الطلب."
+  },
+  "errorMissingApiKey": {
+    "message": "أضف مفتاح Google Cloud Translation API في إعدادات الإضافة."
+  },
+  "errorNetwork": {
+    "message": "تعذر الوصول إلى Google Translate. تحقق من اتصالك وحاول مرة أخرى."
+  },
+  "errorQuota": {
+    "message": "تم تجاوز حصة Google Translate."
+  },
+  "errorSelectText": {
+    "message": "حدد نصا لترجمته."
+  },
+  "footerCached": {
+    "message": "مخزنة مؤقتا"
+  },
+  "footerLanguagePair": {
+    "message": "من $1 إلى $2"
+  },
+  "footerToLanguage": {
+    "message": "إلى $1"
+  },
+  "groupBehavior": {
+    "message": "السلوك"
+  },
+  "groupGoogleCloud": {
+    "message": "Google Cloud"
+  },
+  "groupLanguages": {
+    "message": "اللغات"
+  },
+  "groupSelection": {
+    "message": "التحديد"
+  },
+  "groupSettings": {
+    "message": "الإعدادات"
+  },
+  "infoLocalOnlyStorage": {
+    "message": "تخزين محلي فقط"
+  },
+  "inputApiKey": {
+    "message": "AIza..."
+  },
+  "labelApiKey": {
+    "message": "مفتاح API"
+  },
+  "labelFrom": {
+    "message": "من"
+  },
+  "labelOriginal": {
+    "message": "الأصل"
+  },
+  "labelPopupStyle": {
+    "message": "نمط النافذة"
+  },
+  "labelTo": {
+    "message": "إلى"
+  },
+  "labelTrigger": {
+    "message": "طريقة التشغيل"
+  },
+  "languageAr": {
+    "message": "العربية"
+  },
+  "languageAuto": {
+    "message": "كشف تلقائي"
+  },
+  "languageDe": {
+    "message": "الألمانية"
+  },
+  "languageEn": {
+    "message": "الإنجليزية"
+  },
+  "languageEs": {
+    "message": "الإسبانية"
+  },
+  "languageFr": {
+    "message": "الفرنسية"
+  },
+  "languageHi": {
+    "message": "الهندية"
+  },
+  "languageId": {
+    "message": "الإندونيسية"
+  },
+  "languageIt": {
+    "message": "الإيطالية"
+  },
+  "languageJa": {
+    "message": "اليابانية"
+  },
+  "languageKo": {
+    "message": "الكورية"
+  },
+  "languageNl": {
+    "message": "الهولندية"
+  },
+  "languagePl": {
+    "message": "البولندية"
+  },
+  "languagePt": {
+    "message": "البرتغالية"
+  },
+  "languageRu": {
+    "message": "الروسية"
+  },
+  "languageSv": {
+    "message": "السويدية"
+  },
+  "languageTr": {
+    "message": "التركية"
+  },
+  "languageUr": {
+    "message": "الأردية"
+  },
+  "languageZhCn": {
+    "message": "الصينية (المبسطة)"
+  },
+  "languageZhTw": {
+    "message": "الصينية (التقليدية)"
+  },
+  "noteSelectedTextOnly": {
+    "message": "يتم إرسال النص المحدد فقط إلى مزود الترجمة."
+  },
+  "optionBubble": {
+    "message": "فقاعة"
+  },
+  "optionClick": {
+    "message": "نقرة"
+  },
+  "optionDictionary": {
+    "message": "قاموس"
+  },
+  "optionInstant": {
+    "message": "فوري"
+  },
+  "providerDescription": {
+    "message": "Google Cloud Translation Basic v2"
+  },
+  "saved": {
+    "message": "تم الحفظ"
+  },
+  "settingsScreenAria": {
+    "message": "إعدادات $1"
+  },
+  "titleInteraction": {
+    "message": "التفاعل"
+  },
+  "titleProvider": {
+    "message": "المزود"
+  },
+  "titleTranslation": {
+    "message": "الترجمة"
+  },
+  "translationTitle": {
+    "message": "ترجمة"
+  },
+  "translatingTo": {
+    "message": "جار الترجمة إلى $1..."
+  }
+}

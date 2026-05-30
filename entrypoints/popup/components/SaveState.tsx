@@ -1,5 +1,7 @@
 import { Check } from 'lucide-react';
 
+import { t } from '@/lib/i18n';
+
 import type { SaveState as SaveStateValue } from '../types';
 
 export function SaveState({ state }: { state: SaveStateValue }) {
@@ -8,7 +10,7 @@ export function SaveState({ state }: { state: SaveStateValue }) {
       {state === 'saved' && (
         <>
           <Check size={14} />
-          Saved
+          {t('saved')}
         </>
       )}
     </span>

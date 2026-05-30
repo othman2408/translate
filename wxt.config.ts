@@ -4,9 +4,13 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'Translate',
-    description: 'Translate selected text from any webpage with your own Google Translate API key.',
+    name: '__MSG_extName__',
+    description: '__MSG_extDescription__',
+    default_locale: 'en',
     permissions: ['storage', 'contextMenus'],
     host_permissions: ['https://translation.googleapis.com/*'],
+    action: {
+      default_title: '__MSG_extName__',
+    },
   },
 });

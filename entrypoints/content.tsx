@@ -20,6 +20,7 @@ import {
 } from '@/lib/messages';
 import { DEFAULT_SETTINGS, getSettings, settingsItem, type ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
+import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
 
 type OverlayStatus = 'hidden' | 'icon' | 'loading' | 'result' | 'error';
 
@@ -203,7 +204,7 @@ async function requestTranslation(text = overlayState.selectedText, position = o
       ok: false,
       error: {
         code: 'network',
-        message: 'The extension background worker is not available. Try again in a moment.',
+        message: t('errorBackgroundUnavailable'),
       },
     };
   }
@@ -337,15 +338,23 @@ function TranslateOverlay({
 
   if (state.status === 'icon') {
     return (
-      <button className="translate-icon-button" style={style} type="button" title="Translate" onClick={onTranslate}>
+      <button
+        className="translate-icon-button"
+        style={style}
+        type="button"
+        title={t('translationTitle')}
+        onClick={onTranslate}
+      >
         <Languages size={18} strokeWidth={2.3} />
       </button>
     );
   }
 
   const isDictionary = state.settings.popupMode === 'dictionary';
-  const title = isDictionary ? 'Dictionary' : 'Translate';
+  const title = isDictionary ? t('dictionaryTitle') : t('translationTitle');
   const response = state.translation;
+  const uiLanguage = getUiLanguage();
+  const uiDirection = getUiDirection(uiLanguage);
   const originalDirection = getTextDirection(state.selectedText, state.settings.sourceLanguage);
   const originalLanguage = getTextLanguage(state.settings.sourceLanguage);
   const resultText = response?.ok ? response.translatedText : '';
@@ -355,20 +364,26 @@ function TranslateOverlay({
   const errorDirection = getTextDirection(errorText, 'en');
 
   return (
-    <section className={`translation-card translation-card--${state.status}`} style={style} aria-live="polite">
+    <section
+      className={`translation-card translation-card--${state.status}`}
+      style={style}
+      aria-live="polite"
+      dir={uiDirection}
+      lang={uiLanguage}
+    >
       <header className="translation-card__header">
         <div className="translation-card__title">
           {isDictionary ? <BookOpen size={16} /> : <Languages size={16} />}
           <span>{title}</span>
         </div>
-        <button className="icon-control" type="button" title="Close" onClick={onClose}>
+        <button className="icon-control" type="button" title={t('actionClose')} onClick={onClose}>
           <X size={16} />
         </button>
       </header>
 
       {isDictionary && (
         <div className="translation-card__original">
-          <span>Original</span>
+          <span>{t('labelOriginal')}</span>
           <p
             dir={originalDirection}
             lang={originalLanguage}
@@ -382,8 +397,8 @@ function TranslateOverlay({
       {state.status === 'loading' && (
         <div className="translation-card__status">
           <LoaderCircle className="spin" size={18} />
-          <span dir="ltr" lang="en">
-            Translating to {getLanguageName(state.settings.targetLanguage)}...
+          <span dir={uiDirection} lang={uiLanguage}>
+            {t('translatingTo', getLanguageName(state.settings.targetLanguage))}
           </span>
         </div>
       )}
@@ -399,13 +414,16 @@ function TranslateOverlay({
             {response.translatedText}
           </p>
           <footer className="translation-card__footer">
-            <span dir="ltr" lang="en">
+            <span dir={uiDirection} lang={uiLanguage}>
               {response.detectedSourceLanguage
-                ? `${getLanguageName(response.detectedSourceLanguage)} to ${getLanguageName(response.targetLanguage)}`
-                : `To ${getLanguageName(response.targetLanguage)}`}
-              {response.fromCache ? ' - cached' : ''}
+                ? t('footerLanguagePair', [
+                  getLanguageName(response.detectedSourceLanguage),
+                  getLanguageName(response.targetLanguage),
+                ])
+                : t('footerToLanguage', getLanguageName(response.targetLanguage))}
+              {response.fromCache ? ` - ${t('footerCached')}` : ''}
             </span>
-            <button className="icon-control" type="button" title="Copy translation" onClick={onCopy}>
+            <button className="icon-control" type="button" title={t('actionCopyTranslation')} onClick={onCopy}>
               {state.copied ? <Check size={16} /> : <Copy size={16} />}
             </button>
           </footer>
@@ -595,7 +613,6 @@ const overlayCss = `
 
   .translation-card__footer {
     padding: 8px 12px 12px;
-    direction: ltr;
   }
 
   .translation-card__error {

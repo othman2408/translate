@@ -1,33 +1,44 @@
+import { t, type I18nKey } from './i18n';
+
 export type LanguageOption = {
   code: string;
   name: string;
+  nameKey: I18nKey;
 };
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { code: 'auto', name: 'Auto detect' },
-  { code: 'en', name: 'English' },
-  { code: 'ar', name: 'Arabic' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'ru', name: 'Russian' },
-  { code: 'zh-CN', name: 'Chinese (Simplified)' },
-  { code: 'zh-TW', name: 'Chinese (Traditional)' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'tr', name: 'Turkish' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'pl', name: 'Polish' },
-  { code: 'id', name: 'Indonesian' },
-  { code: 'ur', name: 'Urdu' },
+  { code: 'auto', name: 'Auto detect', nameKey: 'languageAuto' },
+  { code: 'en', name: 'English', nameKey: 'languageEn' },
+  { code: 'ar', name: 'Arabic', nameKey: 'languageAr' },
+  { code: 'es', name: 'Spanish', nameKey: 'languageEs' },
+  { code: 'fr', name: 'French', nameKey: 'languageFr' },
+  { code: 'de', name: 'German', nameKey: 'languageDe' },
+  { code: 'it', name: 'Italian', nameKey: 'languageIt' },
+  { code: 'pt', name: 'Portuguese', nameKey: 'languagePt' },
+  { code: 'ru', name: 'Russian', nameKey: 'languageRu' },
+  { code: 'zh-CN', name: 'Chinese (Simplified)', nameKey: 'languageZhCn' },
+  { code: 'zh-TW', name: 'Chinese (Traditional)', nameKey: 'languageZhTw' },
+  { code: 'ja', name: 'Japanese', nameKey: 'languageJa' },
+  { code: 'ko', name: 'Korean', nameKey: 'languageKo' },
+  { code: 'hi', name: 'Hindi', nameKey: 'languageHi' },
+  { code: 'tr', name: 'Turkish', nameKey: 'languageTr' },
+  { code: 'nl', name: 'Dutch', nameKey: 'languageNl' },
+  { code: 'sv', name: 'Swedish', nameKey: 'languageSv' },
+  { code: 'pl', name: 'Polish', nameKey: 'languagePl' },
+  { code: 'id', name: 'Indonesian', nameKey: 'languageId' },
+  { code: 'ur', name: 'Urdu', nameKey: 'languageUr' },
 ];
 
 export const TARGET_LANGUAGE_OPTIONS = LANGUAGE_OPTIONS.filter((language) => language.code !== 'auto');
 
+export function localizeLanguageOptions(options: LanguageOption[]): LanguageOption[] {
+  return options.map((option) => ({
+    ...option,
+    name: t(option.nameKey),
+  }));
+}
+
 export function getLanguageName(code: string): string {
-  return LANGUAGE_OPTIONS.find((language) => language.code === code)?.name ?? code;
+  const language = LANGUAGE_OPTIONS.find((option) => option.code === code);
+  return language ? t(language.nameKey) : code;
 }
