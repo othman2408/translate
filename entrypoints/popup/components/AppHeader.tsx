@@ -1,6 +1,5 @@
 import { Button } from '@base-ui/react';
 import { ChevronLeft } from 'lucide-react';
-import type { ReactNode } from 'react';
 
 import { t } from '@/lib/i18n';
 
@@ -9,12 +8,10 @@ import type { SaveState as SaveStateValue } from '../types';
 
 export function AppHeader({
   title,
-  icon,
   saveState,
   onBack,
 }: {
   title: string;
-  icon?: ReactNode;
   saveState: SaveStateValue;
   onBack?: () => void;
 }) {
@@ -26,11 +23,6 @@ export function AppHeader({
         </Button>
       )}
       <div className="app-header__lockup">
-        {icon && (
-          <div className="app-header__mark" aria-hidden="true">
-            {icon}
-          </div>
-        )}
         <div className="app-header__copy">
           <h1>{title}</h1>
         </div>
