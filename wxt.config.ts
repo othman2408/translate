@@ -4,7 +4,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'Translate Bubble',
+    name: 'Translate',
     description: 'Translate selected text from any webpage with your own Google Translate API key.',
     permissions: ['storage', 'contextMenus'],
     host_permissions: ['https://translation.googleapis.com/*'],

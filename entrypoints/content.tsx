@@ -39,12 +39,14 @@ type OverlayState = {
 
 const HIDDEN_POSITION: OverlayPosition = { left: -9999, top: -9999 };
 const MAX_SELECTION_LENGTH = 5000;
+const ICON_SIZE = 38;
 
 let settings: ExtensionSettings = DEFAULT_SETTINGS;
 let reactRoot: Root | undefined;
 let latestRequestId = 0;
 let lastInstantKey = '';
 let lastPointerPosition: OverlayPosition = { left: Math.round(window.innerWidth / 2), top: 120 };
+let suppressSelectionHandlingUntil = 0;
 let shadowHostElement: HTMLElement | undefined;
 let overlayState: OverlayState = {
   status: 'hidden',
@@ -126,6 +128,10 @@ export default defineContentScript({
 });
 
 function handleSelectionChanged(): void {
+  if (Date.now() < suppressSelectionHandlingUntil) {
+    return;
+  }
+
   const selection = readCurrentSelection();
 
   if (!selection) {
@@ -144,7 +150,7 @@ function handleSelectionChanged(): void {
 
   updateOverlay({
     status: 'icon',
-    position: selection.position,
+    position: clampPosition(selection.position, ICON_SIZE, ICON_SIZE),
     selectedText: selection.text,
     translation: undefined,
     copied: false,
@@ -231,17 +237,25 @@ function readCurrentSelection(): { text: string; position: OverlayPosition } | n
 
   return {
     text,
-    position: clampPosition({ left: rect.left, top: rect.bottom + 8 }, 360, 220),
+    position: { left: rect.right + 6, top: rect.bottom + 8 },
   };
 }
 
 function getRangeRect(range: Range): DOMRect | null {
+  const clientRects = Array.from(range.getClientRects()).filter(
+    (clientRect) => clientRect.width > 0 || clientRect.height > 0,
+  );
+  const lastClientRect = clientRects.at(-1);
+  if (lastClientRect) {
+    return lastClientRect;
+  }
+
   const rect = range.getBoundingClientRect();
   if (rect.width > 0 || rect.height > 0) {
     return rect;
   }
 
-  return Array.from(range.getClientRects()).find((clientRect) => clientRect.width > 0 || clientRect.height > 0) ?? null;
+  return null;
 }
 
 function clampPosition(position: OverlayPosition, width: number, height: number): OverlayPosition {
@@ -272,9 +286,18 @@ function renderOverlay(): void {
   reactRoot?.render(
     <TranslateOverlay
       state={overlayState}
-      onTranslate={() => void requestTranslation()}
-      onClose={hideOverlay}
-      onCopy={() => void copyTranslation()}
+      onTranslate={() => {
+        suppressSelectionHandling();
+        void requestTranslation();
+      }}
+      onClose={() => {
+        suppressSelectionHandling();
+        hideOverlay();
+      }}
+      onCopy={() => {
+        suppressSelectionHandling();
+        void copyTranslation();
+      }}
     />,
   );
 }
@@ -402,16 +425,34 @@ function TranslateOverlay({
 }
 
 function handleOutsidePointerDown(event: Event): void {
+  if (isOverlayEvent(event)) {
+    suppressSelectionHandling();
+    return;
+  }
+
   if (!settings.closeOnOutsideClick || !isDismissibleStatus(overlayState.status)) {
     return;
   }
 
-  const target = event.target;
-  if (!(target instanceof Node) || shadowHostElement?.contains(target)) {
-    return;
+  hideOverlay();
+}
+
+function suppressSelectionHandling(): void {
+  suppressSelectionHandlingUntil = Date.now() + 350;
+}
+
+function isOverlayEvent(event: Event): boolean {
+  if (!shadowHostElement) {
+    return false;
   }
 
-  hideOverlay();
+  const path = event.composedPath();
+  if (path.includes(shadowHostElement)) {
+    return true;
+  }
+
+  const target = event.target;
+  return target instanceof Node && shadowHostElement.contains(target);
 }
 
 function isDismissibleStatus(status: OverlayStatus): boolean {

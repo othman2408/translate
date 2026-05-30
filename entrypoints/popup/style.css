@@ -1,7 +1,8 @@
 :root {
-  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
-  color: #172033;
-  background: #f4f7fb;
+  font-family:
+    "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: #1c1c1e;
+  background: #f2f2f7;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -13,13 +14,16 @@
   box-sizing: border-box;
 }
 
+html {
+  background: #f2f2f7;
+}
+
 body {
-  width: 380px;
-  min-height: 560px;
+  width: 420px;
+  height: 460px;
   margin: 0;
-  background:
-    linear-gradient(135deg, rgba(23, 107, 223, 0.12), transparent 34%),
-    #f4f7fb;
+  overflow: hidden;
+  background: #f2f2f7;
 }
 
 button,
