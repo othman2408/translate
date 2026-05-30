@@ -222,6 +222,7 @@ function App() {
         saveState={saveState}
         onBack={() => navigateTo('home')}
         onUpdate={updateSetting}
+        onUpdateSettings={updateSettings}
         onReset={resetSettings}
       />
     );

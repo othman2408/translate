@@ -17,14 +17,32 @@
   "actionClearHistory": {
     "message": "Clear history"
   },
+  "actionAddProvider": {
+    "message": "Add provider"
+  },
+  "actionCancelProvider": {
+    "message": "Cancel"
+  },
   "actionCopyHistoryItem": {
     "message": "Copy"
   },
   "actionDeleteHistoryItem": {
     "message": "Delete"
   },
+  "actionDeleteProvider": {
+    "message": "Delete"
+  },
+  "actionEditProvider": {
+    "message": "Edit"
+  },
   "actionReset": {
     "message": "Reset"
+  },
+  "actionSaveProvider": {
+    "message": "Save"
+  },
+  "actionSetDefaultProvider": {
+    "message": "Set default"
   },
   "appTitle": {
     "message": "Translate"
@@ -65,6 +83,12 @@
   "errorNetwork": {
     "message": "Could not reach Google Translate. Check your connection and try again."
   },
+  "errorProviderFailed": {
+    "message": "The translation provider could not complete the request."
+  },
+  "errorProviderUnavailable": {
+    "message": "The selected translation provider is not available."
+  },
   "errorQuota": {
     "message": "Google Translate quota was exceeded."
   },
@@ -82,9 +106,6 @@
   },
   "groupBehavior": {
     "message": "Behavior"
-  },
-  "groupGoogleCloud": {
-    "message": "Google Cloud"
   },
   "groupHistory": {
     "message": "History"
@@ -110,9 +131,6 @@
   "historyLimitDescription": {
     "message": "Keep up to $1 translations."
   },
-  "infoLocalOnlyStorage": {
-    "message": "Local-only storage"
-  },
   "inputApiKey": {
     "message": "AIza..."
   },
@@ -133,6 +151,9 @@
   },
   "labelPopupStyle": {
     "message": "Popup style"
+  },
+  "labelProviderName": {
+    "message": "Provider name"
   },
   "labelTo": {
     "message": "To"
@@ -230,8 +251,32 @@
   "optionSystemTheme": {
     "message": "System"
   },
-  "providerDescription": {
+  "providerApiKeyDescription": {
+    "message": "Paste your Google Cloud Translation API key."
+  },
+  "providerConfigured": {
+    "message": "Configured"
+  },
+  "providerDefaultBadge": {
+    "message": "Default provider"
+  },
+  "providerEmptyDescription": {
+    "message": "Add Google Translate with your own API key to start translating."
+  },
+  "providerEmptyTitle": {
+    "message": "No providers yet"
+  },
+  "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
+  },
+  "providerGoogleName": {
+    "message": "Google Translate"
+  },
+  "providerLocalOnlyNote": {
+    "message": "API keys stay in local extension storage."
+  },
+  "providerNotConfigured": {
+    "message": "Not configured"
   },
   "saved": {
     "message": "Saved"

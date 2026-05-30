@@ -1,29 +1,16 @@
 import { browser, defineBackground } from '#imports';
 
-import { getCacheKey, getCachedTranslation, setCachedTranslation } from '@/lib/cache';
-import { addTranslationHistoryEntry } from '@/lib/history';
 import { t } from '@/lib/i18n';
-import { isRuntimeMessage, type TranslationErrorCode, type TranslationResponse } from '@/lib/messages';
+import { isRuntimeMessage, type TranslationResponse } from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
 import { getHttpHost, isHostDisabled } from '@/lib/sites';
+import { TranslationService } from '@/lib/translation/service';
 
 const CONTEXT_MENU_ID = 'translate-bubble-selection';
-const GOOGLE_TRANSLATE_ENDPOINT = 'https://translation.googleapis.com/language/translate/v2';
-
-type GoogleTranslateResponse = {
-  data?: {
-    translations?: Array<{
-      translatedText?: string;
-      detectedSourceLanguage?: string;
-    }>;
-  };
-  error?: {
-    code?: number;
-    message?: string;
-  };
-};
 
 export default defineBackground(() => {
+  const translationService = new TranslationService();
+
   setupContextMenu();
 
   browser.runtime.onInstalled.addListener(() => {
@@ -58,12 +45,13 @@ export default defineBackground(() => {
       return undefined;
     }
 
-    return translateText(
-      message.text,
-      message.sourceLanguage,
-      message.targetLanguage,
-      message.recordHistory === true,
-    );
+    return translationService.translate({
+      text: message.text,
+      sourceLanguage: message.sourceLanguage,
+      targetLanguage: message.targetLanguage,
+      providerId: message.providerId,
+      recordHistory: message.recordHistory === true,
+    });
   });
 });
 
@@ -90,162 +78,4 @@ async function setupContextMenu(): Promise<void> {
   } catch {
     // Context menus are unavailable in a few extension contexts during startup.
   }
-}
-
-async function translateText(
-  rawText: string,
-  requestedSourceLanguage?: string,
-  requestedTargetLanguage?: string,
-  recordHistory = false,
-): Promise<TranslationResponse> {
-  const settings = await getSettings();
-  const text = rawText.trim();
-  if (!text) {
-    return failure('empty-text', t('errorSelectText', undefined, settings.appLanguage));
-  }
-
-  const apiKey = settings.apiKey.trim();
-  const sourceLanguage = requestedSourceLanguage ?? settings.sourceLanguage;
-  const targetLanguage = requestedTargetLanguage ?? settings.targetLanguage;
-
-  if (!apiKey) {
-    return failure('missing-api-key', t('errorMissingApiKey', undefined, settings.appLanguage));
-  }
-
-  const cacheKey = getCacheKey(text, sourceLanguage, targetLanguage);
-  if (settings.cacheEnabled) {
-    const cached = await getCachedTranslation(cacheKey);
-    if (cached) {
-      const result = {
-        ok: true,
-        translatedText: cached.translatedText,
-        detectedSourceLanguage: cached.detectedSourceLanguage,
-        targetLanguage: cached.targetLanguage,
-        fromCache: true,
-      } satisfies TranslationResponse;
-
-      if (recordHistory) {
-        await recordTranslationHistory(text, sourceLanguage, result, settings);
-      }
-
-      return result;
-    }
-  }
-
-  const params = new URLSearchParams({
-    q: text,
-    target: targetLanguage,
-    format: 'text',
-  });
-
-  if (sourceLanguage !== 'auto') {
-    params.set('source', sourceLanguage);
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(`${GOOGLE_TRANSLATE_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-      body: params.toString(),
-    });
-  } catch {
-    return failure('network', t('errorNetwork', undefined, settings.appLanguage));
-  }
-
-  const payload = (await response.json().catch(() => ({}))) as GoogleTranslateResponse;
-
-  if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      return failure('auth', payload.error?.message ?? t('errorApiKeyRejected', undefined, settings.appLanguage));
-    }
-
-    if (response.status === 429) {
-      return failure('quota', payload.error?.message ?? t('errorQuota', undefined, settings.appLanguage));
-    }
-
-    return failure('provider', payload.error?.message ?? t('errorGoogleProvider', undefined, settings.appLanguage));
-  }
-
-  const translation = payload.data?.translations?.[0];
-  if (!translation?.translatedText) {
-    return failure('provider', t('errorEmptyProviderResponse', undefined, settings.appLanguage));
-  }
-
-  const result = {
-    ok: true as const,
-    translatedText: decodeHtmlEntities(translation.translatedText),
-    detectedSourceLanguage: translation.detectedSourceLanguage,
-    targetLanguage,
-    fromCache: false,
-  };
-
-  if (settings.cacheEnabled) {
-    await setCachedTranslation(cacheKey, {
-      translatedText: result.translatedText,
-      detectedSourceLanguage: result.detectedSourceLanguage,
-      targetLanguage: result.targetLanguage,
-    });
-  }
-
-  if (recordHistory) {
-    await recordTranslationHistory(text, sourceLanguage, result, settings);
-  }
-
-  return result;
-}
-
-async function recordTranslationHistory(
-  originalText: string,
-  sourceLanguage: string,
-  response: Extract<TranslationResponse, { ok: true }>,
-  settings: Awaited<ReturnType<typeof getSettings>>,
-): Promise<void> {
-  if (!settings.historyEnabled || settings.historyLimit <= 0) {
-    return;
-  }
-
-  try {
-    await addTranslationHistoryEntry({
-      originalText,
-      translatedText: response.translatedText,
-      sourceLanguage,
-      detectedSourceLanguage: response.detectedSourceLanguage,
-      targetLanguage: response.targetLanguage,
-      provider: 'google-v2',
-    }, settings.historyLimit);
-  } catch {
-    // Translation should still succeed if local history storage is unavailable.
-  }
-}
-
-function failure(code: TranslationErrorCode, message: string): TranslationResponse {
-  return {
-    ok: false,
-    error: { code, message },
-  };
-}
-
-function decodeHtmlEntities(value: string): string {
-  const namedEntities: Record<string, string> = {
-    amp: '&',
-    apos: "'",
-    gt: '>',
-    lt: '<',
-    quot: '"',
-  };
-
-  return value.replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (match, entity: string) => {
-    if (entity.startsWith('#x')) {
-      return String.fromCodePoint(Number.parseInt(entity.slice(2), 16));
-    }
-
-    if (entity.startsWith('#')) {
-      return String.fromCodePoint(Number.parseInt(entity.slice(1), 10));
-    }
-
-    return namedEntities[entity.toLowerCase()] ?? match;
-  });
 }

@@ -18,6 +18,7 @@ export function SettingsScreen({
   saveState,
   onBack,
   onUpdate,
+  onUpdateSettings,
   onReset,
 }: {
   screen: SettingsScreenName;
@@ -25,6 +26,7 @@ export function SettingsScreen({
   saveState: SaveStateValue;
   onBack: () => void;
   onUpdate: SettingUpdateHandler;
+  onUpdateSettings: (settings: ExtensionSettingsModel) => void;
   onReset: () => void;
 }) {
   const meta = getScreenMeta(screen);
@@ -46,7 +48,7 @@ export function SettingsScreen({
       )}
 
       {screen === 'provider' && (
-        <ProviderSettings settings={settings} onUpdate={onUpdate} />
+        <ProviderSettings settings={settings} onUpdateSettings={onUpdateSettings} />
       )}
 
       {screen === 'extension' && (

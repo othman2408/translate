@@ -1,5 +1,7 @@
 import { storage } from '#imports';
 
+import type { ProviderType } from './settings';
+
 export const DEFAULT_HISTORY_LIMIT = 50;
 export const HISTORY_LIMIT_MIN = 0;
 export const HISTORY_LIMIT_MAX = 200;
@@ -11,7 +13,8 @@ export type TranslationHistoryEntry = {
   sourceLanguage: string;
   detectedSourceLanguage?: string;
   targetLanguage: string;
-  provider: 'google-v2';
+  provider: ProviderType;
+  providerName?: string;
   createdAt: number;
 };
 

@@ -14,6 +14,7 @@ export type TranslateTextMessage = {
   text: string;
   sourceLanguage?: ExtensionSettings['sourceLanguage'];
   targetLanguage?: ExtensionSettings['targetLanguage'];
+  providerId?: string;
   recordHistory?: boolean;
 };
 

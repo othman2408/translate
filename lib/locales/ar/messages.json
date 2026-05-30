@@ -17,14 +17,32 @@
   "actionClearHistory": {
     "message": "مسح السجل"
   },
+  "actionAddProvider": {
+    "message": "إضافة مزود"
+  },
+  "actionCancelProvider": {
+    "message": "إلغاء"
+  },
   "actionCopyHistoryItem": {
     "message": "نسخ"
   },
   "actionDeleteHistoryItem": {
     "message": "حذف"
   },
+  "actionDeleteProvider": {
+    "message": "حذف"
+  },
+  "actionEditProvider": {
+    "message": "تعديل"
+  },
   "actionReset": {
     "message": "إعادة ضبط"
+  },
+  "actionSaveProvider": {
+    "message": "حفظ"
+  },
+  "actionSetDefaultProvider": {
+    "message": "تعيين كافتراضي"
   },
   "appTitle": {
     "message": "ترجمة"
@@ -65,6 +83,12 @@
   "errorNetwork": {
     "message": "تعذر الوصول إلى Google Translate. تحقق من اتصالك وحاول مرة أخرى."
   },
+  "errorProviderFailed": {
+    "message": "تعذر على مزود الترجمة إكمال الطلب."
+  },
+  "errorProviderUnavailable": {
+    "message": "مزود الترجمة المحدد غير متاح."
+  },
   "errorQuota": {
     "message": "تم تجاوز حصة Google Translate."
   },
@@ -82,9 +106,6 @@
   },
   "groupBehavior": {
     "message": "السلوك"
-  },
-  "groupGoogleCloud": {
-    "message": "Google Cloud"
   },
   "groupHistory": {
     "message": "السجل"
@@ -110,9 +131,6 @@
   "historyLimitDescription": {
     "message": "احتفظ بما يصل إلى $1 ترجمة."
   },
-  "infoLocalOnlyStorage": {
-    "message": "تخزين محلي فقط"
-  },
   "inputApiKey": {
     "message": "AIza..."
   },
@@ -133,6 +151,9 @@
   },
   "labelPopupStyle": {
     "message": "نمط النافذة"
+  },
+  "labelProviderName": {
+    "message": "اسم المزود"
   },
   "labelTo": {
     "message": "إلى"
@@ -230,8 +251,32 @@
   "optionSystemTheme": {
     "message": "النظام"
   },
-  "providerDescription": {
+  "providerApiKeyDescription": {
+    "message": "الصق مفتاح Google Cloud Translation API."
+  },
+  "providerConfigured": {
+    "message": "معد"
+  },
+  "providerDefaultBadge": {
+    "message": "المزود الافتراضي"
+  },
+  "providerEmptyDescription": {
+    "message": "أضف Google Translate باستخدام مفتاح API الخاص بك لبدء الترجمة."
+  },
+  "providerEmptyTitle": {
+    "message": "لا توجد مزودات بعد"
+  },
+  "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
+  },
+  "providerGoogleName": {
+    "message": "Google Translate"
+  },
+  "providerLocalOnlyNote": {
+    "message": "تبقى مفاتيح API في التخزين المحلي للإضافة."
+  },
+  "providerNotConfigured": {
+    "message": "غير معد"
   },
   "saved": {
     "message": "تم الحفظ"

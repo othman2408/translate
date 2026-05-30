@@ -1,6 +1,7 @@
 import { storage } from '#imports';
 
 import type { TranslationSuccess } from './messages';
+import type { ProviderType } from './settings';
 
 const MAX_CACHE_ENTRIES = 100;
 
@@ -15,12 +16,26 @@ export type TranslationCache = {
   entries: Record<string, TranslationCacheEntry>;
 };
 
+export type TranslationCacheKeyParts = {
+  providerId: string;
+  providerType: ProviderType;
+  sourceLanguage: string;
+  targetLanguage: string;
+  text: string;
+};
+
 export const translationCacheItem = storage.defineItem<TranslationCache>('local:translationCache', {
   fallback: { entries: {} },
 });
 
-export function getCacheKey(text: string, sourceLanguage: string, targetLanguage: string): string {
-  return ['google-v2', sourceLanguage || 'auto', targetLanguage, text.trim()].join('::');
+export function getCacheKey(parts: TranslationCacheKeyParts): string {
+  return [
+    parts.providerType,
+    parts.providerId,
+    parts.sourceLanguage || 'auto',
+    parts.targetLanguage,
+    parts.text.trim(),
+  ].join('::');
 }
 
 export async function getCachedTranslation(key: string): Promise<TranslationCacheEntry | undefined> {
