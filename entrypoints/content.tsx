@@ -20,6 +20,7 @@ import {
   type TranslationResponse,
 } from '@/lib/messages';
 import { DEFAULT_SETTINGS, getSettings, settingsItem, type ExtensionSettings } from '@/lib/settings';
+import { isHostDisabled } from '@/lib/sites';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
 import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
 
@@ -95,6 +96,10 @@ export default defineContentScript({
     const unwatchSettings = settingsItem.watch((nextSettings) => {
       settings = { ...DEFAULT_SETTINGS, ...nextSettings };
       updateOverlay({ settings });
+
+      if (!isCurrentSiteEnabled()) {
+        hideOverlay();
+      }
     });
     ctx.onInvalidated(unwatchSettings);
 
@@ -162,6 +167,10 @@ function handleSelectionChanged(): void {
     return;
   }
 
+  if (hideWhenSiteDisabled()) {
+    return;
+  }
+
   const selection = readCurrentSelection();
 
   if (!selection) {
@@ -188,6 +197,10 @@ function handleSelectionChanged(): void {
 }
 
 async function showFromContextMenu(message: ShowContextTranslationMessage): Promise<void> {
+  if (!isCurrentSiteEnabled()) {
+    return;
+  }
+
   const text = message.text.trim().slice(0, MAX_SELECTION_LENGTH);
   if (!text) {
     return;
@@ -198,6 +211,10 @@ async function showFromContextMenu(message: ShowContextTranslationMessage): Prom
 }
 
 async function requestTranslation(text = overlayState.selectedText, position = overlayState.position): Promise<void> {
+  if (hideWhenSiteDisabled()) {
+    return;
+  }
+
   const normalizedText = text.trim().slice(0, MAX_SELECTION_LENGTH);
   if (!normalizedText) {
     return;
@@ -301,6 +318,19 @@ function clampPosition(position: OverlayPosition, width: number, height: number)
 
 function clampPopupPosition(position: OverlayPosition): OverlayPosition {
   return clampPosition(position, POPUP_WIDTH, Math.min(POPUP_MAX_HEIGHT, window.innerHeight - 24));
+}
+
+function isCurrentSiteEnabled(): boolean {
+  return !isHostDisabled(window.location.hostname, settings.disabledHosts);
+}
+
+function hideWhenSiteDisabled(): boolean {
+  if (isCurrentSiteEnabled()) {
+    return false;
+  }
+
+  hideOverlay();
+  return true;
 }
 
 function updateOverlay(nextState: Partial<OverlayState>): void {

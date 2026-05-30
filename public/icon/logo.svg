@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
 <!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
   <style type="text/css">.cls-0 {fill:url(#SVGID_1_);}
-.cls-1 {fill:url(#SVGID_2_);}
 .cls-2 {fill:url(#SVGID_3_);}
 .cls-3 {fill:#FFFFFF;}</style>
   <linearGradient id="SVGID_1_" x1="50" x2="50" y1="96.42" y2="3.035" gradientUnits="userSpaceOnUse">
@@ -9,11 +8,6 @@
     <stop stop-color="#40ADFF" offset="1"/>
   </linearGradient>
   <path class="cls-0" d="m96 33.2c0-8.9 0-13.3-1.6-16.8-1.8-4.4-5.1-8-9.1-10.4-3.3-1.9-7.4-2.8-15.3-2.9h-40c-7.9 0.1-12 1-15.3 2.9-4 2.4-7.3 6-9.1 10.4-1.6 3.5-1.7 7.9-1.7 16.8l-0.1 29.5c0.1 8.9 0.2 13.4 1.5 17.2 1.7 5 5.1 9.2 9.4 11.6 3.4 2.1 7.7 2.9 15.3 3l40 0.1c7.6-0.1 11.9-1 15.3-3.1 4.3-2.4 7.7-6.6 9.4-11.6 1.3-3.8 1.3-8.3 1.4-17.2l-0.1-29.5z"/>
-  <linearGradient id="SVGID_2_" x1="50" x2="50" y1="3" y2="96.5" gradientUnits="userSpaceOnUse">
-    <stop stop-color="#fff" stop-opacity=".25" offset="0"/>
-    <stop stop-color="#fff" stop-opacity="0" offset="1"/>
-  </linearGradient>
-  <path class="cls-1" d="m69.9 3.1c7.7 0.1 11.9 0.6 15.4 2.6 4 2.3 7.3 5.9 9.1 10.3 1.4 3.4 1.6 7.6 1.7 15.8v-28.8l-26.2 0.1z"/>
   <linearGradient id="SVGID_3_" x1="50" x2="50" y1="96.74" y2=".04441" gradientUnits="userSpaceOnUse">
     <stop stop-color="#fff" stop-opacity=".15" offset="0"/>
     <stop stop-color="#fff" stop-opacity="0" offset="1"/>
