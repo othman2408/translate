@@ -1,5 +1,6 @@
 import { Button } from '@base-ui/react';
 import { ChevronLeft } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { t } from '@/lib/i18n';
 
@@ -10,10 +11,12 @@ export function AppHeader({
   title,
   saveState,
   onBack,
+  action,
 }: {
   title: string;
   saveState: SaveStateValue;
   onBack?: () => void;
+  action?: ReactNode;
 }) {
   return (
     <header className="app-header">
@@ -27,7 +30,7 @@ export function AppHeader({
           <h1>{title}</h1>
         </div>
       </div>
-      <SaveState state={saveState} />
+      {action ?? <SaveState state={saveState} />}
     </header>
   );
 }

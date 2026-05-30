@@ -242,6 +242,7 @@ async function requestTranslation(text = overlayState.selectedText, position = o
     text: normalizedText,
     sourceLanguage: settings.sourceLanguage,
     targetLanguage: settings.targetLanguage,
+    recordHistory: true,
   };
 
   let response: TranslationResponse;
@@ -864,6 +865,7 @@ async function translateAlignmentPhrase(side: TextSide, phrase: string): Promise
     text: phrase,
     sourceLanguage,
     targetLanguage,
+    recordHistory: false,
   };
 
   try {

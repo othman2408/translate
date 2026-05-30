@@ -1,5 +1,6 @@
 import { storage } from '#imports';
 
+import { DEFAULT_HISTORY_LIMIT, clampHistoryLimit } from './history';
 import type { AppLanguage } from './i18n';
 import type { ThemeMode } from './theme';
 
@@ -17,6 +18,8 @@ export type ExtensionSettings = {
   appLanguage: AppLanguage;
   themeMode: ThemeMode;
   disabledHosts: string[];
+  historyEnabled: boolean;
+  historyLimit: number;
 };
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -30,6 +33,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   appLanguage: 'auto',
   themeMode: 'system',
   disabledHosts: [],
+  historyEnabled: true,
+  historyLimit: DEFAULT_HISTORY_LIMIT,
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {
@@ -38,9 +43,18 @@ export const settingsItem = storage.defineItem<ExtensionSettings>('local:setting
 
 export async function getSettings(): Promise<ExtensionSettings> {
   const settings = await settingsItem.getValue();
-  return { ...DEFAULT_SETTINGS, ...settings };
+  return normalizeSettings(settings);
 }
 
 export async function saveSettings(settings: ExtensionSettings): Promise<void> {
-  await settingsItem.setValue({ ...DEFAULT_SETTINGS, ...settings });
+  const nextSettings = normalizeSettings(settings);
+  await settingsItem.setValue(nextSettings);
+}
+
+function normalizeSettings(settings: Partial<ExtensionSettings>): ExtensionSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    historyLimit: clampHistoryLimit(settings.historyLimit ?? DEFAULT_SETTINGS.historyLimit),
+  };
 }

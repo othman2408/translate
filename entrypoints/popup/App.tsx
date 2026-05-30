@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyRound, Languages, MousePointerClick, Settings2 } from 'lucide-react';
+import { History, KeyRound, Languages, MousePointerClick, Settings2 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 
+import { trimTranslationHistory } from '@/lib/history';
 import {
   DEFAULT_SETTINGS,
   getSettings,
@@ -12,6 +13,7 @@ import {
 import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i18n';
 
 import { HomeScreen } from './screens/HomeScreen';
+import { HistoryScreen } from './screens/HistoryScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type {
   NavItem,
@@ -95,6 +97,11 @@ function App() {
   const navItems = useMemo<NavItem[]>(
     () => [
       {
+        screen: 'history',
+        title: t('titleHistory'),
+        icon: <History size={17} />,
+      },
+      {
         screen: 'translation',
         title: t('titleTranslation'),
         icon: <Languages size={17} />,
@@ -127,7 +134,7 @@ function App() {
     setScreen(nextScreen);
   }
 
-  function updateSettings(nextSettings: ExtensionSettings): void {
+  function updateSettings(nextSettings: ExtensionSettings, trimHistoryLimit = false): void {
     setSettings(nextSettings);
     setSaveState('idle');
 
@@ -136,6 +143,10 @@ function App() {
     }
 
     void saveSettings(nextSettings).then(() => {
+      if (trimHistoryLimit) {
+        void trimTranslationHistory(nextSettings.historyLimit);
+      }
+
       setSaveState('saved');
       saveTimerRef.current = window.setTimeout(() => setSaveState('idle'), 1100);
     });
@@ -145,7 +156,7 @@ function App() {
     key: TKey,
     value: ExtensionSettings[TKey],
   ): void {
-    updateSettings({ ...settings, [key]: value });
+    updateSettings({ ...settings, [key]: value }, key === 'historyLimit');
   }
 
   function resetSettings(): void {
@@ -190,6 +201,16 @@ function App() {
           settings={settings}
           onNavigate={navigateTo}
           onUpdate={updateSetting}
+        />
+      );
+    }
+
+    if (screenName === 'history') {
+      return (
+        <HistoryScreen
+          settings={settings}
+          saveState={saveState}
+          onBack={() => navigateTo('home')}
         />
       );
     }

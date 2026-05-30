@@ -14,6 +14,15 @@
   "actionCopyTranslation": {
     "message": "Copy translation"
   },
+  "actionClearHistory": {
+    "message": "Clear history"
+  },
+  "actionCopyHistoryItem": {
+    "message": "Copy"
+  },
+  "actionDeleteHistoryItem": {
+    "message": "Delete"
+  },
   "actionReset": {
     "message": "Reset"
   },
@@ -77,6 +86,9 @@
   "groupGoogleCloud": {
     "message": "Google Cloud"
   },
+  "groupHistory": {
+    "message": "History"
+  },
   "groupInterface": {
     "message": "Interface"
   },
@@ -88,6 +100,15 @@
   },
   "groupSettings": {
     "message": "Settings"
+  },
+  "historyEmptyDescription": {
+    "message": "Successful translations will appear here. They stay on this device."
+  },
+  "historyEmptyTitle": {
+    "message": "No history yet"
+  },
+  "historyLimitDescription": {
+    "message": "Keep up to $1 translations."
   },
   "infoLocalOnlyStorage": {
     "message": "Local-only storage"
@@ -103,6 +124,9 @@
   },
   "labelFrom": {
     "message": "From"
+  },
+  "labelHistoryLimit": {
+    "message": "History limit"
   },
   "labelOriginal": {
     "message": "Original"
@@ -212,6 +236,9 @@
   "saved": {
     "message": "Saved"
   },
+  "saveHistory": {
+    "message": "Save history"
+  },
   "settingsScreenAria": {
     "message": "$1 settings"
   },
@@ -223,6 +250,9 @@
   },
   "siteToggleUnsupported": {
     "message": "Available on normal web pages"
+  },
+  "titleHistory": {
+    "message": "History"
   },
   "titleInteraction": {
     "message": "Interaction"

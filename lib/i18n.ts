@@ -9,6 +9,9 @@ export type I18nKey =
   | 'actionBack'
   | 'actionClose'
   | 'actionCopyTranslation'
+  | 'actionClearHistory'
+  | 'actionCopyHistoryItem'
+  | 'actionDeleteHistoryItem'
   | 'actionReset'
   | 'appTitle'
   | 'ariaSettingsGroups'
@@ -30,15 +33,20 @@ export type I18nKey =
   | 'footerToLanguage'
   | 'groupBehavior'
   | 'groupGoogleCloud'
+  | 'groupHistory'
   | 'groupInterface'
   | 'groupLanguages'
   | 'groupSelection'
   | 'groupSettings'
+  | 'historyEmptyDescription'
+  | 'historyEmptyTitle'
+  | 'historyLimitDescription'
   | 'infoLocalOnlyStorage'
   | 'inputApiKey'
   | 'labelApiKey'
   | 'labelExtensionLanguage'
   | 'labelFrom'
+  | 'labelHistoryLimit'
   | 'labelOriginal'
   | 'labelPopupStyle'
   | 'labelTo'
@@ -74,11 +82,13 @@ export type I18nKey =
   | 'optionSystemTheme'
   | 'providerDescription'
   | 'saved'
+  | 'saveHistory'
   | 'settingsScreenAria'
   | 'siteToggleCurrentSite'
   | 'siteToggleUnavailable'
   | 'siteToggleUnsupported'
   | 'labelTheme'
+  | 'titleHistory'
   | 'titleInteraction'
   | 'titleExtension'
   | 'titleProvider'
@@ -115,8 +125,12 @@ export function t(
   substitutions?: string | string[],
   language = activeAppLanguage,
 ): string {
+  const getBrowserMessage = browser.i18n.getMessage as (
+    messageName: string,
+    substitutions?: string | string[],
+  ) => string;
   const message = getMessageCatalog(language)[key]?.message
-    ?? browser.i18n.getMessage(key, substitutions)
+    ?? getBrowserMessage(key, substitutions)
     ?? key;
 
   return applySubstitutions(message, substitutions);

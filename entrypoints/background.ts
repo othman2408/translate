@@ -1,6 +1,7 @@
 import { browser, defineBackground } from '#imports';
 
 import { getCacheKey, getCachedTranslation, setCachedTranslation } from '@/lib/cache';
+import { addTranslationHistoryEntry } from '@/lib/history';
 import { t } from '@/lib/i18n';
 import { isRuntimeMessage, type TranslationErrorCode, type TranslationResponse } from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
@@ -57,7 +58,12 @@ export default defineBackground(() => {
       return undefined;
     }
 
-    return translateText(message.text, message.sourceLanguage, message.targetLanguage);
+    return translateText(
+      message.text,
+      message.sourceLanguage,
+      message.targetLanguage,
+      message.recordHistory === true,
+    );
   });
 });
 
@@ -90,6 +96,7 @@ async function translateText(
   rawText: string,
   requestedSourceLanguage?: string,
   requestedTargetLanguage?: string,
+  recordHistory = false,
 ): Promise<TranslationResponse> {
   const settings = await getSettings();
   const text = rawText.trim();
@@ -109,13 +116,19 @@ async function translateText(
   if (settings.cacheEnabled) {
     const cached = await getCachedTranslation(cacheKey);
     if (cached) {
-      return {
+      const result = {
         ok: true,
         translatedText: cached.translatedText,
         detectedSourceLanguage: cached.detectedSourceLanguage,
         targetLanguage: cached.targetLanguage,
         fromCache: true,
-      };
+      } satisfies TranslationResponse;
+
+      if (recordHistory) {
+        await recordTranslationHistory(text, sourceLanguage, result, settings);
+      }
+
+      return result;
     }
   }
 
@@ -177,7 +190,35 @@ async function translateText(
     });
   }
 
+  if (recordHistory) {
+    await recordTranslationHistory(text, sourceLanguage, result, settings);
+  }
+
   return result;
+}
+
+async function recordTranslationHistory(
+  originalText: string,
+  sourceLanguage: string,
+  response: Extract<TranslationResponse, { ok: true }>,
+  settings: Awaited<ReturnType<typeof getSettings>>,
+): Promise<void> {
+  if (!settings.historyEnabled || settings.historyLimit <= 0) {
+    return;
+  }
+
+  try {
+    await addTranslationHistoryEntry({
+      originalText,
+      translatedText: response.translatedText,
+      sourceLanguage,
+      detectedSourceLanguage: response.detectedSourceLanguage,
+      targetLanguage: response.targetLanguage,
+      provider: 'google-v2',
+    }, settings.historyLimit);
+  } catch {
+    // Translation should still succeed if local history storage is unavailable.
+  }
 }
 
 function failure(code: TranslationErrorCode, message: string): TranslationResponse {
