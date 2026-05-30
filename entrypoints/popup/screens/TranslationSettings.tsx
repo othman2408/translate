@@ -1,4 +1,5 @@
-import { LANGUAGE_OPTIONS, TARGET_LANGUAGE_OPTIONS } from '@/lib/languages';
+import { t } from '@/lib/i18n';
+import { LANGUAGE_OPTIONS, localizeLanguageOptions, TARGET_LANGUAGE_OPTIONS } from '@/lib/languages';
 import type { ExtensionSettings } from '@/lib/settings';
 
 import { GroupedSection } from '../components/GroupedSection';
@@ -12,25 +13,37 @@ export function TranslationSettings({
   settings: ExtensionSettings;
   onUpdate: SettingUpdateHandler;
 }) {
+  const languageOptions = localizeLanguageOptions(LANGUAGE_OPTIONS, settings.appLanguage).map((option) => ({
+    label: option.name,
+    value: option.code,
+  }));
+  const targetLanguageOptions = localizeLanguageOptions(
+    TARGET_LANGUAGE_OPTIONS,
+    settings.appLanguage,
+  ).map((option) => ({
+    label: option.name,
+    value: option.code,
+  }));
+
   return (
     <div className="settings-stack">
-      <GroupedSection label="Languages">
+      <GroupedSection label={t('groupLanguages')}>
         <SettingSelect
-          label="From"
+          label={t('labelFrom')}
           value={settings.sourceLanguage}
-          options={LANGUAGE_OPTIONS}
+          options={languageOptions}
           onValueChange={(value) => onUpdate('sourceLanguage', value)}
         />
         <SettingSelect
-          label="To"
+          label={t('labelTo')}
           value={settings.targetLanguage}
-          options={TARGET_LANGUAGE_OPTIONS}
+          options={targetLanguageOptions}
           onValueChange={(value) => onUpdate('targetLanguage', value)}
         />
       </GroupedSection>
 
       <p className="quiet-note">
-        Only selected text is sent to the translation provider.
+        {t('noteSelectedTextOnly')}
       </p>
     </div>
   );

@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import type { ExtensionSettings, PopupMode, TriggerMode } from '@/lib/settings';
 
 import { GroupedSection } from '../components/GroupedSection';
@@ -15,38 +16,38 @@ export function InteractionSettings({
 }) {
   return (
     <div className="settings-stack">
-      <GroupedSection label="Selection">
-        <SettingRow label="Trigger">
+      <GroupedSection label={t('groupSelection')}>
+        <SettingRow label={t('labelTrigger')}>
           <SegmentedControl<TriggerMode>
             value={settings.triggerMode}
             options={[
-              { value: 'click', label: 'Click' },
-              { value: 'instant', label: 'Instant' },
+              { value: 'click', label: t('optionClick') },
+              { value: 'instant', label: t('optionInstant') },
             ]}
             onChange={(value) => onUpdate('triggerMode', value)}
           />
         </SettingRow>
 
-        <SettingRow label="Popup style">
+        <SettingRow label={t('labelPopupStyle')}>
           <SegmentedControl<PopupMode>
             value={settings.popupMode}
             options={[
-              { value: 'bubble', label: 'Bubble' },
-              { value: 'dictionary', label: 'Dictionary' },
+              { value: 'bubble', label: t('optionBubble') },
+              { value: 'dictionary', label: t('optionDictionary') },
             ]}
             onChange={(value) => onUpdate('popupMode', value)}
           />
         </SettingRow>
       </GroupedSection>
 
-      <GroupedSection label="Behavior">
+      <GroupedSection label={t('groupBehavior')}>
         <SettingToggle
-          label="Close on outside click"
+          label={t('closeOnOutsideClick')}
           checked={settings.closeOnOutsideClick}
           onCheckedChange={(checked) => onUpdate('closeOnOutsideClick', checked)}
         />
         <SettingToggle
-          label="Cache translations"
+          label={t('cacheTranslations')}
           checked={settings.cacheEnabled}
           onCheckedChange={(checked) => onUpdate('cacheEnabled', checked)}
         />

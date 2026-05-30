@@ -1,8 +1,9 @@
 import { browser, defineBackground } from '#imports';
 
 import { getCacheKey, getCachedTranslation, setCachedTranslation } from '@/lib/cache';
+import { t } from '@/lib/i18n';
 import { isRuntimeMessage, type TranslationErrorCode, type TranslationResponse } from '@/lib/messages';
-import { getSettings } from '@/lib/settings';
+import { getSettings, settingsItem } from '@/lib/settings';
 
 const CONTEXT_MENU_ID = 'translate-bubble-selection';
 const GOOGLE_TRANSLATE_ENDPOINT = 'https://translation.googleapis.com/language/translate/v2';
@@ -24,6 +25,10 @@ export default defineBackground(() => {
   setupContextMenu();
 
   browser.runtime.onInstalled.addListener(() => {
+    void setupContextMenu();
+  });
+
+  settingsItem.watch(() => {
     void setupContextMenu();
   });
 
@@ -53,10 +58,12 @@ export default defineBackground(() => {
 
 async function setupContextMenu(): Promise<void> {
   try {
+    const settings = await getSettings();
+
     await browser.contextMenus.removeAll();
     await browser.contextMenus.create({
       id: CONTEXT_MENU_ID,
-      title: 'Translate selected text',
+      title: t('contextMenuTranslateSelection', undefined, settings.appLanguage),
       contexts: ['selection'],
     });
   } catch {
@@ -69,18 +76,18 @@ async function translateText(
   requestedSourceLanguage?: string,
   requestedTargetLanguage?: string,
 ): Promise<TranslationResponse> {
+  const settings = await getSettings();
   const text = rawText.trim();
   if (!text) {
-    return failure('empty-text', 'Select some text to translate.');
+    return failure('empty-text', t('errorSelectText', undefined, settings.appLanguage));
   }
 
-  const settings = await getSettings();
   const apiKey = settings.apiKey.trim();
   const sourceLanguage = requestedSourceLanguage ?? settings.sourceLanguage;
   const targetLanguage = requestedTargetLanguage ?? settings.targetLanguage;
 
   if (!apiKey) {
-    return failure('missing-api-key', 'Add your Google Cloud Translation API key in the extension settings.');
+    return failure('missing-api-key', t('errorMissingApiKey', undefined, settings.appLanguage));
   }
 
   const cacheKey = getCacheKey(text, sourceLanguage, targetLanguage);
@@ -117,26 +124,26 @@ async function translateText(
       body: params.toString(),
     });
   } catch {
-    return failure('network', 'Could not reach Google Translate. Check your connection and try again.');
+    return failure('network', t('errorNetwork', undefined, settings.appLanguage));
   }
 
   const payload = (await response.json().catch(() => ({}))) as GoogleTranslateResponse;
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      return failure('auth', payload.error?.message ?? 'The Google API key was rejected.');
+      return failure('auth', payload.error?.message ?? t('errorApiKeyRejected', undefined, settings.appLanguage));
     }
 
     if (response.status === 429) {
-      return failure('quota', payload.error?.message ?? 'Google Translate quota was exceeded.');
+      return failure('quota', payload.error?.message ?? t('errorQuota', undefined, settings.appLanguage));
     }
 
-    return failure('provider', payload.error?.message ?? 'Google Translate could not complete the request.');
+    return failure('provider', payload.error?.message ?? t('errorGoogleProvider', undefined, settings.appLanguage));
   }
 
   const translation = payload.data?.translations?.[0];
   if (!translation?.translatedText) {
-    return failure('provider', 'Google Translate returned an empty response.');
+    return failure('provider', t('errorEmptyProviderResponse', undefined, settings.appLanguage));
   }
 
   const result = {

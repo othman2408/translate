@@ -1,5 +1,7 @@
 import { storage } from '#imports';
 
+import type { AppLanguage } from './i18n';
+
 export type TriggerMode = 'click' | 'instant';
 export type PopupMode = 'bubble' | 'dictionary';
 
@@ -11,6 +13,7 @@ export type ExtensionSettings = {
   popupMode: PopupMode;
   cacheEnabled: boolean;
   closeOnOutsideClick: boolean;
+  appLanguage: AppLanguage;
 };
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -21,6 +24,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   popupMode: 'bubble',
   cacheEnabled: true,
   closeOnOutsideClick: true,
+  appLanguage: 'auto',
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {

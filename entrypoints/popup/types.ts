@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { ExtensionSettings } from '@/lib/settings';
 
-export type Screen = 'home' | 'translation' | 'interaction' | 'provider';
+export type Screen = 'home' | 'translation' | 'interaction' | 'provider' | 'extension';
 
 export type SettingsScreen = Exclude<Screen, 'home'>;
 

@@ -2,6 +2,8 @@ import { Button } from '@base-ui/react';
 import { ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { t } from '@/lib/i18n';
+
 import { SaveState } from './SaveState';
 import type { SaveState as SaveStateValue } from '../types';
 
@@ -19,7 +21,7 @@ export function AppHeader({
   return (
     <header className="app-header">
       {onBack && (
-        <Button className="back-icon-button" type="button" aria-label="Back" onClick={onBack}>
+        <Button className="back-icon-button" type="button" aria-label={t('actionBack')} onClick={onBack}>
           <ChevronLeft size={20} />
         </Button>
       )}

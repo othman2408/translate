@@ -1,6 +1,7 @@
-import { Button, Field, Input } from '@base-ui/react';
-import { RotateCcw, ShieldCheck } from 'lucide-react';
+import { Field, Input } from '@base-ui/react';
+import { ShieldCheck } from 'lucide-react';
 
+import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
 
 import { GroupedSection } from '../components/GroupedSection';
@@ -9,27 +10,25 @@ import type { SettingUpdateHandler } from '../types';
 export function ProviderSettings({
   settings,
   onUpdate,
-  onReset,
 }: {
   settings: ExtensionSettings;
   onUpdate: SettingUpdateHandler;
-  onReset: () => void;
 }) {
   return (
     <div className="settings-stack">
-      <GroupedSection label="Google Cloud">
+      <GroupedSection label={t('groupGoogleCloud')}>
         <Field.Root className="setting-row setting-row--stacked">
           <div className="setting-row__copy">
-            <Field.Label className="setting-label">API key</Field.Label>
+            <Field.Label className="setting-label">{t('labelApiKey')}</Field.Label>
             <Field.Description className="setting-description">
-              Google Cloud Translation Basic v2
+              {t('providerDescription')}
             </Field.Description>
           </div>
           <Input
             className="text-input"
             type="password"
             spellCheck={false}
-            placeholder="AIza..."
+            placeholder={t('inputApiKey')}
             value={settings.apiKey}
             onValueChange={(value) => onUpdate('apiKey', value)}
           />
@@ -40,22 +39,11 @@ export function ProviderSettings({
             <ShieldCheck size={16} />
           </span>
           <span>
-            <strong>Local-only storage</strong>
+            <strong>{t('infoLocalOnlyStorage')}</strong>
           </span>
         </div>
       </GroupedSection>
 
-      <GroupedSection label="Settings">
-        <div className="setting-row">
-          <span className="setting-row__copy">
-            <strong className="setting-label">Reset settings</strong>
-          </span>
-          <Button className="danger-soft-button" type="button" onClick={onReset}>
-            <RotateCcw size={14} />
-            Reset
-          </Button>
-        </div>
-      </GroupedSection>
     </div>
   );
 }
