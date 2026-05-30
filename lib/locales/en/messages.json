@@ -8,6 +8,9 @@
   "actionBack": {
     "message": "Back"
   },
+  "actionClearText": {
+    "message": "Clear text"
+  },
   "actionClose": {
     "message": "Close"
   },
@@ -224,6 +227,21 @@
   "languageZhTw": {
     "message": "Chinese (Traditional)"
   },
+  "manualInputPlaceholder": {
+    "message": "Enter text"
+  },
+  "manualTranslationEmpty": {
+    "message": "Ready"
+  },
+  "manualTranslationLabel": {
+    "message": "Translation"
+  },
+  "manualTranslatorTitle": {
+    "message": "Instant translation"
+  },
+  "manualTranslating": {
+    "message": "Translating..."
+  },
   "noteSelectedTextOnly": {
     "message": "Only selected text is sent to the translation provider."
   },
@@ -307,6 +325,9 @@
   },
   "titleProvider": {
     "message": "Provider"
+  },
+  "titleSettings": {
+    "message": "Settings"
   },
   "titleTranslation": {
     "message": "Language"

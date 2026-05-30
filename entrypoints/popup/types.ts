@@ -2,10 +2,9 @@ import type { ReactNode } from 'react';
 
 import type { ExtensionSettings } from '@/lib/settings';
 
-export type Screen = 'home' | 'history' | 'translation' | 'interaction' | 'provider' | 'extension';
+export type Screen = 'home' | 'settings' | 'history' | 'translation' | 'interaction' | 'provider' | 'extension';
 
-export type SettingsScreen = Exclude<Screen, 'home' | 'history'>;
-export type HomeNavScreen = Exclude<Screen, 'home'>;
+export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'history'>;
 
 export type NavigationDirection = 'forward' | 'back';
 
@@ -17,7 +16,7 @@ export type SettingUpdateHandler = <TKey extends keyof ExtensionSettings>(
 ) => void;
 
 export type NavItem = {
-  screen: HomeNavScreen;
+  screen: Exclude<Screen, 'home'>;
   title: string;
   icon: ReactNode;
 };

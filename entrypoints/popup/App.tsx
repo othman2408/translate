@@ -14,6 +14,7 @@ import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i1
 
 import { HomeScreen } from './screens/HomeScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
+import { SettingsHubScreen } from './screens/SettingsHubScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type {
   NavItem,
@@ -130,7 +131,7 @@ function App() {
       return;
     }
 
-    setDirection(nextScreen === 'home' ? 'back' : 'forward');
+    setDirection(isBackNavigation(screen, nextScreen) ? 'back' : 'forward');
     setScreen(nextScreen);
   }
 
@@ -197,10 +198,20 @@ function App() {
     if (screenName === 'home') {
       return (
         <HomeScreen
-          navItems={navItems}
           settings={settings}
           onNavigate={navigateTo}
           onUpdate={updateSetting}
+        />
+      );
+    }
+
+    if (screenName === 'settings') {
+      return (
+        <SettingsHubScreen
+          navItems={navItems}
+          saveState={saveState}
+          onBack={() => navigateTo('home')}
+          onNavigate={navigateTo}
         />
       );
     }
@@ -210,7 +221,7 @@ function App() {
         <HistoryScreen
           settings={settings}
           saveState={saveState}
-          onBack={() => navigateTo('home')}
+          onBack={() => navigateTo('settings')}
         />
       );
     }
@@ -220,13 +231,21 @@ function App() {
         screen={screenName as SettingsScreenName}
         settings={settings}
         saveState={saveState}
-        onBack={() => navigateTo('home')}
+        onBack={() => navigateTo('settings')}
         onUpdate={updateSetting}
         onUpdateSettings={updateSettings}
         onReset={resetSettings}
       />
     );
   }
+}
+
+function isBackNavigation(currentScreen: Screen, nextScreen: Screen): boolean {
+  if (nextScreen === 'home') {
+    return true;
+  }
+
+  return currentScreen !== 'home' && nextScreen === 'settings';
 }
 
 export default App;

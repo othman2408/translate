@@ -1,21 +1,21 @@
 import { browser } from '#imports';
-import { Button, Switch } from '@base-ui/react';
-import { ChevronRight } from 'lucide-react';
+import { Switch } from '@base-ui/react';
+import { Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
 import { getHttpHost, isHostDisabled } from '@/lib/sites';
 
-import type { NavItem, Screen, SettingUpdateHandler } from '../types';
+import { ManualTranslator } from '../components/ManualTranslator';
+import { NavigationList } from '../components/NavigationList';
+import type { Screen, SettingUpdateHandler } from '../types';
 
 export function HomeScreen({
-  navItems,
   settings,
   onNavigate,
   onUpdate,
 }: {
-  navItems: NavItem[];
   settings: ExtensionSettings;
   onNavigate: (screen: Screen) => void;
   onUpdate: SettingUpdateHandler;
@@ -59,6 +59,8 @@ export function HomeScreen({
         <img className="home-brand__logo" src="/icon/logo.svg" alt="" />
       </div>
 
+      <ManualTranslator settings={settings} onUpdate={onUpdate} />
+
       <div className="site-switch-card">
         <span className="site-switch-card__copy">
           <strong>{isSiteSupported ? currentHost : t('siteToggleUnavailable')}</strong>
@@ -79,24 +81,14 @@ export function HomeScreen({
         )}
       </div>
 
-      <section className="grouped-list" aria-label={t('ariaSettingsGroups')}>
-        {navItems.map((item) => (
-          <Button
-            key={item.screen}
-            className="nav-row"
-            type="button"
-            onClick={() => onNavigate(item.screen)}
-          >
-            <span className="nav-row__icon" aria-hidden="true">
-              {item.icon}
-            </span>
-            <span className="nav-row__copy">
-              <strong>{item.title}</strong>
-            </span>
-            <ChevronRight className="nav-row__chevron" size={16} aria-hidden="true" />
-          </Button>
-        ))}
-      </section>
+      <NavigationList
+        items={[{
+          screen: 'settings',
+          title: t('titleSettings'),
+          icon: <Settings2 size={17} />,
+        }]}
+        onNavigate={onNavigate}
+      />
 
       <p className="app-version">v{appVersion}</p>
     </section>

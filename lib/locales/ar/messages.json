@@ -8,6 +8,9 @@
   "actionBack": {
     "message": "رجوع"
   },
+  "actionClearText": {
+    "message": "مسح النص"
+  },
   "actionClose": {
     "message": "إغلاق"
   },
@@ -224,6 +227,21 @@
   "languageZhTw": {
     "message": "الصينية (التقليدية)"
   },
+  "manualInputPlaceholder": {
+    "message": "أدخل النص"
+  },
+  "manualTranslationEmpty": {
+    "message": "جاهز"
+  },
+  "manualTranslationLabel": {
+    "message": "الترجمة"
+  },
+  "manualTranslatorTitle": {
+    "message": "ترجمة فورية"
+  },
+  "manualTranslating": {
+    "message": "جار الترجمة..."
+  },
   "noteSelectedTextOnly": {
     "message": "يتم إرسال النص المحدد فقط إلى مزود الترجمة."
   },
@@ -307,6 +325,9 @@
   },
   "titleProvider": {
     "message": "المزود"
+  },
+  "titleSettings": {
+    "message": "الإعدادات"
   },
   "titleTranslation": {
     "message": "اللغة"
