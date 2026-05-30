@@ -340,6 +340,7 @@ function TranslateOverlay({
     return (
       <button
         className="translate-icon-button"
+        data-theme-mode={state.settings.themeMode}
         style={style}
         type="button"
         title={t('translationTitle', undefined, state.settings.appLanguage)}
@@ -368,6 +369,7 @@ function TranslateOverlay({
   return (
     <section
       className={`translation-card translation-card--${state.status}`}
+      data-theme-mode={state.settings.themeMode}
       style={style}
       aria-live="polite"
       dir={uiDirection}
@@ -508,12 +510,64 @@ const overlayCss = `
 
   .translate-icon-button,
   .translation-card {
+    --translate-text: #172033;
+    --translate-muted: #64748b;
+    --translate-secondary: #334155;
+    --translate-surface: #ffffff;
+    --translate-soft-surface: #f5f7fb;
+    --translate-hover: #eef4ff;
+    --translate-blue: #176bdf;
+    --translate-blue-hover: #0f55c6;
+    --translate-error: #a13b14;
+    --translate-border: rgba(21, 35, 58, 0.12);
+    --translate-border-soft: rgba(21, 35, 58, 0.08);
+    --translate-shadow-icon: 0 12px 30px rgba(17, 24, 39, 0.24);
+    --translate-shadow-icon-hover: 0 14px 36px rgba(17, 24, 39, 0.28);
+    --translate-shadow-card: 0 18px 50px rgba(17, 24, 39, 0.28);
     position: fixed;
     left: 0;
     top: 0;
     z-index: 2147483647;
     font-family: "Segoe UI", "Helvetica Neue", sans-serif;
-    color: #172033;
+    color: var(--translate-text);
+  }
+
+  .translate-icon-button[data-theme-mode="dark"],
+  .translation-card[data-theme-mode="dark"] {
+    --translate-text: #f5f7fb;
+    --translate-muted: #a8b3c4;
+    --translate-secondary: #cbd5e1;
+    --translate-surface: #242426;
+    --translate-soft-surface: #303034;
+    --translate-hover: rgba(10, 132, 255, 0.16);
+    --translate-blue: #0a84ff;
+    --translate-blue-hover: #64aaff;
+    --translate-error: #ffb4a2;
+    --translate-border: rgba(235, 235, 245, 0.16);
+    --translate-border-soft: rgba(235, 235, 245, 0.1);
+    --translate-shadow-icon: 0 12px 30px rgba(0, 0, 0, 0.42);
+    --translate-shadow-icon-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
+    --translate-shadow-card: 0 18px 50px rgba(0, 0, 0, 0.46);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .translate-icon-button[data-theme-mode="system"],
+    .translation-card[data-theme-mode="system"] {
+      --translate-text: #f5f7fb;
+      --translate-muted: #a8b3c4;
+      --translate-secondary: #cbd5e1;
+      --translate-surface: #242426;
+      --translate-soft-surface: #303034;
+      --translate-hover: rgba(10, 132, 255, 0.16);
+      --translate-blue: #0a84ff;
+      --translate-blue-hover: #64aaff;
+      --translate-error: #ffb4a2;
+      --translate-border: rgba(235, 235, 245, 0.16);
+      --translate-border-soft: rgba(235, 235, 245, 0.1);
+      --translate-shadow-icon: 0 12px 30px rgba(0, 0, 0, 0.42);
+      --translate-shadow-icon-hover: 0 14px 36px rgba(0, 0, 0, 0.5);
+      --translate-shadow-card: 0 18px 50px rgba(0, 0, 0, 0.46);
+    }
   }
 
   .translate-icon-button {
@@ -521,28 +575,28 @@ const overlayCss = `
     height: 38px;
     display: grid;
     place-items: center;
-    border: 1px solid rgba(21, 35, 58, 0.12);
+    border: 1px solid var(--translate-border);
     border-radius: 999px;
-    background: #ffffff;
-    color: #176bdf;
-    box-shadow: 0 12px 30px rgba(17, 24, 39, 0.24);
+    background: var(--translate-surface);
+    color: var(--translate-blue);
+    box-shadow: var(--translate-shadow-icon);
     cursor: pointer;
     transition: transform 140ms ease, box-shadow 140ms ease;
   }
 
   .translate-icon-button:hover {
-    box-shadow: 0 14px 36px rgba(17, 24, 39, 0.28);
-    color: #0f55c6;
+    box-shadow: var(--translate-shadow-icon-hover);
+    color: var(--translate-blue-hover);
   }
 
   .translation-card {
     width: min(360px, calc(100vw - 24px));
     max-height: min(440px, calc(100vh - 24px));
     overflow: hidden;
-    border: 1px solid rgba(21, 35, 58, 0.12);
+    border: 1px solid var(--translate-border);
     border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 18px 50px rgba(17, 24, 39, 0.28);
+    background: var(--translate-surface);
+    box-shadow: var(--translate-shadow-card);
   }
 
   .translation-card__header,
@@ -555,7 +609,7 @@ const overlayCss = `
 
   .translation-card__header {
     padding: 12px 12px 8px;
-    border-bottom: 1px solid rgba(21, 35, 58, 0.08);
+    border-bottom: 1px solid var(--translate-border-soft);
   }
 
   .translation-card__title {
@@ -565,7 +619,7 @@ const overlayCss = `
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0;
-    color: #176bdf;
+    color: var(--translate-blue);
   }
 
   .icon-control {
@@ -576,13 +630,13 @@ const overlayCss = `
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: #4b5565;
+    color: var(--translate-muted);
     cursor: pointer;
   }
 
   .icon-control:hover {
-    background: #eef4ff;
-    color: #176bdf;
+    background: var(--translate-hover);
+    color: var(--translate-blue);
   }
 
   .translation-card__status,
@@ -610,14 +664,14 @@ const overlayCss = `
     margin: 12px 12px 0;
     padding: 10px;
     border-radius: 8px;
-    background: #f5f7fb;
-    color: #334155;
+    background: var(--translate-soft-surface);
+    color: var(--translate-secondary);
   }
 
   .translation-card__original span,
   .translation-card__footer {
     font-size: 11px;
-    color: #64748b;
+    color: var(--translate-muted);
   }
 
   .translation-card__original p {
@@ -626,7 +680,7 @@ const overlayCss = `
     overflow: auto;
     font-size: 13px;
     line-height: 1.45;
-    color: #172033;
+    color: var(--translate-text);
     white-space: pre-wrap;
     unicode-bidi: plaintext;
   }
@@ -636,7 +690,7 @@ const overlayCss = `
   }
 
   .translation-card__error {
-    color: #a13b14;
+    color: var(--translate-error);
   }
 
   .translation-card__error p {

@@ -59,8 +59,10 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = uiLanguage;
     document.documentElement.dir = uiDirection;
+    document.documentElement.dataset.themeMode = settings.themeMode;
+    document.documentElement.style.colorScheme = settings.themeMode === 'system' ? 'light dark' : settings.themeMode;
     document.title = t('appTitle', undefined, settings.appLanguage);
-  }, [settings.appLanguage, uiDirection, uiLanguage]);
+  }, [settings.appLanguage, settings.themeMode, uiDirection, uiLanguage]);
 
   useEffect(() => {
     let active = true;
@@ -151,7 +153,13 @@ function App() {
   }
 
   return (
-    <main className="app-shell" aria-busy={!loaded} dir={uiDirection} lang={uiLanguage}>
+    <main
+      className="app-shell"
+      aria-busy={!loaded}
+      data-theme-mode={settings.themeMode}
+      dir={uiDirection}
+      lang={uiLanguage}
+    >
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={screen}
