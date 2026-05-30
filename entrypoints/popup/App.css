@@ -1,42 +1,218 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.app-shell {
+  min-height: 560px;
+  padding: 18px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #54bc4ae0);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: #176bdf;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(23, 107, 223, 0.26);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.app-header h1 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
-.card {
-  padding: 2em;
+.app-header p {
+  margin: 3px 0 0;
+  color: #607089;
+  font-size: 12px;
 }
 
-.read-the-docs {
-  color: #888;
+.settings-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field-label,
+.control-group__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #24314a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-description {
+  color: #718096;
+  font-size: 11px;
+}
+
+.text-input,
+.select-input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  outline: none;
+  padding: 0 11px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.text-input:focus,
+.select-input:focus {
+  border-color: #176bdf;
+  box-shadow: 0 0 0 3px rgba(23, 107, 223, 0.14);
+}
+
+.language-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.control-group {
+  display: grid;
+  gap: 8px;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #e9eef6;
+}
+
+.segmented-control__button {
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #53637a;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.segmented-control__button[data-active="true"] {
+  background: #ffffff;
+  color: #176bdf;
+  box-shadow: 0 3px 10px rgba(23, 38, 66, 0.12);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.switch-row span {
+  display: grid;
+  gap: 3px;
+}
+
+.switch-row strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+.switch-row small {
+  color: #718096;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.switch {
+  width: 42px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: #b8c4d6;
+  cursor: pointer;
+  padding: 2px;
+  transition: background 140ms ease;
+}
+
+.switch[data-checked] {
+  background: #176bdf;
+}
+
+.switch-thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(17, 24, 39, 0.22);
+  transform: translateX(0);
+  transition: transform 140ms ease;
+}
+
+.switch[data-checked] .switch-thumb {
+  transform: translateX(18px);
+}
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.secondary-button {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #42526a;
+  cursor: pointer;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  border-color: #176bdf;
+  color: #176bdf;
+}
+
+.save-state {
+  min-width: 62px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  color: #1c7c54;
+  font-size: 12px;
+  font-weight: 700;
 }
