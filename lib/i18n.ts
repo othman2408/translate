@@ -1,7 +1,7 @@
 import { browser } from '#imports';
 
-import arMessages from '@/public/_locales/ar/messages.json';
-import enMessages from '@/public/_locales/en/messages.json';
+import arMessages from './locales/ar/messages.json';
+import enMessages from './locales/en/messages.json';
 
 export type I18nKey =
   | 'extName'
@@ -66,12 +66,16 @@ export type I18nKey =
   | 'noteSelectedTextOnly'
   | 'optionBubble'
   | 'optionClick'
+  | 'optionDarkTheme'
   | 'optionDictionary'
+  | 'optionLightTheme'
   | 'optionInstant'
   | 'optionSystemLanguage'
+  | 'optionSystemTheme'
   | 'providerDescription'
   | 'saved'
   | 'settingsScreenAria'
+  | 'labelTheme'
   | 'titleInteraction'
   | 'titleExtension'
   | 'titleProvider'
