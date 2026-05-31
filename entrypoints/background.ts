@@ -7,18 +7,19 @@ import { getHttpHost, isHostDisabled } from '@/lib/sites';
 import { TranslationService } from '@/lib/translation/service';
 
 const CONTEXT_MENU_ID = 'translate-bubble-selection';
+let contextMenuSetupPromise = Promise.resolve();
 
 export default defineBackground(() => {
   const translationService = new TranslationService();
 
-  setupContextMenu();
+  queueContextMenuSetup();
 
   browser.runtime.onInstalled.addListener(() => {
-    void setupContextMenu();
+    queueContextMenuSetup();
   });
 
   settingsItem.watch(() => {
-    void setupContextMenu();
+    queueContextMenuSetup();
   });
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -54,6 +55,12 @@ export default defineBackground(() => {
     });
   });
 });
+
+function queueContextMenuSetup(): void {
+  contextMenuSetupPromise = contextMenuSetupPromise
+    .catch(() => undefined)
+    .then(setupContextMenu);
+}
 
 async function isTabDisabled(tabUrl: string | undefined): Promise<boolean> {
   const host = getHttpHost(tabUrl);

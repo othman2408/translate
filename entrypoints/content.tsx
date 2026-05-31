@@ -1,4 +1,5 @@
 import { browser, createShadowRootUi, defineContentScript } from '#imports';
+import type { ContentScriptContext } from '#imports';
 import type { Root } from 'react-dom/client';
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -90,42 +91,22 @@ let overlayState: OverlayState = {
 export default defineContentScript({
   matches: ['http://*/*', 'https://*/*'],
   async main(ctx) {
-    settings = await getSettings();
+    const initialSettings = await getSafeSettings();
+    if (!initialSettings) {
+      return;
+    }
+
+    settings = initialSettings;
     overlayState = { ...overlayState, settings };
 
-    const unwatchSettings = settingsItem.watch((nextSettings) => {
-      settings = { ...DEFAULT_SETTINGS, ...nextSettings };
-      updateOverlay({ settings });
+    if (!(await mountOverlayUi(ctx))) {
+      return;
+    }
 
-      if (!isCurrentSiteEnabled()) {
-        hideOverlay();
-      }
-    });
-    ctx.onInvalidated(unwatchSettings);
-
-    const ui = await createShadowRootUi(ctx, {
-      name: 'translate-bubble-overlay',
-      position: 'overlay',
-      anchor: 'body',
-      zIndex: 2147483647,
-      isolateEvents: true,
-      css: overlayCss,
-      onMount: (container) => {
-        shadowHostElement = container.getRootNode() instanceof ShadowRoot
-          ? (container.getRootNode() as ShadowRoot).host as HTMLElement
-          : undefined;
-        reactRoot = createRoot(container);
-        renderOverlay();
-        return reactRoot;
-      },
-      onRemove: (root) => {
-        root?.unmount();
-        reactRoot = undefined;
-        shadowHostElement = undefined;
-      },
-    });
-
-    ui.mount();
+    const unwatchSettings = watchSettingsSafely();
+    if (unwatchSettings) {
+      ctx.onInvalidated(unwatchSettings);
+    }
 
     ctx.addEventListener(document, 'pointermove', (event) => {
       lastPointerPosition = clampPopupPosition({ left: event.clientX, top: event.clientY + 12 });
@@ -157,10 +138,82 @@ export default defineContentScript({
       void showFromContextMenu(message);
     };
 
-    browser.runtime.onMessage.addListener(messageListener);
-    ctx.onInvalidated(() => browser.runtime.onMessage.removeListener(messageListener));
+    if (addRuntimeMessageListener(messageListener)) {
+      ctx.onInvalidated(() => removeRuntimeMessageListener(messageListener));
+    }
   },
 });
+
+async function mountOverlayUi(ctx: ContentScriptContext): Promise<boolean> {
+  try {
+    const ui = await createShadowRootUi<Root>(ctx, {
+      name: 'translate-bubble-overlay',
+      position: 'overlay',
+      anchor: 'body',
+      zIndex: 2147483647,
+      isolateEvents: true,
+      css: overlayCss,
+      onMount: (container) => {
+        shadowHostElement = container.getRootNode() instanceof ShadowRoot
+          ? (container.getRootNode() as ShadowRoot).host as HTMLElement
+          : undefined;
+        reactRoot = createRoot(container);
+        renderOverlay();
+        return reactRoot;
+      },
+      onRemove: (root) => {
+        root?.unmount();
+        reactRoot = undefined;
+        shadowHostElement = undefined;
+      },
+    });
+
+    ui.mount();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getSafeSettings(): Promise<ExtensionSettings | undefined> {
+  try {
+    return await getSettings();
+  } catch {
+    return undefined;
+  }
+}
+
+function watchSettingsSafely(): (() => void) | undefined {
+  try {
+    return settingsItem.watch((nextSettings) => {
+      settings = { ...DEFAULT_SETTINGS, ...nextSettings };
+      updateOverlay({ settings });
+
+      if (!isCurrentSiteEnabled()) {
+        hideOverlay();
+      }
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+function addRuntimeMessageListener(messageListener: (message: unknown) => void): boolean {
+  try {
+    browser.runtime.onMessage.addListener(messageListener);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeRuntimeMessageListener(messageListener: (message: unknown) => void): void {
+  try {
+    browser.runtime.onMessage.removeListener(messageListener);
+  } catch {
+    // Existing pages can outlive the extension context after a local reload.
+  }
+}
 
 function handleSelectionChanged(): void {
   if (Date.now() < suppressSelectionHandlingUntil) {
