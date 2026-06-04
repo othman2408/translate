@@ -37,7 +37,7 @@ export function HistoryScreen({
 }) {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const title = mode === 'ai' ? t('titleAiHistory') : t('titleHistory');
+  const title = mode === 'ai' ? t('titleAiHistory') : t('titleTranslationHistory');
 
   useEffect(() => {
     let active = true;

@@ -5,6 +5,8 @@ import type { ExtensionSettings } from '@/lib/settings';
 export type Screen =
   | 'home'
   | 'settings'
+  | 'storage'
+  | 'cache'
   | 'history'
   | 'translation'
   | 'interaction'
@@ -18,7 +20,7 @@ export type Screen =
   | 'extension'
   | 'about';
 
-export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'history' | 'ai' | 'ai-history'>;
+export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'storage' | 'cache' | 'history' | 'ai' | 'ai-history'>;
 export type AiSettingsScreen = Extract<Screen, 'ai-behavior' | 'ai-rewrite' | 'ai-explain' | 'ai-providers'>;
 
 export type NavigationDirection = 'forward' | 'back';

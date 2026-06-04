@@ -20,6 +20,9 @@
   "actionClearHistory": {
     "message": "Clear history"
   },
+  "actionClearCache": {
+    "message": "Clear cache"
+  },
   "actionAddProvider": {
     "message": "Add provider"
   },
@@ -121,6 +124,15 @@
   },
   "cacheTranslations": {
     "message": "Cache results"
+  },
+  "cacheEmptyDescription": {
+    "message": "Repeated translation and AI results will appear here when caching is enabled."
+  },
+  "cacheEmptyTitle": {
+    "message": "No cached results yet"
+  },
+  "cacheLegacyOriginalUnavailable": {
+    "message": "Original text unavailable"
   },
   "closeOnOutsideClick": {
     "message": "Close on outside click"
@@ -464,8 +476,14 @@
   "siteToggleUnsupported": {
     "message": "Available on normal web pages"
   },
-  "titleHistory": {
-    "message": "History"
+  "titleCache": {
+    "message": "Cache"
+  },
+  "titleStorage": {
+    "message": "Storage"
+  },
+  "titleTranslationHistory": {
+    "message": "Translation History"
   },
   "titleAbout": {
     "message": "About"
@@ -486,7 +504,7 @@
     "message": "Interaction"
   },
   "titleExtension": {
-    "message": "Extension"
+    "message": "Settings"
   },
   "titleProvider": {
     "message": "Provider"

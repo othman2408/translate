@@ -20,6 +20,9 @@
   "actionClearHistory": {
     "message": "مسح السجل"
   },
+  "actionClearCache": {
+    "message": "مسح التخزين المؤقت"
+  },
   "actionAddProvider": {
     "message": "إضافة مزود"
   },
@@ -118,6 +121,15 @@
   },
   "cacheTranslations": {
     "message": "تخزين النتائج مؤقتا"
+  },
+  "cacheEmptyDescription": {
+    "message": "ستظهر نتائج الترجمة والذكاء الاصطناعي المتكررة هنا عند تفعيل التخزين المؤقت."
+  },
+  "cacheEmptyTitle": {
+    "message": "لا توجد نتائج مخزنة بعد"
+  },
+  "cacheLegacyOriginalUnavailable": {
+    "message": "النص الأصلي غير متاح"
   },
   "closeOnOutsideClick": {
     "message": "الإغلاق عند النقر خارج النافذة"
@@ -461,8 +473,14 @@
   "siteToggleUnsupported": {
     "message": "متاح في صفحات الويب العادية"
   },
-  "titleHistory": {
-    "message": "السجل"
+  "titleCache": {
+    "message": "التخزين المؤقت"
+  },
+  "titleStorage": {
+    "message": "التخزين"
+  },
+  "titleTranslationHistory": {
+    "message": "سجل الترجمة"
   },
   "titleAbout": {
     "message": "حول"
@@ -483,7 +501,7 @@
     "message": "التفاعل"
   },
   "titleExtension": {
-    "message": "الإضافة"
+    "message": "الإعدادات"
   },
   "titleProvider": {
     "message": "المزود"

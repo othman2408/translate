@@ -10,6 +10,10 @@ export type TranslationCacheEntry = Pick<
   TranslationSuccess,
   'translatedText' | 'detectedSourceLanguage' | 'targetLanguage'
 > & {
+  providerId?: string;
+  providerType?: ProviderType;
+  sourceLanguage?: string;
+  sourceText?: string;
   createdAt: number;
   lastUsedAt?: number;
 };
@@ -22,6 +26,12 @@ export type AiActionCacheEntry = Pick<
   AiActionSuccess,
   'resultText' | 'model' | 'language'
 > & {
+  action?: AiActionType;
+  providerId?: string;
+  providerName?: string;
+  providerType?: AiProviderType;
+  prompt?: string;
+  sourceText?: string;
   createdAt: number;
   lastUsedAt?: number;
 };
@@ -144,6 +154,26 @@ export async function setCachedAiAction(
   await aiActionCacheItem.setValue({
     entries: trimEntries(entries, MAX_AI_CACHE_ENTRIES),
   });
+}
+
+export async function deleteCachedTranslation(key: string): Promise<void> {
+  const cache = await translationCacheItem.getValue();
+  const { [key]: _removed, ...entries } = cache.entries;
+  await translationCacheItem.setValue({ entries });
+}
+
+export async function deleteCachedAiAction(key: string): Promise<void> {
+  const cache = await aiActionCacheItem.getValue();
+  const { [key]: _removed, ...entries } = cache.entries;
+  await aiActionCacheItem.setValue({ entries });
+}
+
+export async function clearTranslationCache(): Promise<void> {
+  await translationCacheItem.setValue({ entries: {} });
+}
+
+export async function clearAiActionCache(): Promise<void> {
+  await aiActionCacheItem.setValue({ entries: {} });
 }
 
 function trimEntries<TEntry extends { createdAt: number; lastUsedAt?: number }>(

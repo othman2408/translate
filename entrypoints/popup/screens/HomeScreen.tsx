@@ -1,6 +1,6 @@
 import { browser } from '#imports';
 import { Switch } from '@base-ui/react';
-import { Settings2 } from 'lucide-react';
+import { Languages, Settings2, Sparkles } from 'lucide-react';
 
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
@@ -35,29 +35,45 @@ export function HomeScreen({
     <section className="screen screen--home" aria-label={t('ariaTranslateSettings')}>
       <div className="home-brand" aria-label={t('appTitle')}>
         <img className="home-brand__logo" src="/icon/logo.svg" alt="" />
+        <div className="home-status-strip" aria-label={t('groupBehavior')}>
+          {isLoadingHost ? (
+            <span className="home-status-toggle home-status-toggle--loading" aria-hidden="true">
+              <Languages size={14} />
+              <span>{t('translationTitle')}</span>
+              <span className="home-status-toggle__dot" />
+            </span>
+          ) : (
+            <Switch.Root
+              className="home-status-toggle"
+              data-kind="translation"
+              checked={isCurrentSiteEnabled}
+              disabled={!isSiteSupported}
+              aria-label={isSiteSupported ? currentHost ?? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}
+              onCheckedChange={updateCurrentSiteEnabled}
+              title={isSiteSupported ? currentHost ?? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}
+            >
+              <Languages size={14} aria-hidden="true" />
+              <span>{t('translationTitle')}</span>
+              <span className="home-status-toggle__dot" />
+            </Switch.Root>
+          )}
+
+          <Switch.Root
+            className="home-status-toggle"
+            data-kind="ai"
+            checked={settings.aiEnabled}
+            aria-label={t('aiEnabled')}
+            onCheckedChange={(checked) => onUpdate('aiEnabled', checked)}
+            title={t('aiEnabled')}
+          >
+            <Sparkles size={14} aria-hidden="true" />
+            <span>{t('titleAi')}</span>
+            <span className="home-status-toggle__dot" />
+          </Switch.Root>
+        </div>
       </div>
 
       <ManualTranslator settings={settings} onUpdate={onUpdate} />
-
-      <div className="site-switch-card">
-        <span className="site-switch-card__copy">
-          <strong>{isSiteSupported ? currentHost : t('siteToggleUnavailable')}</strong>
-          <small>{isLoadingHost || isSiteSupported ? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}</small>
-        </span>
-        {isLoadingHost ? (
-          <span className="site-switch site-switch--loading" aria-hidden="true" />
-        ) : (
-          <Switch.Root
-            className="site-switch"
-            checked={isCurrentSiteEnabled}
-            disabled={!isSiteSupported}
-            aria-label={isSiteSupported ? currentHost ?? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}
-            onCheckedChange={updateCurrentSiteEnabled}
-          >
-            <Switch.Thumb className="site-switch__thumb" />
-          </Switch.Root>
-        )}
-      </div>
 
       <NavigationList
         items={[{

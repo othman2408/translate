@@ -49,6 +49,10 @@ export class CachedTranslationProvider implements ITranslationProvider {
     const nextRequest = this.provider.translate(request)
       .then(async (result) => {
         await setCachedTranslationSafely(cacheKey, {
+          providerId: this.providerId,
+          providerType: this.providerType,
+          sourceLanguage: request.sourceLanguage,
+          sourceText: request.text,
           translatedText: result.translatedText,
           detectedSourceLanguage: result.detectedSourceLanguage,
           targetLanguage: result.targetLanguage,

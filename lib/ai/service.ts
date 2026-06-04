@@ -120,6 +120,12 @@ async function runCachedAiAction(
   const nextRequest = provider.runTextAction({ action, text, prompt, language })
     .then(async (result) => {
       await setCachedAiActionSafely(cacheKey, {
+        action,
+        providerId: providerConfig.id,
+        providerName: providerConfig.name,
+        providerType: providerConfig.type,
+        prompt,
+        sourceText: text,
         resultText: result.resultText,
         model: result.model,
         language,
