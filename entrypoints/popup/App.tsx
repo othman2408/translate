@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { History, KeyRound, Languages, MousePointerClick, Settings2 } from 'lucide-react';
+import { History, Info, KeyRound, Languages, MousePointerClick, Settings2, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 
-import { trimTranslationHistory } from '@/lib/history';
+import { trimAiHistory, trimTranslationHistory } from '@/lib/history';
 import {
   DEFAULT_SETTINGS,
   getSettings,
@@ -14,9 +14,11 @@ import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i1
 
 import { HomeScreen } from './screens/HomeScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
+import { AiHubScreen } from './screens/AiHubScreen';
 import { SettingsHubScreen } from './screens/SettingsHubScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type {
+  AiSettingsScreen,
   NavItem,
   NavigationDirection,
   SaveState,
@@ -118,9 +120,19 @@ function App() {
         icon: <KeyRound size={17} />,
       },
       {
+        screen: 'ai',
+        title: t('titleAi'),
+        icon: <Sparkles size={17} />,
+      },
+      {
         screen: 'extension',
         title: t('titleExtension'),
         icon: <Settings2 size={17} />,
+      },
+      {
+        screen: 'about',
+        title: t('titleAbout'),
+        icon: <Info size={17} />,
       },
     ],
     [settings.appLanguage],
@@ -135,7 +147,7 @@ function App() {
     setScreen(nextScreen);
   }
 
-  function updateSettings(nextSettings: ExtensionSettings, trimHistoryLimit = false): void {
+  function updateSettings(nextSettings: ExtensionSettings, trimHistoryLimit: 'ai' | 'translation' | false = false): void {
     setSettings(nextSettings);
     setSaveState('idle');
 
@@ -144,8 +156,11 @@ function App() {
     }
 
     void saveSettings(nextSettings).then(() => {
-      if (trimHistoryLimit) {
+      if (trimHistoryLimit === 'translation') {
         void trimTranslationHistory(nextSettings.historyLimit);
+      }
+      if (trimHistoryLimit === 'ai') {
+        void trimAiHistory(nextSettings.aiHistoryLimit);
       }
 
       setSaveState('saved');
@@ -157,7 +172,10 @@ function App() {
     key: TKey,
     value: ExtensionSettings[TKey],
   ): void {
-    updateSettings({ ...settings, [key]: value }, key === 'historyLimit');
+    updateSettings(
+      { ...settings, [key]: value },
+      key === 'historyLimit' ? 'translation' : key === 'aiHistoryLimit' ? 'ai' : false,
+    );
   }
 
   function resetSettings(): void {
@@ -219,6 +237,7 @@ function App() {
     if (screenName === 'history') {
       return (
         <HistoryScreen
+          mode="translation"
           settings={settings}
           saveState={saveState}
           onBack={() => navigateTo('settings')}
@@ -226,12 +245,34 @@ function App() {
       );
     }
 
+    if (screenName === 'ai') {
+      return (
+        <AiHubScreen
+          saveState={saveState}
+          onBack={() => navigateTo('settings')}
+          onNavigate={navigateTo}
+        />
+      );
+    }
+
+    if (screenName === 'ai-history') {
+      return (
+        <HistoryScreen
+          mode="ai"
+          settings={settings}
+          saveState={saveState}
+          onBack={() => navigateTo('ai')}
+        />
+      );
+    }
+
     return (
       <SettingsScreen
         screen={screenName as SettingsScreenName}
+        aiScreen={isAiSettingsScreen(screenName) ? screenName : undefined}
         settings={settings}
         saveState={saveState}
-        onBack={() => navigateTo('settings')}
+        onBack={() => navigateTo(isAiChildScreen(screenName) ? 'ai' : 'settings')}
         onUpdate={updateSetting}
         onUpdateSettings={updateSettings}
         onReset={resetSettings}
@@ -245,7 +286,26 @@ function isBackNavigation(currentScreen: Screen, nextScreen: Screen): boolean {
     return true;
   }
 
+  if (nextScreen === 'ai' && isAiChildScreen(currentScreen)) {
+    return true;
+  }
+
   return currentScreen !== 'home' && nextScreen === 'settings';
+}
+
+function isAiChildScreen(screen: Screen): boolean {
+  return screen === 'ai-behavior'
+    || screen === 'ai-rewrite'
+    || screen === 'ai-explain'
+    || screen === 'ai-providers'
+    || screen === 'ai-history';
+}
+
+function isAiSettingsScreen(screen: Screen): screen is AiSettingsScreen {
+  return screen === 'ai-behavior'
+    || screen === 'ai-rewrite'
+    || screen === 'ai-explain'
+    || screen === 'ai-providers';
 }
 
 export default App;

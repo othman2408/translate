@@ -9,6 +9,16 @@ export type TranslationErrorCode =
   | 'provider'
   | 'unknown';
 
+export type AiActionType = 'rewrite' | 'explain';
+
+export type AiActionErrorCode =
+  | 'disabled'
+  | 'missing-api-key'
+  | 'empty-text'
+  | 'network'
+  | 'provider'
+  | 'unknown';
+
 export type TranslateTextMessage = {
   type: 'TRANSLATE_TEXT';
   text: string;
@@ -23,7 +33,17 @@ export type ShowContextTranslationMessage = {
   text: string;
 };
 
-export type RuntimeMessage = TranslateTextMessage | ShowContextTranslationMessage;
+export type RunAiActionMessage = {
+  type: 'RUN_AI_ACTION';
+  action: AiActionType;
+  text: string;
+  prompt?: string;
+  providerId?: string;
+  language?: string;
+  recordHistory?: boolean;
+};
+
+export type RuntimeMessage = TranslateTextMessage | ShowContextTranslationMessage | RunAiActionMessage;
 
 export type TranslationSuccess = {
   ok: true;
@@ -43,11 +63,35 @@ export type TranslationFailure = {
 
 export type TranslationResponse = TranslationSuccess | TranslationFailure;
 
+export type AiActionSuccess = {
+  ok: true;
+  action: AiActionType;
+  resultText: string;
+  providerName: string;
+  model: string;
+  language?: string;
+  fromCache?: boolean;
+};
+
+export type AiActionFailure = {
+  ok: false;
+  error: {
+    code: AiActionErrorCode;
+    message: string;
+  };
+};
+
+export type AiActionResponse = AiActionSuccess | AiActionFailure;
+
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   return (
     typeof value === 'object' &&
     value !== null &&
     'type' in value &&
-    (value.type === 'TRANSLATE_TEXT' || value.type === 'SHOW_CONTEXT_TRANSLATION')
+    (
+      value.type === 'TRANSLATE_TEXT' ||
+      value.type === 'SHOW_CONTEXT_TRANSLATION' ||
+      value.type === 'RUN_AI_ACTION'
+    )
   );
 }

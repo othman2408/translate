@@ -1,7 +1,8 @@
 import { browser, defineBackground } from '#imports';
 
+import { AiTextActionService } from '@/lib/ai/service';
 import { t } from '@/lib/i18n';
-import { isRuntimeMessage, type TranslationResponse } from '@/lib/messages';
+import { isRuntimeMessage, type AiActionResponse, type TranslationResponse } from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
 import { getHttpHost, isHostDisabled } from '@/lib/sites';
 import { TranslationService } from '@/lib/translation/service';
@@ -11,6 +12,7 @@ let contextMenuSetupPromise = Promise.resolve();
 
 export default defineBackground(() => {
   const translationService = new TranslationService();
+  const aiTextActionService = new AiTextActionService();
 
   queueContextMenuSetup();
 
@@ -41,18 +43,33 @@ export default defineBackground(() => {
     }
   });
 
-  browser.runtime.onMessage.addListener((message): Promise<TranslationResponse> | undefined => {
-    if (!isRuntimeMessage(message) || message.type !== 'TRANSLATE_TEXT') {
+  browser.runtime.onMessage.addListener((message): Promise<AiActionResponse | TranslationResponse> | undefined => {
+    if (!isRuntimeMessage(message)) {
       return undefined;
     }
 
-    return translationService.translate({
-      text: message.text,
-      sourceLanguage: message.sourceLanguage,
-      targetLanguage: message.targetLanguage,
-      providerId: message.providerId,
-      recordHistory: message.recordHistory === true,
-    });
+    if (message.type === 'TRANSLATE_TEXT') {
+      return translationService.translate({
+        text: message.text,
+        sourceLanguage: message.sourceLanguage,
+        targetLanguage: message.targetLanguage,
+        providerId: message.providerId,
+        recordHistory: message.recordHistory === true,
+      });
+    }
+
+    if (message.type === 'RUN_AI_ACTION') {
+      return aiTextActionService.run({
+        action: message.action,
+        text: message.text,
+        prompt: message.prompt,
+        providerId: message.providerId,
+        language: message.language,
+        recordHistory: message.recordHistory,
+      });
+    }
+
+    return undefined;
   });
 });
 

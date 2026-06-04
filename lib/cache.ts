@@ -1,19 +1,33 @@
 import { storage } from '#imports';
 
-import type { TranslationSuccess } from './messages';
-import type { ProviderType } from './settings';
+import type { AiActionSuccess, AiActionType, TranslationSuccess } from './messages';
+import type { AiProviderType, ProviderType } from './settings';
 
-const MAX_CACHE_ENTRIES = 100;
+const MAX_TRANSLATION_CACHE_ENTRIES = 200;
+const MAX_AI_CACHE_ENTRIES = 200;
 
 export type TranslationCacheEntry = Pick<
   TranslationSuccess,
   'translatedText' | 'detectedSourceLanguage' | 'targetLanguage'
 > & {
   createdAt: number;
+  lastUsedAt?: number;
 };
 
 export type TranslationCache = {
   entries: Record<string, TranslationCacheEntry>;
+};
+
+export type AiActionCacheEntry = Pick<
+  AiActionSuccess,
+  'resultText' | 'model' | 'language'
+> & {
+  createdAt: number;
+  lastUsedAt?: number;
+};
+
+export type AiActionCache = {
+  entries: Record<string, AiActionCacheEntry>;
 };
 
 export type TranslationCacheKeyParts = {
@@ -24,11 +38,25 @@ export type TranslationCacheKeyParts = {
   text: string;
 };
 
+export type AiActionCacheKeyParts = {
+  providerId: string;
+  providerType: AiProviderType;
+  model: string;
+  action: AiActionType;
+  language: string;
+  prompt: string;
+  text: string;
+};
+
 export const translationCacheItem = storage.defineItem<TranslationCache>('local:translationCache', {
   fallback: { entries: {} },
 });
 
-export function getCacheKey(parts: TranslationCacheKeyParts): string {
+export const aiActionCacheItem = storage.defineItem<AiActionCache>('local:aiActionCache', {
+  fallback: { entries: {} },
+});
+
+export function getTranslationCacheKey(parts: TranslationCacheKeyParts): string {
   return [
     parts.providerType,
     parts.providerId,
@@ -38,26 +66,97 @@ export function getCacheKey(parts: TranslationCacheKeyParts): string {
   ].join('::');
 }
 
+export function getAiActionCacheKey(parts: AiActionCacheKeyParts): string {
+  return [
+    parts.providerType,
+    parts.providerId,
+    parts.model,
+    parts.action,
+    parts.language,
+    parts.prompt.trim(),
+    parts.text.trim(),
+  ].join('::');
+}
+
 export async function getCachedTranslation(key: string): Promise<TranslationCacheEntry | undefined> {
   const cache = await translationCacheItem.getValue();
-  return cache.entries[key];
+  const cached = cache.entries[key];
+
+  if (!cached) {
+    return undefined;
+  }
+
+  await translationCacheItem.setValue({
+    entries: trimEntries({
+      ...cache.entries,
+      [key]: { ...cached, lastUsedAt: Date.now() },
+    }, MAX_TRANSLATION_CACHE_ENTRIES),
+  });
+
+  return cached;
 }
 
 export async function setCachedTranslation(
   key: string,
-  entry: Omit<TranslationCacheEntry, 'createdAt'>,
+  entry: Omit<TranslationCacheEntry, 'createdAt' | 'lastUsedAt'>,
 ): Promise<void> {
   const cache = await translationCacheItem.getValue();
+  const now = Date.now();
   const entries = {
     ...cache.entries,
-    [key]: { ...entry, createdAt: Date.now() },
+    [key]: { ...entry, createdAt: now, lastUsedAt: now },
   };
 
+  await translationCacheItem.setValue({
+    entries: trimEntries(entries, MAX_TRANSLATION_CACHE_ENTRIES),
+  });
+}
+
+export async function getCachedAiAction(key: string): Promise<AiActionCacheEntry | undefined> {
+  const cache = await aiActionCacheItem.getValue();
+  const cached = cache.entries[key];
+
+  if (!cached) {
+    return undefined;
+  }
+
+  await aiActionCacheItem.setValue({
+    entries: trimEntries({
+      ...cache.entries,
+      [key]: { ...cached, lastUsedAt: Date.now() },
+    }, MAX_AI_CACHE_ENTRIES),
+  });
+
+  return cached;
+}
+
+export async function setCachedAiAction(
+  key: string,
+  entry: Omit<AiActionCacheEntry, 'createdAt' | 'lastUsedAt'>,
+): Promise<void> {
+  const cache = await aiActionCacheItem.getValue();
+  const now = Date.now();
+  const entries = {
+    ...cache.entries,
+    [key]: { ...entry, createdAt: now, lastUsedAt: now },
+  };
+
+  await aiActionCacheItem.setValue({
+    entries: trimEntries(entries, MAX_AI_CACHE_ENTRIES),
+  });
+}
+
+function trimEntries<TEntry extends { createdAt: number; lastUsedAt?: number }>(
+  entries: Record<string, TEntry>,
+  limit: number,
+): Record<string, TEntry> {
   const sortedEntries = Object.entries(entries).sort(
-    ([, left], [, right]) => right.createdAt - left.createdAt,
+    ([, left], [, right]) => getEntryRecency(right) - getEntryRecency(left),
   );
 
-  await translationCacheItem.setValue({
-    entries: Object.fromEntries(sortedEntries.slice(0, MAX_CACHE_ENTRIES)),
-  });
+  return Object.fromEntries(sortedEntries.slice(0, limit));
+}
+
+function getEntryRecency(entry: { createdAt: number; lastUsedAt?: number }): number {
+  return entry.lastUsedAt ?? entry.createdAt;
 }

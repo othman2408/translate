@@ -23,11 +23,23 @@
   "actionAddProvider": {
     "message": "إضافة مزود"
   },
+  "actionAddAiProvider": {
+    "message": "إضافة مزود"
+  },
   "actionCancelProvider": {
     "message": "إلغاء"
   },
   "actionCopyHistoryItem": {
     "message": "نسخ"
+  },
+  "actionOpenGithub": {
+    "message": "فتح مستودع GitHub"
+  },
+  "actionCopyRewrite": {
+    "message": "نسخ إعادة الصياغة"
+  },
+  "actionCopyExplanation": {
+    "message": "نسخ الشرح"
   },
   "actionDeleteHistoryItem": {
     "message": "حذف"
@@ -47,6 +59,51 @@
   "actionSetDefaultProvider": {
     "message": "تعيين كافتراضي"
   },
+  "actionExplainText": {
+    "message": "شرح"
+  },
+  "actionRewriteText": {
+    "message": "إعادة صياغة"
+  },
+  "aiEnabled": {
+    "message": "تفعيل الذكاء الاصطناعي"
+  },
+  "aiEmptyDescription": {
+    "message": "أضف مزودا باستخدام مفتاح API الخاص بك لاستخدام إجراءات AI."
+  },
+  "aiEmptyTitle": {
+    "message": "لا يوجد مزود ذكاء اصطناعي بعد"
+  },
+  "aiHistoryEmptyDescription": {
+    "message": "ستظهر نتائج AI الناجحة هنا. تبقى محفوظة على هذا الجهاز."
+  },
+  "aiHistoryEmptyTitle": {
+    "message": "لا يوجد سجل AI بعد"
+  },
+  "aiLocalOnlyNote": {
+    "message": "تبقى مفاتيح AI والتعليمات في التخزين المحلي للإضافة."
+  },
+  "aiProviderDeepSeekDescription": {
+    "message": "DeepSeek عبر Vercel AI SDK"
+  },
+  "aiProviderDeepSeekName": {
+    "message": "DeepSeek"
+  },
+  "aiExplainPromptDescription": {
+    "message": "أخبر الذكاء الاصطناعي كيف يشرح النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
+  },
+  "aiProviderPromptDescription": {
+    "message": "أخبر الذكاء الاصطناعي كيف يعيد صياغة النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
+  },
+  "aboutAppTypeValue": {
+    "message": "إضافة متصفح محلية بمفتاحك الخاص"
+  },
+  "aboutDescription": {
+    "message": "أدوات ترجمة النص المحدد والكتابة بالذكاء الاصطناعي لمتصفحات Chrome وEdge وFirefox."
+  },
+  "aboutDetails": {
+    "message": "تفاصيل التطبيق"
+  },
   "appTitle": {
     "message": "ترجمة"
   },
@@ -57,7 +114,7 @@
     "message": "إعدادات الترجمة"
   },
   "cacheTranslations": {
-    "message": "تخزين الترجمات مؤقتا"
+    "message": "تخزين النتائج مؤقتا"
   },
   "closeOnOutsideClick": {
     "message": "الإغلاق عند النقر خارج النافذة"
@@ -73,6 +130,24 @@
   },
   "errorBackgroundUnavailable": {
     "message": "عامل الخلفية الخاص بالإضافة غير متاح. حاول مرة أخرى بعد لحظات."
+  },
+  "errorAiDisabled": {
+    "message": "AI غير مفعل. فعله من إعدادات AI."
+  },
+  "errorAiEmptyResponse": {
+    "message": "أعاد DeepSeek استجابة فارغة."
+  },
+  "errorAiMissingApiKey": {
+    "message": "أضف مفتاح DeepSeek API في إعدادات AI."
+  },
+  "errorAiNetwork": {
+    "message": "تعذر الوصول إلى DeepSeek. تحقق من الاتصال وحاول مرة أخرى."
+  },
+  "errorAiProviderFailed": {
+    "message": "تعذر على مزود AI إكمال الطلب."
+  },
+  "errorAiProviderUnavailable": {
+    "message": "مزود AI المحدد غير متاح."
   },
   "errorEmptyProviderResponse": {
     "message": "أعاد Google Translate استجابة فارغة."
@@ -110,6 +185,15 @@
   "groupBehavior": {
     "message": "السلوك"
   },
+  "groupAiProvider": {
+    "message": "المزود"
+  },
+  "groupAiExplain": {
+    "message": "الشرح"
+  },
+  "groupAiRewrite": {
+    "message": "إعادة الصياغة"
+  },
   "groupHistory": {
     "message": "السجل"
   },
@@ -140,6 +224,12 @@
   "labelApiKey": {
     "message": "مفتاح API"
   },
+  "labelAppType": {
+    "message": "النوع"
+  },
+  "labelDeveloper": {
+    "message": "المطور"
+  },
   "labelExtensionLanguage": {
     "message": "لغة الإضافة"
   },
@@ -148,6 +238,27 @@
   },
   "labelHistoryLimit": {
     "message": "حد السجل"
+  },
+  "labelAiRewriteLanguage": {
+    "message": "لغة إعادة الصياغة"
+  },
+  "labelAiRewritePrompt": {
+    "message": "تعليمات إعادة الصياغة"
+  },
+  "labelAiExplainPrompt": {
+    "message": "تعليمات الشرح"
+  },
+  "labelAiExplanationLanguage": {
+    "message": "لغة الشرح"
+  },
+  "labelAiHistoryLimit": {
+    "message": "حد سجل AI"
+  },
+  "labelAiModel": {
+    "message": "النموذج"
+  },
+  "labelAiProvider": {
+    "message": "المزود"
   },
   "labelOriginal": {
     "message": "الأصل"
@@ -158,11 +269,17 @@
   "labelProviderName": {
     "message": "اسم المزود"
   },
+  "labelRepository": {
+    "message": "المستودع"
+  },
   "labelTo": {
     "message": "إلى"
   },
   "labelTrigger": {
     "message": "طريقة التشغيل"
+  },
+  "labelVersion": {
+    "message": "الإصدار"
   },
   "labelTheme": {
     "message": "المظهر"
@@ -296,8 +413,35 @@
   "providerNotConfigured": {
     "message": "غير معد"
   },
+  "footerAiProvider": {
+    "message": "$1 - $2"
+  },
+  "footerAiProviderWithLanguage": {
+    "message": "$1 - $2 - $3"
+  },
+  "labelRewritten": {
+    "message": "بعد إعادة الصياغة"
+  },
+  "labelExplanation": {
+    "message": "الشرح"
+  },
+  "explainTitle": {
+    "message": "شرح"
+  },
+  "rewriteTitle": {
+    "message": "إعادة صياغة"
+  },
+  "explainingText": {
+    "message": "جار الشرح..."
+  },
+  "rewritingText": {
+    "message": "جار إعادة الصياغة..."
+  },
   "saved": {
     "message": "تم الحفظ"
+  },
+  "saveAiHistory": {
+    "message": "حفظ سجل AI"
   },
   "saveHistory": {
     "message": "حفظ السجل"
@@ -316,6 +460,21 @@
   },
   "titleHistory": {
     "message": "السجل"
+  },
+  "titleAbout": {
+    "message": "حول"
+  },
+  "titleAi": {
+    "message": "AI"
+  },
+  "titleAiBehavior": {
+    "message": "السلوك"
+  },
+  "titleAiHistory": {
+    "message": "سجل AI"
+  },
+  "titleAiProviders": {
+    "message": "المزودون"
   },
   "titleInteraction": {
     "message": "التفاعل"
@@ -337,5 +496,8 @@
   },
   "translatingTo": {
     "message": "جار الترجمة إلى $1..."
+  },
+  "aiProviderDescription": {
+    "message": "إدارة مزودي AI ومفاتيح API الخاصة بهم."
   }
 }

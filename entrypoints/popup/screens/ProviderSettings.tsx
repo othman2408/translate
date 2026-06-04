@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings, TranslationProviderConfig } from '@/lib/settings';
 
+import { ProviderLogo } from '../components/ProviderLogo';
+
 type ProviderDraft = Pick<TranslationProviderConfig, 'name' | 'apiKey'>;
 
 export function ProviderSettings({
@@ -178,7 +180,7 @@ function ProviderCard({
   return (
     <section className="provider-card" aria-label={provider.name}>
       <div className="provider-card__top">
-        <ProviderLogo />
+        <ProviderLogo type={provider.type} />
         <div className="provider-card__copy">
           <span className="provider-card__eyebrow">
             {isDefault ? t('providerDefaultBadge') : t('providerConfigured')}
@@ -248,7 +250,7 @@ function ProviderEditor({
   return (
     <section className="provider-card" aria-label={title}>
       <div className="provider-card__top">
-        <ProviderLogo />
+        <ProviderLogo type="google-v2" />
         <div className="provider-card__copy">
           <span className="provider-card__eyebrow">{t('providerGoogleName')}</span>
           <h2>{title}</h2>
@@ -296,14 +298,6 @@ function ProviderEditor({
         </Button>
       </div>
     </section>
-  );
-}
-
-function ProviderLogo() {
-  return (
-    <span className="provider-logo provider-logo--google" aria-hidden="true">
-      <img src="/google-logo.svg" alt="" />
-    </span>
   );
 }
 

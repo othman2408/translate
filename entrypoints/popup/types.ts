@@ -2,9 +2,24 @@ import type { ReactNode } from 'react';
 
 import type { ExtensionSettings } from '@/lib/settings';
 
-export type Screen = 'home' | 'settings' | 'history' | 'translation' | 'interaction' | 'provider' | 'extension';
+export type Screen =
+  | 'home'
+  | 'settings'
+  | 'history'
+  | 'translation'
+  | 'interaction'
+  | 'provider'
+  | 'ai'
+  | 'ai-behavior'
+  | 'ai-rewrite'
+  | 'ai-explain'
+  | 'ai-providers'
+  | 'ai-history'
+  | 'extension'
+  | 'about';
 
-export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'history'>;
+export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'history' | 'ai' | 'ai-history'>;
+export type AiSettingsScreen = Extract<Screen, 'ai-behavior' | 'ai-rewrite' | 'ai-explain' | 'ai-providers'>;
 
 export type NavigationDirection = 'forward' | 'back';
 

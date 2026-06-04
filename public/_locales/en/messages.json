@@ -23,11 +23,20 @@
   "actionAddProvider": {
     "message": "Add provider"
   },
+  "actionAddAiProvider": {
+    "message": "Add provider"
+  },
   "actionCancelProvider": {
     "message": "Cancel"
   },
   "actionCopyHistoryItem": {
     "message": "Copy"
+  },
+  "actionCopyRewrite": {
+    "message": "Copy rewrite"
+  },
+  "actionCopyExplanation": {
+    "message": "Copy explanation"
   },
   "actionDeleteHistoryItem": {
     "message": "Delete"
@@ -47,6 +56,45 @@
   "actionSetDefaultProvider": {
     "message": "Set default"
   },
+  "actionExplainText": {
+    "message": "Explain"
+  },
+  "actionRewriteText": {
+    "message": "Rewrite"
+  },
+  "aiEnabled": {
+    "message": "Enable AI"
+  },
+  "aiEmptyDescription": {
+    "message": "Add a provider with your own API key to use AI actions."
+  },
+  "aiEmptyTitle": {
+    "message": "No AI provider yet"
+  },
+  "aiHistoryEmptyDescription": {
+    "message": "Successful AI results will appear here. They stay on this device."
+  },
+  "aiHistoryEmptyTitle": {
+    "message": "No AI history yet"
+  },
+  "aiLocalOnlyNote": {
+    "message": "AI API keys and prompts stay in local extension storage."
+  },
+  "aiProviderDescription": {
+    "message": "Manage AI providers and their API keys."
+  },
+  "aiProviderDeepSeekDescription": {
+    "message": "DeepSeek via Vercel AI SDK"
+  },
+  "aiProviderDeepSeekName": {
+    "message": "DeepSeek"
+  },
+  "aiExplainPromptDescription": {
+    "message": "Tell AI how to explain selected text. The selected text is added after this instruction."
+  },
+  "aiProviderPromptDescription": {
+    "message": "Tell AI how to rewrite selected text. The selected text is added after this instruction."
+  },
   "appTitle": {
     "message": "Translate"
   },
@@ -57,7 +105,7 @@
     "message": "Translate settings"
   },
   "cacheTranslations": {
-    "message": "Cache translations"
+    "message": "Cache results"
   },
   "closeOnOutsideClick": {
     "message": "Close on outside click"
@@ -73,6 +121,24 @@
   },
   "errorBackgroundUnavailable": {
     "message": "The extension background worker is not available. Try again in a moment."
+  },
+  "errorAiDisabled": {
+    "message": "AI is disabled. Enable it in AI settings."
+  },
+  "errorAiEmptyResponse": {
+    "message": "DeepSeek returned an empty response."
+  },
+  "errorAiMissingApiKey": {
+    "message": "Add your DeepSeek API key in AI settings."
+  },
+  "errorAiNetwork": {
+    "message": "Could not reach DeepSeek. Check your connection and try again."
+  },
+  "errorAiProviderFailed": {
+    "message": "The AI provider could not complete the request."
+  },
+  "errorAiProviderUnavailable": {
+    "message": "The selected AI provider is not available."
   },
   "errorEmptyProviderResponse": {
     "message": "Google Translate returned an empty response."
@@ -109,6 +175,15 @@
   },
   "groupBehavior": {
     "message": "Behavior"
+  },
+  "groupAiProvider": {
+    "message": "Provider"
+  },
+  "groupAiExplain": {
+    "message": "Explain"
+  },
+  "groupAiRewrite": {
+    "message": "Rewrite"
   },
   "groupHistory": {
     "message": "History"
@@ -148,6 +223,27 @@
   },
   "labelHistoryLimit": {
     "message": "History limit"
+  },
+  "labelAiRewriteLanguage": {
+    "message": "Rewrite language"
+  },
+  "labelAiRewritePrompt": {
+    "message": "Rewrite prompt"
+  },
+  "labelAiExplainPrompt": {
+    "message": "Explain prompt"
+  },
+  "labelAiExplanationLanguage": {
+    "message": "Explanation language"
+  },
+  "labelAiHistoryLimit": {
+    "message": "AI history limit"
+  },
+  "labelAiModel": {
+    "message": "Model"
+  },
+  "labelAiProvider": {
+    "message": "Provider"
   },
   "labelOriginal": {
     "message": "Original"
@@ -296,8 +392,35 @@
   "providerNotConfigured": {
     "message": "Not configured"
   },
+  "footerAiProvider": {
+    "message": "$1 - $2"
+  },
+  "footerAiProviderWithLanguage": {
+    "message": "$1 - $2 - $3"
+  },
+  "labelRewritten": {
+    "message": "Rewritten"
+  },
+  "labelExplanation": {
+    "message": "Explanation"
+  },
+  "explainTitle": {
+    "message": "Explain"
+  },
+  "rewriteTitle": {
+    "message": "Rewrite"
+  },
+  "explainingText": {
+    "message": "Explaining..."
+  },
+  "rewritingText": {
+    "message": "Rewriting..."
+  },
   "saved": {
     "message": "Saved"
+  },
+  "saveAiHistory": {
+    "message": "Save AI history"
   },
   "saveHistory": {
     "message": "Save history"
@@ -316,6 +439,18 @@
   },
   "titleHistory": {
     "message": "History"
+  },
+  "titleAi": {
+    "message": "AI"
+  },
+  "titleAiBehavior": {
+    "message": "Behavior"
+  },
+  "titleAiHistory": {
+    "message": "AI History"
+  },
+  "titleAiProviders": {
+    "message": "Providers"
   },
   "titleInteraction": {
     "message": "Interaction"
@@ -337,5 +472,32 @@
   },
   "translatingTo": {
     "message": "Translating to $1..."
+  },
+  "actionOpenGithub": {
+    "message": "Open GitHub repository"
+  },
+  "aboutAppTypeValue": {
+    "message": "Local BYOK browser extension"
+  },
+  "aboutDescription": {
+    "message": "Selected-text translation and AI writing tools for Chrome, Edge, and Firefox."
+  },
+  "aboutDetails": {
+    "message": "App details"
+  },
+  "labelAppType": {
+    "message": "Type"
+  },
+  "labelDeveloper": {
+    "message": "Developer"
+  },
+  "labelRepository": {
+    "message": "Repository"
+  },
+  "labelVersion": {
+    "message": "Version"
+  },
+  "titleAbout": {
+    "message": "About"
   }
 }

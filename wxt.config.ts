@@ -8,7 +8,7 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     permissions: ['storage', 'contextMenus', 'activeTab'],
-    host_permissions: ['https://translation.googleapis.com/*'],
+    host_permissions: ['https://translation.googleapis.com/*', 'https://api.deepseek.com/*'],
     action: {
       default_title: '__MSG_extName__',
     },

@@ -11,15 +11,35 @@ export type I18nKey =
   | 'actionClose'
   | 'actionCopyTranslation'
   | 'actionClearHistory'
+  | 'actionCopyExplanation'
   | 'actionAddProvider'
+  | 'actionAddAiProvider'
   | 'actionCancelProvider'
   | 'actionCopyHistoryItem'
+  | 'actionOpenGithub'
+  | 'actionCopyRewrite'
   | 'actionDeleteHistoryItem'
   | 'actionDeleteProvider'
   | 'actionEditProvider'
   | 'actionReset'
   | 'actionSaveProvider'
   | 'actionSetDefaultProvider'
+  | 'actionExplainText'
+  | 'actionRewriteText'
+  | 'aiEnabled'
+  | 'aiEmptyDescription'
+  | 'aiEmptyTitle'
+  | 'aiHistoryEmptyDescription'
+  | 'aiHistoryEmptyTitle'
+  | 'aiLocalOnlyNote'
+  | 'aiProviderDescription'
+  | 'aiProviderDeepSeekDescription'
+  | 'aiProviderDeepSeekName'
+  | 'aiExplainPromptDescription'
+  | 'aiProviderPromptDescription'
+  | 'aboutAppTypeValue'
+  | 'aboutDescription'
+  | 'aboutDetails'
   | 'appTitle'
   | 'ariaSettingsGroups'
   | 'ariaTranslateSettings'
@@ -29,6 +49,12 @@ export type I18nKey =
   | 'dictionaryTitle'
   | 'errorApiKeyRejected'
   | 'errorBackgroundUnavailable'
+  | 'errorAiDisabled'
+  | 'errorAiEmptyResponse'
+  | 'errorAiMissingApiKey'
+  | 'errorAiNetwork'
+  | 'errorAiProviderFailed'
+  | 'errorAiProviderUnavailable'
   | 'errorEmptyProviderResponse'
   | 'errorGoogleProvider'
   | 'errorMissingApiKey'
@@ -38,9 +64,13 @@ export type I18nKey =
   | 'errorQuota'
   | 'errorSelectText'
   | 'footerCached'
+  | 'footerAiProviderWithLanguage'
   | 'footerLanguagePair'
   | 'footerToLanguage'
   | 'groupBehavior'
+  | 'groupAiProvider'
+  | 'groupAiExplain'
+  | 'groupAiRewrite'
   | 'groupHistory'
   | 'groupInterface'
   | 'groupLanguages'
@@ -51,14 +81,25 @@ export type I18nKey =
   | 'historyLimitDescription'
   | 'inputApiKey'
   | 'labelApiKey'
+  | 'labelAppType'
+  | 'labelDeveloper'
   | 'labelExtensionLanguage'
   | 'labelFrom'
   | 'labelHistoryLimit'
+  | 'labelAiRewriteLanguage'
+  | 'labelAiRewritePrompt'
+  | 'labelAiExplainPrompt'
+  | 'labelAiExplanationLanguage'
+  | 'labelAiHistoryLimit'
+  | 'labelAiModel'
+  | 'labelAiProvider'
   | 'labelOriginal'
   | 'labelPopupStyle'
   | 'labelProviderName'
+  | 'labelRepository'
   | 'labelTo'
   | 'labelTrigger'
+  | 'labelVersion'
   | 'languageAr'
   | 'languageAuto'
   | 'languageDe'
@@ -102,7 +143,15 @@ export type I18nKey =
   | 'providerGoogleName'
   | 'providerLocalOnlyNote'
   | 'providerNotConfigured'
+  | 'footerAiProvider'
+  | 'labelExplanation'
+  | 'labelRewritten'
+  | 'explainTitle'
+  | 'rewriteTitle'
+  | 'explainingText'
+  | 'rewritingText'
   | 'saved'
+  | 'saveAiHistory'
   | 'saveHistory'
   | 'settingsScreenAria'
   | 'siteToggleCurrentSite'
@@ -110,6 +159,11 @@ export type I18nKey =
   | 'siteToggleUnsupported'
   | 'labelTheme'
   | 'titleHistory'
+  | 'titleAbout'
+  | 'titleAi'
+  | 'titleAiBehavior'
+  | 'titleAiHistory'
+  | 'titleAiProviders'
   | 'titleInteraction'
   | 'titleExtension'
   | 'titleProvider'
@@ -147,10 +201,6 @@ export function t(
   substitutions?: string | string[],
   language = activeAppLanguage,
 ): string {
-  const getBrowserMessage = browser.i18n.getMessage as (
-    messageName: string,
-    substitutions?: string | string[],
-  ) => string;
   const message = getMessageCatalog(language)[key]?.message
     ?? getBrowserMessage(key, substitutions)
     ?? key;
@@ -163,7 +213,7 @@ export function getUiLanguage(language = activeAppLanguage): SupportedAppLanguag
     return language;
   }
 
-  return resolveSupportedLanguage(browser.i18n.getUILanguage());
+  return resolveSupportedLanguage(getBrowserUiLanguage());
 }
 
 export function getUiDirection(language = getUiLanguage()): 'ltr' | 'rtl' {
@@ -189,6 +239,26 @@ function resolveSupportedLanguage(language: string | undefined): SupportedAppLan
   }
 
   return FALLBACK_LANGUAGE;
+}
+
+function getBrowserMessage(messageName: string, substitutions?: string | string[]): string | undefined {
+  try {
+    const getMessage = browser.i18n.getMessage as (
+      messageName: string,
+      substitutions?: string | string[],
+    ) => string;
+    return getMessage(messageName, substitutions) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getBrowserUiLanguage(): string | undefined {
+  try {
+    return browser.i18n.getUILanguage();
+  } catch {
+    return undefined;
+  }
 }
 
 function applySubstitutions(message: string, substitutions?: string | string[]): string {

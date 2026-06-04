@@ -1,10 +1,12 @@
-import { getCacheKey, getCachedTranslation, setCachedTranslation } from '@/lib/cache';
+import { getCachedTranslation, getTranslationCacheKey, setCachedTranslation } from '@/lib/cache';
 
 import type {
   ITranslationProvider,
   TranslationProviderRequest,
   TranslationProviderResult,
 } from './types';
+
+const inFlightTranslations = new Map<string, Promise<TranslationProviderResult>>();
 
 export class CachedTranslationProvider implements ITranslationProvider {
   readonly providerType: ITranslationProvider['providerType'];
@@ -21,14 +23,14 @@ export class CachedTranslationProvider implements ITranslationProvider {
   }
 
   async translate(request: TranslationProviderRequest): Promise<TranslationProviderResult> {
-    const cacheKey = getCacheKey({
+    const cacheKey = getTranslationCacheKey({
       providerId: this.providerId,
       providerType: this.providerType,
       sourceLanguage: request.sourceLanguage,
       targetLanguage: request.targetLanguage,
       text: request.text,
     });
-    const cached = await getCachedTranslation(cacheKey);
+    const cached = await getCachedTranslationSafely(cacheKey);
 
     if (cached) {
       return {
@@ -39,16 +41,48 @@ export class CachedTranslationProvider implements ITranslationProvider {
       };
     }
 
-    const result = await this.provider.translate(request);
-    await setCachedTranslation(cacheKey, {
-      translatedText: result.translatedText,
-      detectedSourceLanguage: result.detectedSourceLanguage,
-      targetLanguage: result.targetLanguage,
-    });
+    const existingRequest = inFlightTranslations.get(cacheKey);
+    if (existingRequest) {
+      return existingRequest;
+    }
 
-    return {
-      ...result,
-      fromCache: false,
-    };
+    const nextRequest = this.provider.translate(request)
+      .then(async (result) => {
+        await setCachedTranslationSafely(cacheKey, {
+          translatedText: result.translatedText,
+          detectedSourceLanguage: result.detectedSourceLanguage,
+          targetLanguage: result.targetLanguage,
+        });
+
+        return {
+          ...result,
+          fromCache: false,
+        };
+      })
+      .finally(() => {
+        inFlightTranslations.delete(cacheKey);
+      });
+
+    inFlightTranslations.set(cacheKey, nextRequest);
+    return nextRequest;
+  }
+}
+
+async function getCachedTranslationSafely(cacheKey: string) {
+  try {
+    return await getCachedTranslation(cacheKey);
+  } catch {
+    return undefined;
+  }
+}
+
+async function setCachedTranslationSafely(
+  cacheKey: string,
+  entry: Parameters<typeof setCachedTranslation>[1],
+): Promise<void> {
+  try {
+    await setCachedTranslation(cacheKey, entry);
+  } catch {
+    // A cache write failure should not fail a successful provider response.
   }
 }

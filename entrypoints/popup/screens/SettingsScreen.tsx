@@ -3,10 +3,13 @@ import type { ExtensionSettings as ExtensionSettingsModel } from '@/lib/settings
 
 import { AppHeader } from '../components/AppHeader';
 import type {
+  AiSettingsScreen,
   SaveState as SaveStateValue,
   SettingUpdateHandler,
   SettingsScreen as SettingsScreenName,
 } from '../types';
+import { AboutScreen } from './AboutScreen';
+import { AiSettings } from './AiSettings';
 import { InteractionSettings } from './InteractionSettings';
 import { ExtensionSettings as ExtensionSettingsScreen } from './ExtensionSettings';
 import { ProviderSettings } from './ProviderSettings';
@@ -14,6 +17,7 @@ import { TranslationSettings } from './TranslationSettings';
 
 export function SettingsScreen({
   screen,
+  aiScreen,
   settings,
   saveState,
   onBack,
@@ -22,6 +26,7 @@ export function SettingsScreen({
   onReset,
 }: {
   screen: SettingsScreenName;
+  aiScreen?: AiSettingsScreen;
   settings: ExtensionSettingsModel;
   saveState: SaveStateValue;
   onBack: () => void;
@@ -51,8 +56,21 @@ export function SettingsScreen({
         <ProviderSettings settings={settings} onUpdateSettings={onUpdateSettings} />
       )}
 
+      {aiScreen && (
+        <AiSettings
+          screen={aiScreen}
+          settings={settings}
+          onUpdate={onUpdate}
+          onUpdateSettings={onUpdateSettings}
+        />
+      )}
+
       {screen === 'extension' && (
         <ExtensionSettingsScreen settings={settings} onUpdate={onUpdate} onReset={onReset} />
+      )}
+
+      {screen === 'about' && (
+        <AboutScreen />
       )}
     </section>
   );
@@ -74,9 +92,29 @@ function getScreenMeta(screen: SettingsScreenName): {
       return {
         title: t('titleProvider'),
       };
+    case 'ai-behavior':
+      return {
+        title: t('titleAiBehavior'),
+      };
+    case 'ai-rewrite':
+      return {
+        title: t('rewriteTitle'),
+      };
+    case 'ai-explain':
+      return {
+        title: t('explainTitle'),
+      };
+    case 'ai-providers':
+      return {
+        title: t('titleAiProviders'),
+      };
     case 'extension':
       return {
         title: t('titleExtension'),
+      };
+    case 'about':
+      return {
+        title: t('titleAbout'),
       };
   }
 }
