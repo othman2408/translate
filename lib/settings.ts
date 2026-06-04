@@ -24,6 +24,11 @@ export type AiProviderConfig = {
   model: string;
 };
 
+export type ResultPopupSize = {
+  width: number;
+  height: number;
+};
+
 export type ExtensionSettings = {
   apiKey: string;
   providers: TranslationProviderConfig[];
@@ -48,7 +53,17 @@ export type ExtensionSettings = {
   disabledHosts: string[];
   historyEnabled: boolean;
   historyLimit: number;
+  resultPopupSize: ResultPopupSize;
 };
+
+export const RESULT_POPUP_SIZE_LIMITS = {
+  minWidth: 280,
+  minHeight: 220,
+  maxWidth: 720,
+  maxHeight: 720,
+  defaultWidth: 360,
+  defaultHeight: 420,
+} as const;
 
 export const DEFAULT_AI_REWRITE_PROMPT = 'Rewrite the selected text to be clearer, more natural, and polished while preserving the original meaning. Return only the rewritten text.';
 export const DEFAULT_AI_EXPLAIN_PROMPT = 'Explain the selected text clearly and briefly. Define key terms or context when useful. Return only the explanation.';
@@ -83,6 +98,10 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   disabledHosts: [],
   historyEnabled: true,
   historyLimit: DEFAULT_HISTORY_LIMIT,
+  resultPopupSize: {
+    width: RESULT_POPUP_SIZE_LIMITS.defaultWidth,
+    height: RESULT_POPUP_SIZE_LIMITS.defaultHeight,
+  },
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {
@@ -129,6 +148,24 @@ function normalizeSettings(settings: Partial<ExtensionSettings>): ExtensionSetti
     aiExplanationLanguage,
     historyLimit: clampHistoryLimit(settings.historyLimit ?? DEFAULT_SETTINGS.historyLimit),
     aiHistoryLimit: clampHistoryLimit(settings.aiHistoryLimit ?? DEFAULT_SETTINGS.aiHistoryLimit),
+    resultPopupSize: normalizeResultPopupSize(settings.resultPopupSize),
+  };
+}
+
+export function normalizeResultPopupSize(size: Partial<ResultPopupSize> | undefined): ResultPopupSize {
+  return {
+    width: clampNumber(
+      size?.width,
+      RESULT_POPUP_SIZE_LIMITS.minWidth,
+      RESULT_POPUP_SIZE_LIMITS.maxWidth,
+      RESULT_POPUP_SIZE_LIMITS.defaultWidth,
+    ),
+    height: clampNumber(
+      size?.height,
+      RESULT_POPUP_SIZE_LIMITS.minHeight,
+      RESULT_POPUP_SIZE_LIMITS.maxHeight,
+      RESULT_POPUP_SIZE_LIMITS.defaultHeight,
+    ),
   };
 }
 
@@ -225,6 +262,14 @@ function normalizeDeepSeekModel(model: string | undefined): DeepSeekModel {
   return DEEPSEEK_MODEL_OPTIONS.some((option) => option.value === normalizedModel)
     ? normalizedModel as DeepSeekModel
     : DEFAULT_AI_MODEL;
+}
+
+function clampNumber(value: number | undefined, min: number, max: number, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.round(Math.min(Math.max(value, min), max));
 }
 
 function createProviderId(): string {

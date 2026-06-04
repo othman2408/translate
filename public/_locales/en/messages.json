@@ -50,6 +50,9 @@
   "actionReset": {
     "message": "Reset"
   },
+  "actionResizePopup": {
+    "message": "Resize popup"
+  },
   "actionSaveProvider": {
     "message": "Save"
   },

@@ -53,6 +53,9 @@
   "actionReset": {
     "message": "إعادة ضبط"
   },
+  "actionResizePopup": {
+    "message": "تغيير حجم النافذة"
+  },
   "actionSaveProvider": {
     "message": "حفظ"
   },

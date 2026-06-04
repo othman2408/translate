@@ -1,17 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { History, Info, KeyRound, Languages, MousePointerClick, Settings2, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 
-import { trimAiHistory, trimTranslationHistory } from '@/lib/history';
-import {
-  DEFAULT_SETTINGS,
-  getSettings,
-  saveSettings,
-  settingsItem,
-  type ExtensionSettings,
-} from '@/lib/settings';
 import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i18n';
 
+import { useSettings } from './hooks/useSettings';
 import { HomeScreen } from './screens/HomeScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { AiHubScreen } from './screens/AiHubScreen';
@@ -21,7 +14,6 @@ import type {
   AiSettingsScreen,
   NavItem,
   NavigationDirection,
-  SaveState,
   Screen,
   SettingsScreen as SettingsScreenName,
 } from './types';
@@ -51,10 +43,14 @@ function clearRestingTransform(
 function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [direction, setDirection] = useState<NavigationDirection>('forward');
-  const [settings, setSettings] = useState<ExtensionSettings>(DEFAULT_SETTINGS);
-  const [loaded, setLoaded] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>('idle');
-  const saveTimerRef = useRef<number | null>(null);
+  const {
+    loaded,
+    resetSettings,
+    saveState,
+    settings,
+    updateSetting,
+    updateSettings,
+  } = useSettings();
   const shouldReduceMotion = useReducedMotion();
   setActiveAppLanguage(settings.appLanguage);
 
@@ -68,34 +64,6 @@ function App() {
     document.documentElement.style.colorScheme = settings.themeMode === 'system' ? 'light dark' : settings.themeMode;
     document.title = t('appTitle', undefined, settings.appLanguage);
   }, [settings.appLanguage, settings.themeMode, uiDirection, uiLanguage]);
-
-  useEffect(() => {
-    let active = true;
-
-    void getSettings().then((nextSettings) => {
-      if (!active) {
-        return;
-      }
-
-      setSettings(nextSettings);
-      setLoaded(true);
-    });
-
-    const unwatch = settingsItem.watch((nextSettings) => {
-      if (active) {
-        setSettings({ ...DEFAULT_SETTINGS, ...nextSettings });
-      }
-    });
-
-    return () => {
-      active = false;
-      unwatch();
-
-      if (saveTimerRef.current) {
-        window.clearTimeout(saveTimerRef.current);
-      }
-    };
-  }, []);
 
   const navItems = useMemo<NavItem[]>(
     () => [
@@ -145,41 +113,6 @@ function App() {
 
     setDirection(isBackNavigation(screen, nextScreen) ? 'back' : 'forward');
     setScreen(nextScreen);
-  }
-
-  function updateSettings(nextSettings: ExtensionSettings, trimHistoryLimit: 'ai' | 'translation' | false = false): void {
-    setSettings(nextSettings);
-    setSaveState('idle');
-
-    if (saveTimerRef.current) {
-      window.clearTimeout(saveTimerRef.current);
-    }
-
-    void saveSettings(nextSettings).then(() => {
-      if (trimHistoryLimit === 'translation') {
-        void trimTranslationHistory(nextSettings.historyLimit);
-      }
-      if (trimHistoryLimit === 'ai') {
-        void trimAiHistory(nextSettings.aiHistoryLimit);
-      }
-
-      setSaveState('saved');
-      saveTimerRef.current = window.setTimeout(() => setSaveState('idle'), 1100);
-    });
-  }
-
-  function updateSetting<TKey extends keyof ExtensionSettings>(
-    key: TKey,
-    value: ExtensionSettings[TKey],
-  ): void {
-    updateSettings(
-      { ...settings, [key]: value },
-      key === 'historyLimit' ? 'translation' : key === 'aiHistoryLimit' ? 'ai' : false,
-    );
-  }
-
-  function resetSettings(): void {
-    updateSettings(DEFAULT_SETTINGS);
   }
 
   return (

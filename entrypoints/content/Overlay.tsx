@@ -8,7 +8,6 @@ import {
   LoaderCircle,
   PenLine,
   Sparkles,
-  X,
 } from 'lucide-react';
 
 import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
@@ -24,9 +23,11 @@ import {
   normalizeRange,
   tokenizeText,
 } from './alignment';
+import { FloatingPopup } from './FloatingPopup';
 import type {
   AlignmentState,
   OverlayAction,
+  OverlayPosition,
   OverlayState,
   TextSide,
   TokenPart,
@@ -39,6 +40,8 @@ export function TranslateOverlay({
   onRewrite,
   onExplain,
   onClose,
+  onMove,
+  onResize,
   onTokenRangeSelected,
   onCopy,
 }: {
@@ -47,6 +50,8 @@ export function TranslateOverlay({
   onRewrite: () => void;
   onExplain: () => void;
   onClose: () => void;
+  onMove: (position: OverlayPosition) => void;
+  onResize: (size: OverlayState['popupSize'], position: OverlayPosition) => void;
   onTokenRangeSelected: (
     side: TextSide,
     range: TokenRange,
@@ -151,75 +156,75 @@ export function TranslateOverlay({
   }
 
   return (
-    <section
+    <FloatingPopup
       className={`translation-card translation-card--${state.status}`}
-      data-theme-mode={state.settings.themeMode}
-      style={style}
-      aria-live="polite"
+      closeLabel={t('actionClose', undefined, state.settings.appLanguage)}
+      resizeLabel={t('actionResizePopup', undefined, state.settings.appLanguage)}
       dir={uiDirection}
       lang={uiLanguage}
-    >
-      <header className="translation-card__header">
-        <div className="translation-card__title">
+      position={state.position}
+      size={state.popupSize}
+      themeMode={state.settings.themeMode}
+      title={(
+        <>
           {isExplain
             ? <Sparkles size={16} />
             : isRewrite ? <PenLine size={16} /> : isDictionary ? <BookOpen size={16} /> : <Languages size={16} />}
           <span>{title}</span>
-        </div>
-        <button
-          className="icon-control"
-          type="button"
-          title={t('actionClose', undefined, state.settings.appLanguage)}
-          onClick={onClose}
-        >
-          <X size={16} />
-        </button>
-      </header>
-
+        </>
+      )}
+      onClose={onClose}
+      onMove={onMove}
+      onResize={onResize}
+    >
       {state.status === 'loading' && (
-        <div className="translation-card__status">
-          <LoaderCircle className="spin" size={18} />
-          <span dir={uiDirection} lang={uiLanguage}>
-            {isExplain ? t('explainingText', undefined, state.settings.appLanguage) : isRewrite ? t('rewritingText', undefined, state.settings.appLanguage) : t(
-              'translatingTo',
-              getLanguageName(state.settings.targetLanguage, state.settings.appLanguage),
-              state.settings.appLanguage,
-            )}
-          </span>
+        <div className="translation-card__body translation-card__body--center">
+          <div className="translation-card__status">
+            <LoaderCircle className="spin" size={18} />
+            <span dir={uiDirection} lang={uiLanguage}>
+              {isExplain ? t('explainingText', undefined, state.settings.appLanguage) : isRewrite ? t('rewritingText', undefined, state.settings.appLanguage) : t(
+                'translatingTo',
+                getLanguageName(state.settings.targetLanguage, state.settings.appLanguage),
+                state.settings.appLanguage,
+              )}
+            </span>
+          </div>
         </div>
       )}
 
       {state.status === 'result' && resultText && (
         <>
-          <TokenTextBlock
-            alignment={isAiAction ? undefined : state.alignment}
-            className="translation-card__original"
-            direction={originalDirection}
-            label={t('labelOriginal', undefined, state.settings.appLanguage)}
-            language={originalLanguage}
-            originalParts={originalParts}
-            parts={originalParts}
-            side="original"
-            translationParts={resultParts}
-            onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
-          />
+          <div className="translation-card__body translation-card__body--result">
+            <TokenTextBlock
+              alignment={isAiAction ? undefined : state.alignment}
+              className="translation-card__original"
+              direction={originalDirection}
+              label={t('labelOriginal', undefined, state.settings.appLanguage)}
+              language={originalLanguage}
+              originalParts={originalParts}
+              parts={originalParts}
+              side="original"
+              translationParts={resultParts}
+              onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
+            />
 
-          <TokenTextBlock
-            alignment={isAiAction ? undefined : state.alignment}
-            className="translation-card__translation"
-            direction={resultDirection}
-            label={isExplain
-              ? t('labelExplanation', undefined, state.settings.appLanguage)
-              : isRewrite
-              ? t('labelRewritten', undefined, state.settings.appLanguage)
-              : t('titleTranslation', undefined, state.settings.appLanguage)}
-            language={resultLanguage}
-            originalParts={originalParts}
-            parts={resultParts}
-            side="translation"
-            translationParts={resultParts}
-            onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
-          />
+            <TokenTextBlock
+              alignment={isAiAction ? undefined : state.alignment}
+              className="translation-card__translation"
+              direction={resultDirection}
+              label={isExplain
+                ? t('labelExplanation', undefined, state.settings.appLanguage)
+                : isRewrite
+                ? t('labelRewritten', undefined, state.settings.appLanguage)
+                : t('titleTranslation', undefined, state.settings.appLanguage)}
+              language={resultLanguage}
+              originalParts={originalParts}
+              parts={resultParts}
+              side="translation"
+              translationParts={resultParts}
+              onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
+            />
+          </div>
           <footer className="translation-card__footer">
             <span dir={uiDirection} lang={uiLanguage}>
               {isAiAction && state.ai?.ok
@@ -254,14 +259,16 @@ export function TranslateOverlay({
       )}
 
       {state.status === 'error' && errorText && (
-        <div className="translation-card__error">
-          <AlertCircle size={18} />
-          <p dir={errorDirection} lang="en" style={{ textAlign: getTextAlign(errorDirection) }}>
-            {errorText}
-          </p>
+        <div className="translation-card__body translation-card__body--center">
+          <div className="translation-card__error">
+            <AlertCircle size={18} />
+            <p dir={errorDirection} lang="en" style={{ textAlign: getTextAlign(errorDirection) }}>
+              {errorText}
+            </p>
+          </div>
         </div>
       )}
-    </section>
+    </FloatingPopup>
   );
 }
 

@@ -2,9 +2,6 @@ import { isHostDisabled } from '@/lib/sites';
 
 import type { OverlayPosition } from './types';
 
-const POPUP_WIDTH = 360;
-const POPUP_MAX_HEIGHT = 440;
-
 export type PageSelection = {
   text: string;
   position: OverlayPosition;
@@ -39,10 +36,6 @@ export function clampPosition(position: OverlayPosition, width: number, height: 
     left: Math.min(Math.max(position.left, margin), Math.max(margin, window.innerWidth - width - margin)),
     top: Math.min(Math.max(position.top, margin), Math.max(margin, window.innerHeight - height - margin)),
   };
-}
-
-export function clampPopupPosition(position: OverlayPosition): OverlayPosition {
-  return clampPosition(position, POPUP_WIDTH, Math.min(POPUP_MAX_HEIGHT, window.innerHeight - 24));
 }
 
 export function isCurrentSiteEnabled(disabledHosts: string[]): boolean {

@@ -14,7 +14,13 @@ import {
   type TranslateTextMessage,
   type TranslationResponse,
 } from '@/lib/messages';
-import { DEFAULT_SETTINGS, settingsItem, type ExtensionSettings } from '@/lib/settings';
+import {
+  DEFAULT_SETTINGS,
+  normalizeResultPopupSize,
+  settingsItem,
+  type ExtensionSettings,
+  type ResultPopupSize,
+} from '@/lib/settings';
 
 import {
   findBestTokenRange,
@@ -24,6 +30,7 @@ import {
   getWordCount,
   normalizeRange,
 } from './alignment';
+import { clampFloatingPopupPosition, clampFloatingPopupSize } from './floating-geometry';
 import { getOverlayResultText, TranslateOverlay } from './Overlay';
 import {
   addRuntimeMessageListener,
@@ -32,7 +39,6 @@ import {
   sendRuntimeMessage,
 } from './runtime';
 import {
-  clampPopupPosition,
   clampPosition,
   isCurrentSiteEnabled,
   readCurrentSelection,
@@ -70,6 +76,7 @@ export function createContentOverlayController(
   let latestAlignmentRequestId = 0;
   let lastInstantKey = '';
   let lastPointerPosition: OverlayPosition = { left: Math.round(window.innerWidth / 2), top: 120 };
+  let popupSizeSaveTimer: number | undefined;
   let suppressSelectionHandlingUntil = 0;
   let shadowHostElement: HTMLElement | undefined;
   let contentScriptActive = true;
@@ -80,6 +87,7 @@ export function createContentOverlayController(
     selectedText: '',
     alignment: undefined,
     copied: false,
+    popupSize: settings.resultPopupSize,
     settings,
   };
 
@@ -97,7 +105,10 @@ export function createContentOverlayController(
     }
 
     ctx.addEventListener(document, 'pointermove', (event) => {
-      lastPointerPosition = clampPopupPosition({ left: event.clientX, top: event.clientY + 12 });
+      lastPointerPosition = clampFloatingPopupPosition(
+        { left: event.clientX, top: event.clientY + 12 },
+        overlayState.popupSize,
+      );
     });
 
     ctx.addEventListener(document, 'mouseup', () => {
@@ -116,6 +127,18 @@ export function createContentOverlayController(
       if (overlayState.status === 'icon') {
         hideOverlay();
       }
+    });
+
+    ctx.addEventListener(window, 'resize', () => {
+      if (!isDismissibleStatus(overlayState.status)) {
+        return;
+      }
+
+      const popupSize = clampFloatingPopupSize(overlayState.popupSize, overlayState.position);
+      updateOverlay({
+        popupSize,
+        position: clampFloatingPopupPosition(overlayState.position, popupSize),
+      });
     });
 
     const messageListener = (message: unknown) => {
@@ -173,8 +196,9 @@ export function createContentOverlayController(
           return;
         }
 
-        settings = { ...DEFAULT_SETTINGS, ...nextSettings };
-        updateOverlay({ settings });
+        const nextPopupSize = normalizeResultPopupSize(nextSettings.resultPopupSize);
+        settings = { ...DEFAULT_SETTINGS, ...nextSettings, resultPopupSize: nextPopupSize };
+        updateOverlay({ settings, popupSize: nextPopupSize });
 
         if (!isCurrentSiteEnabled(settings.disabledHosts)) {
           hideOverlay();
@@ -192,6 +216,7 @@ export function createContentOverlayController(
     contentScriptActive = false;
     latestRequestId += 1;
     latestAlignmentRequestId += 1;
+    clearPopupSizeSaveTimer();
 
     try {
       reactRoot?.unmount();
@@ -292,10 +317,12 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
+    const popupSize = clampFloatingPopupSize(overlayState.popupSize, position);
     updateOverlay({
       status: 'loading',
       action: 'translate',
-      position: clampPopupPosition(position),
+      position: clampFloatingPopupPosition(position, popupSize),
+      popupSize,
       selectedText: normalizedText,
       translation: undefined,
       ai: undefined,
@@ -359,10 +386,12 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
+    const popupSize = clampFloatingPopupSize(overlayState.popupSize, position);
     updateOverlay({
       status: 'loading',
       action,
-      position: clampPopupPosition(position),
+      position: clampFloatingPopupPosition(position, popupSize),
+      popupSize,
       selectedText: normalizedText,
       translation: undefined,
       ai: undefined,
@@ -461,6 +490,17 @@ export function createContentOverlayController(
       onClose: () => {
         suppressSelectionHandling();
         hideOverlay();
+      },
+      onMove: (position) => {
+        suppressSelectionHandling();
+        updateOverlay({
+          position: clampFloatingPopupPosition(position, overlayState.popupSize),
+        });
+      },
+      onResize: (popupSize, position) => {
+        suppressSelectionHandling();
+        updateOverlay({ popupSize, position });
+        schedulePopupSizeSave(popupSize);
       },
       onTokenRangeSelected: (side, range, originalParts, translationParts) => {
         suppressSelectionHandling();
@@ -593,6 +633,48 @@ export function createContentOverlayController(
 
   function suppressSelectionHandling(): void {
     suppressSelectionHandlingUntil = Date.now() + 350;
+  }
+
+  function schedulePopupSizeSave(popupSize: ResultPopupSize): void {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    if (popupSizeSaveTimer) {
+      window.clearTimeout(popupSizeSaveTimer);
+    }
+
+    popupSizeSaveTimer = window.setTimeout(() => {
+      popupSizeSaveTimer = undefined;
+      void savePopupSize(popupSize);
+    }, 350);
+  }
+
+  async function savePopupSize(popupSize: ResultPopupSize): Promise<void> {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    try {
+      const currentSettings = await settingsItem.getValue();
+      await settingsItem.setValue({
+        ...currentSettings,
+        resultPopupSize: normalizeResultPopupSize(popupSize),
+      });
+    } catch (error) {
+      if (isExtensionContextInvalidatedError(error)) {
+        markContentScriptInactive();
+      }
+    }
+  }
+
+  function clearPopupSizeSaveTimer(): void {
+    if (!popupSizeSaveTimer) {
+      return;
+    }
+
+    window.clearTimeout(popupSizeSaveTimer);
+    popupSizeSaveTimer = undefined;
   }
 
   function isOverlayEvent(event: Event): boolean {

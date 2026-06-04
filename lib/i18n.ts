@@ -22,6 +22,7 @@ export type I18nKey =
   | 'actionDeleteProvider'
   | 'actionEditProvider'
   | 'actionReset'
+  | 'actionResizePopup'
   | 'actionSaveProvider'
   | 'actionSetDefaultProvider'
   | 'actionExplainText'

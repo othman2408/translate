@@ -135,8 +135,12 @@ export const overlayCss = `
   }
 
   .translation-card {
-    width: min(360px, calc(100vw - 24px));
-    max-height: min(440px, calc(100vh - 24px));
+    min-width: 280px;
+    min-height: 220px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--translate-border);
     border-radius: 8px;
@@ -153,8 +157,16 @@ export const overlayCss = `
   }
 
   .translation-card__header {
+    flex: 0 0 auto;
     padding: 12px 12px 8px;
     border-bottom: 1px solid var(--translate-border-soft);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .translation-card__header:active {
+    cursor: grabbing;
   }
 
   .translation-card__title {
@@ -184,18 +196,38 @@ export const overlayCss = `
     color: var(--translate-blue);
   }
 
+  .translation-card__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--translate-scrollbar-thumb) transparent;
+  }
+
+  .translation-card__body--center {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .translation-card__body--result {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .translation-card__status,
   .translation-card__error {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 16px;
+    padding: 4px;
     font-size: 13px;
     line-height: 1.45;
   }
 
   .translation-card__text-block {
-    margin: 12px 12px 0;
+    margin: 0;
     padding: 10px;
     border-radius: 8px;
     background: var(--translate-soft-surface);
@@ -203,8 +235,7 @@ export const overlayCss = `
   }
 
   .translation-card__translation {
-    margin-top: 8px;
-    padding: 8px 10px 0;
+    padding: 8px 10px;
     background: transparent;
   }
 
@@ -216,10 +247,7 @@ export const overlayCss = `
 
   .translation-card__text-block p {
     margin: 4px 0 0;
-    max-height: 82px;
-    overflow: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--translate-scrollbar-thumb) transparent;
+    overflow: visible;
     font-size: 13px;
     line-height: 1.45;
     color: var(--translate-text);
@@ -229,21 +257,20 @@ export const overlayCss = `
   }
 
   .translation-card__translation p {
-    max-height: 150px;
     font-size: 15px;
     line-height: 1.55;
   }
 
-  .translation-card__text-block p::-webkit-scrollbar {
+  .translation-card__body::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
 
-  .translation-card__text-block p::-webkit-scrollbar-track {
+  .translation-card__body::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .translation-card__text-block p::-webkit-scrollbar-thumb {
+  .translation-card__body::-webkit-scrollbar-thumb {
     min-height: 32px;
     border: 3px solid transparent;
     border-radius: 999px;
@@ -251,7 +278,7 @@ export const overlayCss = `
     background-clip: content-box;
   }
 
-  .translation-card__text-block p::-webkit-scrollbar-thumb:hover {
+  .translation-card__body::-webkit-scrollbar-thumb:hover {
     background-color: var(--translate-scrollbar-thumb-hover);
   }
 
@@ -283,7 +310,9 @@ export const overlayCss = `
   }
 
   .translation-card__footer {
-    padding: 8px 12px 12px;
+    flex: 0 0 auto;
+    padding: 8px 34px 12px 12px;
+    border-top: 1px solid var(--translate-border-soft);
   }
 
   .translation-card__error {
@@ -293,6 +322,30 @@ export const overlayCss = `
   .translation-card__error p {
     margin: 0;
     unicode-bidi: plaintext;
+  }
+
+  .translation-card__resize-handle {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 5px;
+    background:
+      linear-gradient(135deg, transparent 58%, var(--translate-muted) 58%, var(--translate-muted) 64%, transparent 64%),
+      linear-gradient(135deg, transparent 70%, var(--translate-muted) 70%, var(--translate-muted) 76%, transparent 76%);
+    cursor: nwse-resize;
+    opacity: 0.55;
+    padding: 0;
+    touch-action: none;
+  }
+
+  .translation-card__resize-handle:hover,
+  .translation-card__resize-handle:focus-visible {
+    background-color: var(--translate-hover);
+    opacity: 0.9;
+    outline: none;
   }
 
   .spin {

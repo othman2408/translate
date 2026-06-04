@@ -1,5 +1,5 @@
 import type { AiActionResponse, AiActionType, TranslationResponse } from '@/lib/messages';
-import type { ExtensionSettings } from '@/lib/settings';
+import type { ExtensionSettings, ResultPopupSize } from '@/lib/settings';
 
 export type OverlayStatus = 'hidden' | 'icon' | 'loading' | 'result' | 'error';
 export type OverlayAction = 'translate' | AiActionType;
@@ -38,6 +38,7 @@ export type OverlayState = {
   ai?: AiActionResponse;
   alignment?: AlignmentState;
   copied: boolean;
+  popupSize: ResultPopupSize;
   settings: ExtensionSettings;
 };
 
