@@ -3,11 +3,12 @@ import { Check, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react';
 
 import { t } from '@/lib/i18n';
-import type { ExtensionSettings, TranslationProviderConfig } from '@/lib/settings';
+import type { ExtensionSettings, ProviderType, TranslationProviderConfig } from '@/lib/settings';
 
 import { ProviderLogo } from '../components/ProviderLogo';
+import { ProviderSelect } from '../components/ProviderSelect';
 
-type ProviderDraft = Pick<TranslationProviderConfig, 'name' | 'apiKey'>;
+type ProviderDraft = Pick<TranslationProviderConfig, 'type' | 'name' | 'apiKey'>;
 
 export function ProviderSettings({
   settings,
@@ -27,7 +28,11 @@ export function ProviderSettings({
 
     const provider = settings.providers.find((item) => item.id === editingProviderId);
     if (provider) {
-      setDraftProvider({ name: provider.name, apiKey: provider.apiKey });
+      setDraftProvider({
+        type: provider.type,
+        name: provider.name,
+        apiKey: provider.apiKey,
+      });
     }
   }, [editingProviderId, settings.providers]);
 
@@ -36,7 +41,11 @@ export function ProviderSettings({
   }
 
   function startEditingProvider(provider: TranslationProviderConfig): void {
-    setDraftProvider({ name: provider.name, apiKey: provider.apiKey });
+    setDraftProvider({
+      type: provider.type,
+      name: provider.name,
+      apiKey: provider.apiKey,
+    });
     setEditingProviderId(provider.id);
   }
 
@@ -55,7 +64,7 @@ export function ProviderSettings({
     if (editingProviderId === 'new') {
       const provider = {
         id: createProviderId(),
-        type: 'google-v2' as const,
+        type: draftProvider.type,
         name: providerName,
         apiKey,
       };
@@ -67,7 +76,7 @@ export function ProviderSettings({
 
     const providers = settings.providers.map((provider) => (
       provider.id === editingProviderId
-        ? { ...provider, name: providerName, apiKey }
+        ? { ...provider, type: draftProvider.type, name: providerName, apiKey }
         : provider
     ));
     saveProviders(providers, settings.defaultProviderId);
@@ -250,7 +259,7 @@ function ProviderEditor({
   return (
     <section className="provider-card" aria-label={title}>
       <div className="provider-card__top">
-        <ProviderLogo type="google-v2" />
+        <ProviderLogo type={draft.type} />
         <div className="provider-card__copy">
           <span className="provider-card__eyebrow">{t('providerGoogleName')}</span>
           <h2>{title}</h2>
@@ -259,6 +268,13 @@ function ProviderEditor({
       </div>
 
       <Field.Root className="provider-editor">
+        <ProviderSelect<ProviderType>
+          label={t('titleProvider')}
+          value={draft.type}
+          options={[{ value: 'google-v2', label: t('providerGoogleName') }]}
+          onValueChange={(type) => onChange({ ...draft, type })}
+        />
+
         <Field.Label className="setting-label">{t('labelProviderName')}</Field.Label>
         <Input
           className="text-input"
@@ -303,6 +319,7 @@ function ProviderEditor({
 
 function getEmptyDraft(index: number): ProviderDraft {
   return {
+    type: 'google-v2',
     name: getDefaultProviderName(index),
     apiKey: '',
   };
