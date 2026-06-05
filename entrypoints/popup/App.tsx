@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Database, Info, KeyRound, Languages, MousePointerClick, Settings2, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 
@@ -6,12 +6,6 @@ import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i1
 
 import { useSettings } from './hooks/useSettings';
 import { HomeScreen } from './screens/HomeScreen';
-import { HistoryScreen } from './screens/HistoryScreen';
-import { CacheScreen } from './screens/CacheScreen';
-import { AiHubScreen } from './screens/AiHubScreen';
-import { StorageHubScreen } from './screens/StorageHubScreen';
-import { SettingsHubScreen } from './screens/SettingsHubScreen';
-import { SettingsScreen } from './screens/SettingsScreen';
 import type {
   AiSettingsScreen,
   NavItem,
@@ -20,6 +14,17 @@ import type {
   SettingsScreen as SettingsScreenName,
 } from './types';
 import './App.css';
+
+const AiHubScreen = lazy(() => import('./screens/AiHubScreen').then((module) => ({ default: module.AiHubScreen })));
+const CacheScreen = lazy(() => import('./screens/CacheScreen').then((module) => ({ default: module.CacheScreen })));
+const HistoryScreen = lazy(() => import('./screens/HistoryScreen').then((module) => ({ default: module.HistoryScreen })));
+const SettingsHubScreen = lazy(() => (
+  import('./screens/SettingsHubScreen').then((module) => ({ default: module.SettingsHubScreen }))
+));
+const SettingsScreen = lazy(() => import('./screens/SettingsScreen').then((module) => ({ default: module.SettingsScreen })));
+const StorageHubScreen = lazy(() => (
+  import('./screens/StorageHubScreen').then((module) => ({ default: module.StorageHubScreen }))
+));
 
 const screenVariants: Variants = {
   initial: (direction: NavigationDirection) => ({
@@ -141,7 +146,9 @@ function App() {
               : { duration: 0.42, ease: [0.32, 0.72, 0, 1] }
           }
         >
-          {renderScreen(screen)}
+          <Suspense fallback={null}>
+            {renderScreen(screen)}
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </main>

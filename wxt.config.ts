@@ -12,5 +12,12 @@ export default defineConfig({
     action: {
       default_title: '__MSG_extName__',
     },
+    browser_specific_settings: {
+      gecko: {
+        data_collection_permissions: {
+          required: ['authenticationInfo', 'websiteContent'],
+        },
+      },
+    },
   },
 });
