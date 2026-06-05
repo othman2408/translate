@@ -56,6 +56,9 @@
   "actionReset": {
     "message": "إعادة ضبط"
   },
+  "actionResetPopupSize": {
+    "message": "إعادة ضبط حجم النافذة"
+  },
   "actionResizePopup": {
     "message": "تغيير حجم النافذة"
   },
@@ -221,6 +224,9 @@
   "groupSelection": {
     "message": "التحديد"
   },
+  "groupPopupSize": {
+    "message": "حجم النافذة"
+  },
   "groupSettings": {
     "message": "الإعدادات"
   },
@@ -280,6 +286,12 @@
   },
   "labelPopupStyle": {
     "message": "نمط النافذة"
+  },
+  "labelPopupWidth": {
+    "message": "عرض النافذة"
+  },
+  "labelPopupHeight": {
+    "message": "ارتفاع النافذة"
   },
   "labelProviderName": {
     "message": "اسم المزود"

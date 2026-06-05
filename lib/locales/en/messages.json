@@ -56,6 +56,9 @@
   "actionReset": {
     "message": "Reset"
   },
+  "actionResetPopupSize": {
+    "message": "Reset popup size"
+  },
   "actionResizePopup": {
     "message": "Resize popup"
   },
@@ -224,6 +227,9 @@
   "groupSelection": {
     "message": "Selection"
   },
+  "groupPopupSize": {
+    "message": "Popup size"
+  },
   "groupSettings": {
     "message": "Settings"
   },
@@ -283,6 +289,12 @@
   },
   "labelPopupStyle": {
     "message": "Popup style"
+  },
+  "labelPopupWidth": {
+    "message": "Popup width"
+  },
+  "labelPopupHeight": {
+    "message": "Popup height"
   },
   "labelProviderName": {
     "message": "Provider name"

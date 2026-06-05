@@ -1,5 +1,15 @@
+import { Button, Field, Input } from '@base-ui/react';
+import { RotateCcw } from 'lucide-react';
+
 import { t } from '@/lib/i18n';
-import type { ExtensionSettings, PopupMode, TriggerMode } from '@/lib/settings';
+import {
+  RESULT_POPUP_SIZE_LIMITS,
+  normalizeResultPopupSize,
+  type ExtensionSettings,
+  type PopupMode,
+  type ResultPopupSize,
+  type TriggerMode,
+} from '@/lib/settings';
 
 import { GroupedSection } from '../components/GroupedSection';
 import { SegmentedControl } from '../components/SegmentedControl';
@@ -14,6 +24,25 @@ export function InteractionSettings({
   settings: ExtensionSettings;
   onUpdate: SettingUpdateHandler;
 }) {
+  function updatePopupSize(key: keyof ResultPopupSize, value: string): void {
+    const parsedValue = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsedValue)) {
+      return;
+    }
+
+    onUpdate('resultPopupSize', normalizeResultPopupSize({
+      ...settings.resultPopupSize,
+      [key]: parsedValue,
+    }));
+  }
+
+  function resetPopupSize(): void {
+    onUpdate('resultPopupSize', {
+      width: RESULT_POPUP_SIZE_LIMITS.defaultWidth,
+      height: RESULT_POPUP_SIZE_LIMITS.defaultHeight,
+    });
+  }
+
   return (
     <div className="settings-stack">
       <GroupedSection label={t('groupSelection')}>
@@ -51,6 +80,48 @@ export function InteractionSettings({
           checked={settings.cacheEnabled}
           onCheckedChange={(checked) => onUpdate('cacheEnabled', checked)}
         />
+      </GroupedSection>
+
+      <GroupedSection label={t('groupPopupSize')}>
+        <Field.Root className="setting-row">
+          <span className="setting-row__copy">
+            <Field.Label className="setting-label">{t('labelPopupWidth')}</Field.Label>
+          </span>
+          <Input
+            className="number-input"
+            type="number"
+            min={RESULT_POPUP_SIZE_LIMITS.minWidth}
+            max={RESULT_POPUP_SIZE_LIMITS.maxWidth}
+            step={1}
+            value={String(settings.resultPopupSize.width)}
+            onValueChange={(value) => updatePopupSize('width', value)}
+          />
+        </Field.Root>
+
+        <Field.Root className="setting-row">
+          <span className="setting-row__copy">
+            <Field.Label className="setting-label">{t('labelPopupHeight')}</Field.Label>
+          </span>
+          <Input
+            className="number-input"
+            type="number"
+            min={RESULT_POPUP_SIZE_LIMITS.minHeight}
+            max={RESULT_POPUP_SIZE_LIMITS.maxHeight}
+            step={1}
+            value={String(settings.resultPopupSize.height)}
+            onValueChange={(value) => updatePopupSize('height', value)}
+          />
+        </Field.Root>
+
+        <div className="setting-row">
+          <span className="setting-row__copy">
+            <strong className="setting-label">{t('actionResetPopupSize')}</strong>
+          </span>
+          <Button className="secondary-soft-button" type="button" onClick={resetPopupSize}>
+            <RotateCcw size={14} />
+            {t('actionResetPopupSize')}
+          </Button>
+        </div>
       </GroupedSection>
     </div>
   );
