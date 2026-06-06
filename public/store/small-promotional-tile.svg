@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-label="Translate promotional tile">
+  <defs>
+    <linearGradient id="bg" x1="42" x2="398" y1="20" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF" offset="0"/>
+      <stop stop-color="#EAF4FF" offset=".42"/>
+      <stop stop-color="#DDEFFF" offset="1"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1477F8" flood-opacity=".2"/>
+    </filter>
+  </defs>
+
+  <rect width="440" height="280" fill="url(#bg)"/>
+  <circle cx="384" cy="42" r="104" fill="#FFFFFF" opacity=".58"/>
+  <circle cx="54" cy="244" r="126" fill="#B9DEFF" opacity=".34"/>
+  <path d="M323 219c34-16 58-44 71-82" fill="none" stroke="#8DCCFF" stroke-linecap="round" stroke-width="2" opacity=".42"/>
+  <path d="M348 232c37-18 64-50 80-96" fill="none" stroke="#1477F8" stroke-linecap="round" stroke-width="2" opacity=".18"/>
+
+  <g transform="translate(44 54)">
+    <image href="../icon/logo.svg" x="0" y="0" width="112" height="112" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>
+  </g>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="178" y="102" fill="#111827" font-size="35" font-weight="760" letter-spacing="0">Translate</text>
+    <text x="180" y="136" fill="#33516E" font-size="17" font-weight="600">Selected text tools</text>
+    <g fill="#43627E" font-size="14" font-weight="600">
+      <text x="180" y="178">Translate</text>
+      <circle cx="252" cy="173" r="3.5" fill="#1477F8"/>
+      <text x="266" y="178">Rewrite</text>
+      <circle cx="334" cy="173" r="3.5" fill="#1477F8"/>
+      <text x="348" y="178">Explain</text>
+    </g>
+  </g>
+</svg>
