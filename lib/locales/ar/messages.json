@@ -62,11 +62,23 @@
   "actionResizePopup": {
     "message": "تغيير حجم النافذة"
   },
+  "actionReadOriginal": {
+    "message": "قراءة النص الأصلي"
+  },
+  "actionReadResult": {
+    "message": "قراءة النتيجة"
+  },
   "actionSaveProvider": {
     "message": "حفظ"
   },
   "actionSetDefaultProvider": {
     "message": "تعيين كافتراضي"
+  },
+  "actionStopReadingOriginal": {
+    "message": "إيقاف قراءة النص الأصلي"
+  },
+  "actionStopReadingResult": {
+    "message": "إيقاف قراءة النتيجة"
   },
   "actionExplainText": {
     "message": "شرح"

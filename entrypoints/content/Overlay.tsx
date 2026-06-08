@@ -1,4 +1,4 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import {
   AlertCircle,
   BookOpen,
@@ -8,6 +8,8 @@ import {
   LoaderCircle,
   PenLine,
   Sparkles,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
@@ -24,6 +26,7 @@ import {
   tokenizeText,
 } from './alignment';
 import { FloatingPopup } from './FloatingPopup';
+import { useTextToSpeech } from './speech';
 import type {
   AlignmentState,
   OverlayAction,
@@ -77,8 +80,11 @@ export function TranslateOverlay({
     : t('translationTitle', undefined, state.settings.appLanguage);
   const uiLanguage = getUiLanguage(state.settings.appLanguage);
   const uiDirection = getUiDirection(uiLanguage);
-  const originalDirection = getTextDirection(state.selectedText, state.settings.sourceLanguage);
-  const originalLanguage = getTextLanguage(state.settings.sourceLanguage);
+  const originalLanguageCode = !isAiAction && state.translation?.ok && state.translation.detectedSourceLanguage
+    ? state.translation.detectedSourceLanguage
+    : state.settings.sourceLanguage;
+  const originalDirection = getTextDirection(state.selectedText, originalLanguageCode);
+  const originalLanguage = getTextLanguage(originalLanguageCode);
   const resultText = getOverlayResultText(state);
   const resultLanguageCode = isExplain
     ? state.ai?.ok ? state.ai.language : state.settings.aiExplanationLanguage
@@ -88,8 +94,8 @@ export function TranslateOverlay({
   const resultDirection = getTextDirection(resultText, resultLanguageCode);
   const resultLanguage = getTextLanguage(resultLanguageCode);
   const originalParts = useMemo(
-    () => tokenizeText(state.selectedText, originalLanguage ?? state.settings.sourceLanguage),
-    [originalLanguage, state.selectedText, state.settings.sourceLanguage],
+    () => tokenizeText(state.selectedText, originalLanguage ?? originalLanguageCode),
+    [originalLanguage, originalLanguageCode, state.selectedText],
   );
   const resultParts = useMemo(
     () => tokenizeText(resultText, resultLanguage ?? resultLanguageCode),
@@ -97,6 +103,17 @@ export function TranslateOverlay({
   );
   const errorText = getOverlayErrorText(state);
   const errorDirection = getTextDirection(errorText, 'en');
+  const speech = useTextToSpeech();
+
+  useEffect(() => {
+    if (state.status !== 'result') {
+      speech.stop();
+    }
+  }, [speech.stop, state.status]);
+
+  useEffect(() => {
+    speech.stop();
+  }, [speech.stop, state.action, state.selectedText, resultText]);
 
   if (state.status === 'hidden') {
     return null;
@@ -203,6 +220,14 @@ export function TranslateOverlay({
               language={originalLanguage}
               originalParts={originalParts}
               parts={originalParts}
+              readControl={speech.isSupported ? (
+                <ReadAloudButton
+                  active={speech.activeTarget === 'original'}
+                  label={t('actionReadOriginal', undefined, state.settings.appLanguage)}
+                  stopLabel={t('actionStopReadingOriginal', undefined, state.settings.appLanguage)}
+                  onClick={() => speech.toggle('original', state.selectedText, originalLanguage)}
+                />
+              ) : undefined}
               side="original"
               translationParts={resultParts}
               onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
@@ -220,6 +245,14 @@ export function TranslateOverlay({
               language={resultLanguage}
               originalParts={originalParts}
               parts={resultParts}
+              readControl={speech.isSupported ? (
+                <ReadAloudButton
+                  active={speech.activeTarget === 'result'}
+                  label={t('actionReadResult', undefined, state.settings.appLanguage)}
+                  stopLabel={t('actionStopReadingResult', undefined, state.settings.appLanguage)}
+                  onClick={() => speech.toggle('result', resultText, resultLanguage)}
+                />
+              ) : undefined}
               side="translation"
               translationParts={resultParts}
               onRangeSelected={isAiAction ? undefined : onTokenRangeSelected}
@@ -313,6 +346,7 @@ function TokenTextBlock({
   language,
   originalParts,
   parts,
+  readControl,
   side,
   translationParts,
   onRangeSelected,
@@ -324,6 +358,7 @@ function TokenTextBlock({
   language?: string;
   originalParts: TokenPart[];
   parts: TokenPart[];
+  readControl?: ReactNode;
   side: TextSide;
   translationParts: TokenPart[];
   onRangeSelected?: (
@@ -339,7 +374,10 @@ function TokenTextBlock({
 
   return (
     <div className={`${className} translation-card__text-block`}>
-      <span className="translation-card__text-label">{label}</span>
+      <div className="translation-card__text-block-header">
+        <span className="translation-card__text-label">{label}</span>
+        {readControl}
+      </div>
       <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}>
         {parts.map((part) => renderTokenPart({
           dragRange,
@@ -354,6 +392,34 @@ function TokenTextBlock({
         }))}
       </p>
     </div>
+  );
+}
+
+function ReadAloudButton({
+  active,
+  label,
+  stopLabel,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  stopLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className="text-to-speech-button"
+      type="button"
+      title={active ? stopLabel : label}
+      aria-label={active ? stopLabel : label}
+      aria-pressed={active}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+    >
+      {active ? <VolumeX size={14} /> : <Volume2 size={14} />}
+    </button>
   );
 }
 

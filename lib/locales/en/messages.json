@@ -62,11 +62,23 @@
   "actionResizePopup": {
     "message": "Resize popup"
   },
+  "actionReadOriginal": {
+    "message": "Read original"
+  },
+  "actionReadResult": {
+    "message": "Read result"
+  },
   "actionSaveProvider": {
     "message": "Save"
   },
   "actionSetDefaultProvider": {
     "message": "Set default"
+  },
+  "actionStopReadingOriginal": {
+    "message": "Stop reading original"
+  },
+  "actionStopReadingResult": {
+    "message": "Stop reading result"
   },
   "actionExplainText": {
     "message": "Explain"

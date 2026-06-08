@@ -234,6 +234,14 @@ export const overlayCss = `
     color: var(--translate-secondary);
   }
 
+  .translation-card__text-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 20px;
+  }
+
   .translation-card__translation {
     padding: 8px 10px;
     background: transparent;
@@ -243,6 +251,31 @@ export const overlayCss = `
   .translation-card__footer {
     font-size: 11px;
     color: var(--translate-muted);
+  }
+
+  .text-to-speech-button {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--translate-muted);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .text-to-speech-button:hover,
+  .text-to-speech-button[aria-pressed="true"] {
+    background: var(--translate-hover);
+    color: var(--translate-blue);
+  }
+
+  .text-to-speech-button:focus-visible {
+    outline: 2px solid var(--translate-blue);
+    outline-offset: 1px;
   }
 
   .translation-card__text-block p {
