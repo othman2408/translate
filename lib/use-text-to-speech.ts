@@ -136,9 +136,8 @@ function normalizeLanguage(language: string): string {
     ur: 'ur-PK',
   };
   const normalizedLanguage = language.toLowerCase();
-  const baseLanguage = normalizedLanguage.split('-')[0];
 
   return fallbacks[normalizedLanguage]
-    ?? (baseLanguage ? fallbacks[baseLanguage] : undefined)
+    ?? fallbacks[normalizedLanguage.split('-')[0]]
     ?? language;
 }
