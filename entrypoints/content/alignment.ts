@@ -151,6 +151,10 @@ export function findBestTokenRange(
     for (let length = minWords; length <= maxWords; length += 1) {
       for (let start = 0; start <= wordParts.length - length; start += 1) {
         const range = getPartRangeFromWordRange(wordParts, start, start + length - 1);
+        if (!range) {
+          continue;
+        }
+
         const cacheKey = `${range.startPartIndex}:${range.endPartIndex}`;
         let normalizedCandidate = normalizedCandidateCache.get(cacheKey);
         if (normalizedCandidate === undefined) {
@@ -191,6 +195,10 @@ export function getRangeWordCenterRatio(parts: TokenPart[], range: TokenRange): 
 
   const firstWordIndex = selectedWordIndexes[0];
   const lastWordIndex = selectedWordIndexes[selectedWordIndexes.length - 1];
+  if (firstWordIndex === undefined || lastWordIndex === undefined) {
+    return undefined;
+  }
+
   return getWordRangeCenterRatio(firstWordIndex, lastWordIndex, wordParts.length);
 }
 
@@ -291,10 +299,20 @@ function getWordParts(parts: TokenPart[]): TokenPart[] {
   return parts.filter((part) => part.isWordLike);
 }
 
-function getPartRangeFromWordRange(wordParts: TokenPart[], startWordIndex: number, endWordIndex: number): TokenRange {
+function getPartRangeFromWordRange(
+  wordParts: TokenPart[],
+  startWordIndex: number,
+  endWordIndex: number,
+): TokenRange | undefined {
+  const startPart = wordParts[startWordIndex];
+  const endPart = wordParts[endWordIndex];
+  if (!startPart || !endPart) {
+    return undefined;
+  }
+
   return {
-    startPartIndex: wordParts[startWordIndex].partIndex,
-    endPartIndex: wordParts[endWordIndex].partIndex,
+    startPartIndex: startPart.partIndex,
+    endPartIndex: endPart.partIndex,
   };
 }
 
