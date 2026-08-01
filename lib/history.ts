@@ -60,7 +60,7 @@ export const translationHistoryItem = storage.defineItem<TranslationHistory>('lo
   fallback: { entries: [] },
 });
 
-export const aiHistoryItem = storage.defineItem<AiHistory>('local:aiHistory', {
+const aiHistoryItem = storage.defineItem<AiHistory>('local:aiHistory', {
   fallback: { entries: [] },
 });
 

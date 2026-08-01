@@ -7,6 +7,7 @@ import {
   normalizeResultPopupSize,
   type ExtensionSettings,
   type PopupMode,
+  type ReaderModeSize,
   type ResultPopupSize,
   type TriggerMode,
 } from '@/lib/settings';
@@ -67,18 +68,10 @@ export function InteractionSettings({
             onChange={(value) => onUpdate('popupMode', value)}
           />
         </SettingRow>
-      </GroupedSection>
-
-      <GroupedSection label={t('groupBehavior')}>
         <SettingToggle
           label={t('closeOnOutsideClick')}
           checked={settings.closeOnOutsideClick}
           onCheckedChange={(checked) => onUpdate('closeOnOutsideClick', checked)}
-        />
-        <SettingToggle
-          label={t('cacheTranslations')}
-          checked={settings.cacheEnabled}
-          onCheckedChange={(checked) => onUpdate('cacheEnabled', checked)}
         />
       </GroupedSection>
 
@@ -91,7 +84,6 @@ export function InteractionSettings({
             className="number-input"
             type="number"
             min={RESULT_POPUP_SIZE_LIMITS.minWidth}
-            max={RESULT_POPUP_SIZE_LIMITS.maxWidth}
             step={1}
             value={String(settings.resultPopupSize.width)}
             onValueChange={(value) => updatePopupSize('width', value)}
@@ -106,12 +98,23 @@ export function InteractionSettings({
             className="number-input"
             type="number"
             min={RESULT_POPUP_SIZE_LIMITS.minHeight}
-            max={RESULT_POPUP_SIZE_LIMITS.maxHeight}
             step={1}
             value={String(settings.resultPopupSize.height)}
             onValueChange={(value) => updatePopupSize('height', value)}
           />
         </Field.Root>
+
+        <SettingRow label={t('labelReaderSize')}>
+          <SegmentedControl<ReaderModeSize>
+            value={settings.readerModeSize}
+            options={[
+              { value: 'medium', label: t('optionReaderMedium') },
+              { value: 'large', label: t('optionReaderLarge') },
+              { value: 'full', label: t('optionReaderFull') },
+            ]}
+            onChange={(value) => onUpdate('readerModeSize', value)}
+          />
+        </SettingRow>
 
         <div className="setting-row">
           <span className="setting-row__copy">

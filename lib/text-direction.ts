@@ -31,7 +31,7 @@ export function getTextAlign(direction: TextDirection): 'left' | 'right' {
   return direction === 'rtl' ? 'right' : 'left';
 }
 
-export function isRtlLanguage(language?: string): boolean {
+function isRtlLanguage(language?: string): boolean {
   if (!language || language === 'auto') {
     return false;
   }

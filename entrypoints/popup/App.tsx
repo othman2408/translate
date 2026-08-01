@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Database, Info, KeyRound, Languages, MousePointerClick, Settings2, Sparkles } from 'lucide-react';
+import { Database, Info, Languages, MousePointerClick, Settings2, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 
 import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i18n';
@@ -10,6 +10,7 @@ import { HistoryScreen } from './screens/HistoryScreen';
 import { CacheScreen } from './screens/CacheScreen';
 import { AiHubScreen } from './screens/AiHubScreen';
 import { StorageHubScreen } from './screens/StorageHubScreen';
+import { TranslationHubScreen } from './screens/TranslationHubScreen';
 import { SettingsHubScreen } from './screens/SettingsHubScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type {
@@ -70,9 +71,9 @@ function App() {
   const navItems = useMemo<NavItem[]>(
     () => [
       {
-        screen: 'storage',
-        title: t('titleStorage'),
-        icon: <Database size={17} />,
+        screen: 'general',
+        title: t('titleGeneral'),
+        icon: <Settings2 size={17} />,
       },
       {
         screen: 'translation',
@@ -80,24 +81,19 @@ function App() {
         icon: <Languages size={17} />,
       },
       {
-        screen: 'interaction',
-        title: t('titleInteraction'),
-        icon: <MousePointerClick size={17} />,
-      },
-      {
-        screen: 'provider',
-        title: t('titleProvider'),
-        icon: <KeyRound size={17} />,
-      },
-      {
         screen: 'ai',
         title: t('titleAi'),
         icon: <Sparkles size={17} />,
       },
       {
-        screen: 'extension',
-        title: t('titleExtension'),
-        icon: <Settings2 size={17} />,
+        screen: 'interaction',
+        title: t('titleInteraction'),
+        icon: <MousePointerClick size={17} />,
+      },
+      {
+        screen: 'storage',
+        title: t('titleStorage'),
+        icon: <Database size={17} />,
       },
       {
         screen: 'about',
@@ -172,6 +168,18 @@ function App() {
     if (screenName === 'storage') {
       return (
         <StorageHubScreen
+          settings={settings}
+          saveState={saveState}
+          onBack={() => navigateTo('settings')}
+          onNavigate={navigateTo}
+          onUpdate={updateSetting}
+        />
+      );
+    }
+
+    if (screenName === 'translation') {
+      return (
+        <TranslationHubScreen
           saveState={saveState}
           onBack={() => navigateTo('settings')}
           onNavigate={navigateTo}
@@ -227,7 +235,13 @@ function App() {
         aiScreen={isAiSettingsScreen(screenName) ? screenName : undefined}
         settings={settings}
         saveState={saveState}
-        onBack={() => navigateTo(isAiChildScreen(screenName) ? 'ai' : 'settings')}
+        onBack={() => navigateTo(
+          isAiChildScreen(screenName)
+            ? 'ai'
+            : isTranslationChildScreen(screenName)
+            ? 'translation'
+            : 'settings'
+        )}
         onUpdate={updateSetting}
         onUpdateSettings={updateSettings}
         onReset={resetSettings}
@@ -242,6 +256,10 @@ function isBackNavigation(currentScreen: Screen, nextScreen: Screen): boolean {
   }
 
   if (nextScreen === 'ai' && isAiChildScreen(currentScreen)) {
+    return true;
+  }
+
+  if (nextScreen === 'translation' && isTranslationChildScreen(currentScreen)) {
     return true;
   }
 
@@ -261,6 +279,10 @@ function isAiChildScreen(screen: Screen): boolean {
     || screen === 'ai-rewrite'
     || screen === 'ai-explain'
     || screen === 'ai-providers';
+}
+
+function isTranslationChildScreen(screen: Screen): boolean {
+  return screen === 'translation-languages' || screen === 'translation-providers';
 }
 
 function isAiSettingsScreen(screen: Screen): screen is AiSettingsScreen {

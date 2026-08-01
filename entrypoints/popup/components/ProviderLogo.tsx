@@ -11,6 +11,14 @@ const PROVIDER_LOGOS = {
     className: 'provider-logo--deepseek',
     src: '/deepseek.svg',
   },
+  openrouter: {
+    className: 'provider-logo--openrouter',
+    src: '/openrouter.png',
+  },
+  kimi: {
+    className: 'provider-logo--kimi',
+    src: '/kimi.png',
+  },
 } satisfies Record<ProviderLogoType, { className: string; src: string }>;
 
 export function ProviderLogo({

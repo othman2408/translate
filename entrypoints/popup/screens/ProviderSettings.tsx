@@ -1,14 +1,15 @@
 import { Button, Field, Input } from '@base-ui/react';
-import { Check, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 'lucide-react';
+import { Check, ExternalLink, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { t } from '@/lib/i18n';
-import type { ExtensionSettings, ProviderType, TranslationProviderConfig } from '@/lib/settings';
+import type { ExtensionSettings, TranslationProviderConfig } from '@/lib/settings';
 
 import { ProviderLogo } from '../components/ProviderLogo';
-import { ProviderSelect } from '../components/ProviderSelect';
 
 type ProviderDraft = Pick<TranslationProviderConfig, 'type' | 'name' | 'apiKey'>;
+
+const GOOGLE_TRANSLATE_SETUP_URL = 'https://console.cloud.google.com/apis/library/translate.googleapis.com';
 
 export function ProviderSettings({
   settings,
@@ -18,11 +19,11 @@ export function ProviderSettings({
   onUpdateSettings: (settings: ExtensionSettings) => void;
 }) {
   const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(null);
-  const [draftProvider, setDraftProvider] = useState<ProviderDraft>(getEmptyDraft(settings.providers.length));
+  const [draftProvider, setDraftProvider] = useState<ProviderDraft>(getEmptyDraft());
 
   useEffect(() => {
     if (editingProviderId === 'new') {
-      setDraftProvider(getEmptyDraft(settings.providers.length));
+      setDraftProvider(getEmptyDraft());
       return;
     }
 
@@ -51,7 +52,7 @@ export function ProviderSettings({
 
   function cancelEditing(): void {
     setEditingProviderId(null);
-    setDraftProvider(getEmptyDraft(settings.providers.length));
+    setDraftProvider(getEmptyDraft());
   }
 
   function saveProvider(): void {
@@ -118,16 +119,18 @@ export function ProviderSettings({
         <span>{t('providerLocalOnlyNote')}</span>
       </div>
 
-      <div className="provider-toolbar">
-        <Button
-          className="provider-action-button provider-action-button--primary"
-          type="button"
-          onClick={startAddingProvider}
-        >
-          <Plus size={14} />
-          {t('actionAddProvider')}
-        </Button>
-      </div>
+      {settings.providers.length > 0 && editingProviderId === null && (
+        <div className="provider-toolbar">
+          <Button
+            className="provider-action-button provider-action-button--primary"
+            type="button"
+            onClick={startAddingProvider}
+          >
+            <Plus size={14} />
+            {t('actionAddProvider')}
+          </Button>
+        </div>
+      )}
 
       {isEditingNewProvider && (
         <ProviderEditor
@@ -142,8 +145,17 @@ export function ProviderSettings({
 
       {settings.providers.length === 0 && !isEditingNewProvider ? (
         <section className="provider-empty">
-          <strong>{t('providerEmptyTitle')}</strong>
+          <ProviderLogo type="google-v2" />
+          <strong>{t('providerGoogleName')}</strong>
           <span>{t('providerEmptyDescription')}</span>
+          <Button
+            className="provider-action-button provider-action-button--primary"
+            type="button"
+            onClick={startAddingProvider}
+          >
+            <Plus size={14} />
+            {t('actionAddProvider')}
+          </Button>
         </section>
       ) : (
         settings.providers.map((provider) => (
@@ -261,29 +273,33 @@ function ProviderEditor({
       <div className="provider-card__top">
         <ProviderLogo type={draft.type} />
         <div className="provider-card__copy">
-          <span className="provider-card__eyebrow">{t('providerGoogleName')}</span>
+          <span className="provider-card__eyebrow">{t('providerGoogleDescription')}</span>
           <h2>{title}</h2>
-          <p>{t('providerGoogleDescription')}</p>
+          <p>{t('providerGoogleName')}</p>
         </div>
       </div>
 
+      <div className="provider-setup-guide">
+        <div className="provider-setup-guide__header">
+          <strong>{t('providerSetupTitle')}</strong>
+          <a
+            className="provider-setup-link"
+            href={GOOGLE_TRANSLATE_SETUP_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('providerSetupOpenConsole')}
+            <ExternalLink size={13} aria-hidden="true" />
+          </a>
+        </div>
+        <ol className="provider-setup-steps">
+          <li>{t('providerSetupStepProject')}</li>
+          <li>{t('providerSetupStepApi')}</li>
+          <li>{t('providerSetupStepKey')}</li>
+        </ol>
+      </div>
+
       <Field.Root className="provider-editor">
-        <ProviderSelect<ProviderType>
-          label={t('titleProvider')}
-          value={draft.type}
-          options={[{ value: 'google-v2', label: t('providerGoogleName') }]}
-          onValueChange={(type) => onChange({ ...draft, type })}
-        />
-
-        <Field.Label className="setting-label">{t('labelProviderName')}</Field.Label>
-        <Input
-          className="text-input"
-          type="text"
-          spellCheck={false}
-          value={draft.name}
-          onValueChange={(name) => onChange({ ...draft, name })}
-        />
-
         <Field.Label className="setting-label">{t('labelApiKey')}</Field.Label>
         <Field.Description className="setting-description">
           {t('providerApiKeyDescription')}
@@ -291,10 +307,20 @@ function ProviderEditor({
         <Input
           className="text-input"
           type="password"
+          autoComplete="off"
           spellCheck={false}
           placeholder={t('inputApiKey')}
           value={draft.apiKey}
           onValueChange={(apiKey) => onChange({ ...draft, apiKey })}
+        />
+
+        <Field.Label className="setting-label">{t('labelProviderNameOptional')}</Field.Label>
+        <Input
+          className="text-input"
+          type="text"
+          spellCheck={false}
+          value={draft.name}
+          onValueChange={(name) => onChange({ ...draft, name })}
         />
       </Field.Root>
 
@@ -317,10 +343,10 @@ function ProviderEditor({
   );
 }
 
-function getEmptyDraft(index: number): ProviderDraft {
+function getEmptyDraft(): ProviderDraft {
   return {
     type: 'google-v2',
-    name: getDefaultProviderName(index),
+    name: '',
     apiKey: '',
   };
 }

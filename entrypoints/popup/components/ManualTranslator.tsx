@@ -1,6 +1,6 @@
 import { Button, Select } from '@base-ui/react';
-import { ArrowRight, Check, ChevronDown, Copy, Loader2, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { ArrowRight, Check, ChevronDown, Copy, Loader2, Volume2, VolumeX, X } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 import { t } from '@/lib/i18n';
 import {
@@ -11,6 +11,7 @@ import {
 import type { TranslationResponse } from '@/lib/messages';
 import type { ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
+import { useTextToSpeech } from '@/lib/use-text-to-speech';
 
 import { useManualTranslation } from '../hooks/useManualTranslation';
 import type { SettingUpdateHandler } from '../types';
@@ -31,8 +32,12 @@ export function ManualTranslator({
     trimmedText,
     updateText,
   } = useManualTranslation(settings);
+  const speech = useTextToSpeech();
   const sourceDirection = getTextDirection(text, settings.sourceLanguage);
   const translatedText = response?.ok ? response.translatedText : '';
+  const sourceSpeechLanguage = response?.ok && response.detectedSourceLanguage
+    ? response.detectedSourceLanguage
+    : settings.sourceLanguage;
   const translationDirection = getTextDirection(translatedText, settings.targetLanguage);
 
   const sourceLanguageOptions = useMemo(
@@ -43,6 +48,10 @@ export function ManualTranslator({
     () => localizeLanguageOptions(TARGET_LANGUAGE_OPTIONS, settings.appLanguage),
     [settings.appLanguage],
   );
+
+  useEffect(() => {
+    speech.stop();
+  }, [speech.stop, text, translatedText, settings.sourceLanguage, settings.targetLanguage]);
 
   return (
     <section className="manual-translator" aria-label={t('manualTranslatorTitle')}>
@@ -76,15 +85,27 @@ export function ManualTranslator({
           style={{ textAlign: getTextAlign(sourceDirection) }}
           onChange={(event) => updateText(event.currentTarget.value)}
         />
-        {text && (
-          <Button
-            className="manual-translator__clear"
-            type="button"
-            aria-label={t('actionClearText')}
-            onClick={clearText}
-          >
-            <X size={13} />
-          </Button>
+        {(text || speech.isSupported) && (
+          <span className="manual-translator__field-actions">
+            {speech.isSupported && text && (
+              <ReadTextButton
+                active={speech.activeTarget === 'original'}
+                label={t('actionReadOriginal')}
+                stopLabel={t('actionStopReadingOriginal')}
+                onClick={() => speech.toggle('original', text, sourceSpeechLanguage)}
+              />
+            )}
+            {text && (
+              <Button
+                className="manual-translator__icon-button"
+                type="button"
+                aria-label={t('actionClearText')}
+                onClick={clearText}
+              >
+                <X size={13} />
+              </Button>
+            )}
+          </span>
         )}
       </div>
 
@@ -97,14 +118,24 @@ export function ManualTranslator({
           <span>{t('manualTranslationLabel')}</span>
           {isLoading && <Loader2 className="manual-translator__spinner" size={13} aria-hidden="true" />}
           {response?.ok && (
-            <Button
-              className="manual-translator__copy"
-              type="button"
-              aria-label={t('actionCopyTranslation')}
-              onClick={copyTranslation}
-            >
-              <Copy size={13} />
-            </Button>
+            <span className="manual-translator__result-actions">
+              {speech.isSupported && (
+                <ReadTextButton
+                  active={speech.activeTarget === 'result'}
+                  label={t('actionReadResult')}
+                  stopLabel={t('actionStopReadingResult')}
+                  onClick={() => speech.toggle('result', translatedText, settings.targetLanguage)}
+                />
+              )}
+              <Button
+                className="manual-translator__icon-button"
+                type="button"
+                aria-label={t('actionCopyTranslation')}
+                onClick={copyTranslation}
+              >
+                <Copy size={13} />
+              </Button>
+            </span>
           )}
         </div>
 
@@ -118,6 +149,31 @@ export function ManualTranslator({
         </p>
       </div>
     </section>
+  );
+}
+
+function ReadTextButton({
+  active,
+  label,
+  stopLabel,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  stopLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      className="manual-translator__icon-button"
+      type="button"
+      aria-label={active ? stopLabel : label}
+      aria-pressed={active}
+      title={active ? stopLabel : label}
+      onClick={onClick}
+    >
+      {active ? <VolumeX size={13} /> : <Volume2 size={13} />}
+    </Button>
   );
 }
 

@@ -5,9 +5,14 @@ import type { RuntimeMessage } from '@/lib/messages';
 import type { RuntimeSendResult } from './types';
 
 type OnInvalidated = () => void;
+type RuntimeMessageListener = (
+  message: unknown,
+  sender: unknown,
+  sendResponse: (response?: unknown) => void,
+) => unknown;
 
 export function addRuntimeMessageListener(
-  messageListener: (message: unknown) => void,
+  messageListener: RuntimeMessageListener,
   onInvalidated: OnInvalidated,
 ): boolean {
   try {
@@ -21,7 +26,7 @@ export function addRuntimeMessageListener(
   }
 }
 
-export function removeRuntimeMessageListener(messageListener: (message: unknown) => void): void {
+export function removeRuntimeMessageListener(messageListener: RuntimeMessageListener): void {
   try {
     browser.runtime.onMessage.removeListener(messageListener);
   } catch {
@@ -54,6 +59,13 @@ export async function sendRuntimeMessage<TResponse>(
 }
 
 export function isExtensionContextInvalidatedError(error: unknown): boolean {
-  return error instanceof Error
-    && error.message.toLowerCase().includes('extension context invalidated');
+  if (error instanceof Error) {
+    return error.message.toLowerCase().includes('extension context invalidated');
+  }
+
+  if (typeof error === 'object' && error && 'message' in error) {
+    return String(error.message).toLowerCase().includes('extension context invalidated');
+  }
+
+  return String(error).toLowerCase().includes('extension context invalidated');
 }

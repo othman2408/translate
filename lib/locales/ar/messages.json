@@ -14,6 +14,9 @@
   "actionClose": {
     "message": "إغلاق"
   },
+  "actionCloseReader": {
+    "message": "العودة إلى العرض المصغر"
+  },
   "actionCopyTranslation": {
     "message": "نسخ الترجمة"
   },
@@ -53,6 +56,9 @@
   "actionEditProvider": {
     "message": "تعديل"
   },
+  "actionGetApiKey": {
+    "message": "الحصول على مفتاح API"
+  },
   "actionReset": {
     "message": "إعادة ضبط"
   },
@@ -61,6 +67,9 @@
   },
   "actionResizePopup": {
     "message": "تغيير حجم النافذة"
+  },
+  "actionOpenReader": {
+    "message": "فتح وضع القراءة"
   },
   "actionReadOriginal": {
     "message": "قراءة النص الأصلي"
@@ -86,8 +95,8 @@
   "actionRewriteText": {
     "message": "إعادة صياغة"
   },
-  "aiEnabled": {
-    "message": "تفعيل الذكاء الاصطناعي"
+  "aiExplainEnabled": {
+    "message": "تفعيل الشرح"
   },
   "aiEmptyDescription": {
     "message": "أضف مزودا باستخدام مفتاح API الخاص بك لاستخدام إجراءات AI."
@@ -110,11 +119,32 @@
   "aiProviderDeepSeekName": {
     "message": "DeepSeek"
   },
+  "aiProviderKimiDescription": {
+    "message": "نماذج Kimi عبر Moonshot AI وVercel AI SDK"
+  },
+  "aiProviderKimiName": {
+    "message": "Kimi"
+  },
+  "aiProviderOpenRouterDescription": {
+    "message": "مزودون ونماذج متعددة عبر مفتاح API واحد"
+  },
+  "aiProviderOpenRouterModelDescription": {
+    "message": "استخدم الموجّه التلقائي أو أدخل معرّف أي نموذج في OpenRouter."
+  },
+  "aiProviderOpenRouterName": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPickerDescription": {
+    "message": "اختر خدمة الذكاء الاصطناعي التي تريد توصيلها."
+  },
   "aiExplainPromptDescription": {
     "message": "أخبر الذكاء الاصطناعي كيف يشرح النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
   },
   "aiProviderPromptDescription": {
     "message": "أخبر الذكاء الاصطناعي كيف يعيد صياغة النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
+  },
+  "aiRewriteEnabled": {
+    "message": "تفعيل إعادة الصياغة"
   },
   "aboutAppTypeValue": {
     "message": "إضافة متصفح محلية بمفتاحك الخاص"
@@ -215,17 +245,11 @@
   "groupBehavior": {
     "message": "السلوك"
   },
-  "groupAiProvider": {
-    "message": "المزود"
-  },
   "groupAiExplain": {
     "message": "الشرح"
   },
   "groupAiRewrite": {
     "message": "إعادة الصياغة"
-  },
-  "groupHistory": {
-    "message": "السجل"
   },
   "groupInterface": {
     "message": "الواجهة"
@@ -237,10 +261,16 @@
     "message": "التحديد"
   },
   "groupPopupSize": {
-    "message": "حجم النافذة"
+    "message": "نافذة النتيجة"
   },
-  "groupSettings": {
-    "message": "الإعدادات"
+  "groupReset": {
+    "message": "إعادة الضبط"
+  },
+  "groupStoragePreferences": {
+    "message": "تفضيلات التخزين"
+  },
+  "groupStoredContent": {
+    "message": "المحتوى المحفوظ"
   },
   "historyEmptyDescription": {
     "message": "ستظهر الترجمات الناجحة هنا. تبقى محفوظة على هذا الجهاز."
@@ -290,9 +320,6 @@
   "labelAiModel": {
     "message": "النموذج"
   },
-  "labelAiProvider": {
-    "message": "المزود"
-  },
   "labelOriginal": {
     "message": "الأصل"
   },
@@ -302,11 +329,14 @@
   "labelPopupWidth": {
     "message": "عرض النافذة"
   },
+  "labelReaderSize": {
+    "message": "تغطية الصفحة"
+  },
   "labelPopupHeight": {
     "message": "ارتفاع النافذة"
   },
-  "labelProviderName": {
-    "message": "اسم المزود"
+  "labelProviderNameOptional": {
+    "message": "الاسم (اختياري)"
   },
   "labelRepository": {
     "message": "المستودع"
@@ -419,6 +449,15 @@
   "optionInstant": {
     "message": "فوري"
   },
+  "optionReaderFull": {
+    "message": "كامل"
+  },
+  "optionReaderLarge": {
+    "message": "85%"
+  },
+  "optionReaderMedium": {
+    "message": "70%"
+  },
   "optionSystemLanguage": {
     "message": "تلقائي"
   },
@@ -437,9 +476,6 @@
   "providerEmptyDescription": {
     "message": "أضف Google Translate باستخدام مفتاح API الخاص بك لبدء الترجمة."
   },
-  "providerEmptyTitle": {
-    "message": "لا توجد مزودات بعد"
-  },
   "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -451,6 +487,21 @@
   },
   "providerNotConfigured": {
     "message": "غير معد"
+  },
+  "providerSetupOpenConsole": {
+    "message": "فتح وحدة التحكم"
+  },
+  "providerSetupStepApi": {
+    "message": "فعّل \u2066Cloud Translation API\u2069 للمشروع."
+  },
+  "providerSetupStepKey": {
+    "message": "أنشئ مفتاح API من \u2066APIs & Services > Credentials\u2069، وقيّده بخدمة \u2066Cloud Translation API\u2069، ثم الصقه أدناه."
+  },
+  "providerSetupStepProject": {
+    "message": "أنشئ مشروع \u2066Google Cloud\u2069 أو اختر مشروعًا حاليًا، ثم فعّل الفوترة."
+  },
+  "providerSetupTitle": {
+    "message": "إعداد Google Cloud"
   },
   "footerAiProvider": {
     "message": "$1 - $2"
@@ -521,28 +572,31 @@
   "titleAiProviders": {
     "message": "المزودون"
   },
+  "titleChooseAiProvider": {
+    "message": "اختر مزوداً"
+  },
   "titleInteraction": {
     "message": "التفاعل"
   },
-  "titleExtension": {
-    "message": "الإعدادات"
+  "titleGeneral": {
+    "message": "عام"
   },
-  "titleProvider": {
-    "message": "المزود"
+  "titleLanguages": {
+    "message": "اللغات"
   },
   "titleSettings": {
     "message": "الإعدادات"
   },
   "titleTranslation": {
-    "message": "اللغة"
+    "message": "الترجمة"
+  },
+  "titleTranslationProviders": {
+    "message": "المزودون"
   },
   "translationTitle": {
     "message": "ترجمة"
   },
   "translatingTo": {
     "message": "جار الترجمة إلى $1..."
-  },
-  "aiProviderDescription": {
-    "message": "إدارة مزودي AI ومفاتيح API الخاصة بهم."
   }
 }

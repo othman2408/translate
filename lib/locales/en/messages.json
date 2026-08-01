@@ -14,6 +14,9 @@
   "actionClose": {
     "message": "Close"
   },
+  "actionCloseReader": {
+    "message": "Return to compact view"
+  },
   "actionCopyTranslation": {
     "message": "Copy translation"
   },
@@ -53,6 +56,9 @@
   "actionEditProvider": {
     "message": "Edit"
   },
+  "actionGetApiKey": {
+    "message": "Get API key"
+  },
   "actionReset": {
     "message": "Reset"
   },
@@ -61,6 +67,9 @@
   },
   "actionResizePopup": {
     "message": "Resize popup"
+  },
+  "actionOpenReader": {
+    "message": "Open reader view"
   },
   "actionReadOriginal": {
     "message": "Read original"
@@ -86,8 +95,8 @@
   "actionRewriteText": {
     "message": "Rewrite"
   },
-  "aiEnabled": {
-    "message": "Enable AI"
+  "aiExplainEnabled": {
+    "message": "Enable explain"
   },
   "aiEmptyDescription": {
     "message": "Add a provider with your own API key to use AI actions."
@@ -104,20 +113,38 @@
   "aiLocalOnlyNote": {
     "message": "AI API keys and prompts stay in local extension storage."
   },
-  "aiProviderDescription": {
-    "message": "Manage AI providers and their API keys."
-  },
   "aiProviderDeepSeekDescription": {
     "message": "DeepSeek via Vercel AI SDK"
   },
   "aiProviderDeepSeekName": {
     "message": "DeepSeek"
   },
+  "aiProviderKimiDescription": {
+    "message": "Kimi models via Moonshot AI and Vercel AI SDK"
+  },
+  "aiProviderKimiName": {
+    "message": "Kimi"
+  },
+  "aiProviderOpenRouterDescription": {
+    "message": "Multiple model providers through one API key"
+  },
+  "aiProviderOpenRouterModelDescription": {
+    "message": "Use Auto Router or enter any OpenRouter model ID."
+  },
+  "aiProviderOpenRouterName": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPickerDescription": {
+    "message": "Choose the AI service you want to connect."
+  },
   "aiExplainPromptDescription": {
     "message": "Tell AI how to explain selected text. The selected text is added after this instruction."
   },
   "aiProviderPromptDescription": {
     "message": "Tell AI how to rewrite selected text. The selected text is added after this instruction."
+  },
+  "aiRewriteEnabled": {
+    "message": "Enable rewrite"
   },
   "aboutAppTypeValue": {
     "message": "Local BYOK browser extension"
@@ -218,17 +245,11 @@
   "groupBehavior": {
     "message": "Behavior"
   },
-  "groupAiProvider": {
-    "message": "Provider"
-  },
   "groupAiExplain": {
     "message": "Explain"
   },
   "groupAiRewrite": {
     "message": "Rewrite"
-  },
-  "groupHistory": {
-    "message": "History"
   },
   "groupInterface": {
     "message": "Interface"
@@ -240,10 +261,16 @@
     "message": "Selection"
   },
   "groupPopupSize": {
-    "message": "Popup size"
+    "message": "Result window"
   },
-  "groupSettings": {
-    "message": "Settings"
+  "groupReset": {
+    "message": "Reset"
+  },
+  "groupStoragePreferences": {
+    "message": "Storage preferences"
+  },
+  "groupStoredContent": {
+    "message": "Stored content"
   },
   "historyEmptyDescription": {
     "message": "Successful translations will appear here. They stay on this device."
@@ -293,9 +320,6 @@
   "labelAiModel": {
     "message": "Model"
   },
-  "labelAiProvider": {
-    "message": "Provider"
-  },
   "labelOriginal": {
     "message": "Original"
   },
@@ -305,11 +329,14 @@
   "labelPopupWidth": {
     "message": "Popup width"
   },
+  "labelReaderSize": {
+    "message": "Page coverage"
+  },
   "labelPopupHeight": {
     "message": "Popup height"
   },
-  "labelProviderName": {
-    "message": "Provider name"
+  "labelProviderNameOptional": {
+    "message": "Name (optional)"
   },
   "labelRepository": {
     "message": "Repository"
@@ -422,6 +449,15 @@
   "optionInstant": {
     "message": "Instant"
   },
+  "optionReaderFull": {
+    "message": "Full"
+  },
+  "optionReaderLarge": {
+    "message": "85%"
+  },
+  "optionReaderMedium": {
+    "message": "70%"
+  },
   "optionSystemLanguage": {
     "message": "Automatic"
   },
@@ -440,9 +476,6 @@
   "providerEmptyDescription": {
     "message": "Add Google Translate with your own API key to start translating."
   },
-  "providerEmptyTitle": {
-    "message": "No providers yet"
-  },
   "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -454,6 +487,21 @@
   },
   "providerNotConfigured": {
     "message": "Not configured"
+  },
+  "providerSetupOpenConsole": {
+    "message": "Open Console"
+  },
+  "providerSetupStepApi": {
+    "message": "Enable the Cloud Translation API for the project."
+  },
+  "providerSetupStepKey": {
+    "message": "Create an API key under APIs & Services > Credentials, restrict it to Cloud Translation API, then paste it below."
+  },
+  "providerSetupStepProject": {
+    "message": "Create or select a Google Cloud project and enable billing."
+  },
+  "providerSetupTitle": {
+    "message": "Google Cloud setup"
   },
   "footerAiProvider": {
     "message": "$1 - $2"
@@ -524,20 +572,26 @@
   "titleAiProviders": {
     "message": "Providers"
   },
+  "titleChooseAiProvider": {
+    "message": "Choose provider"
+  },
   "titleInteraction": {
     "message": "Interaction"
   },
-  "titleExtension": {
-    "message": "Settings"
+  "titleGeneral": {
+    "message": "General"
   },
-  "titleProvider": {
-    "message": "Provider"
+  "titleLanguages": {
+    "message": "Languages"
   },
   "titleSettings": {
     "message": "Settings"
   },
   "titleTranslation": {
-    "message": "Language"
+    "message": "Translation"
+  },
+  "titleTranslationProviders": {
+    "message": "Providers"
   },
   "translationTitle": {
     "message": "Translate"

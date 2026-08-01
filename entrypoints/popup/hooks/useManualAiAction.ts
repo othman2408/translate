@@ -11,11 +11,13 @@ const MANUAL_AI_MAX_LENGTH = 5000;
 export function useManualAiAction({
   action,
   appLanguage,
+  enabled,
   language,
   prompt,
 }: {
   action: AiActionType;
   appLanguage: ExtensionSettings['appLanguage'];
+  enabled: boolean;
   language: string;
   prompt: string;
 }) {
@@ -29,7 +31,7 @@ export function useManualAiAction({
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
 
-    if (!trimmedText) {
+    if (!enabled || !trimmedText) {
       setIsLoading(false);
       setResponse(null);
       return;
@@ -74,7 +76,7 @@ export function useManualAiAction({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [action, appLanguage, language, prompt, trimmedText]);
+  }, [action, appLanguage, enabled, language, prompt, trimmedText]);
 
   function updateText(nextText: string): void {
     setText(nextText.slice(0, MANUAL_AI_MAX_LENGTH));

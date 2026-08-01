@@ -2,6 +2,7 @@ import { Button } from '@base-ui/react';
 import { Copy, Loader2, X } from 'lucide-react';
 
 import { t, type I18nKey } from '@/lib/i18n';
+import { MarkdownText } from '@/lib/markdown-text';
 import type { AiActionResponse, AiActionType } from '@/lib/messages';
 import type { ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
@@ -11,6 +12,7 @@ import { getManualAiResultText, useManualAiAction } from '../hooks/useManualAiAc
 export function ManualAiAction({
   action,
   copyLabelKey,
+  enabled,
   language,
   loadingLabelKey,
   prompt,
@@ -19,6 +21,7 @@ export function ManualAiAction({
 }: {
   action: AiActionType;
   copyLabelKey: I18nKey;
+  enabled: boolean;
   language: string;
   loadingLabelKey: I18nKey;
   prompt: string;
@@ -38,6 +41,7 @@ export function ManualAiAction({
     appLanguage: settings.appLanguage,
     language,
     prompt,
+    enabled,
   });
   const sourceDirection = getTextDirection(text, 'auto');
   const resultText = response?.ok ? response.resultText : '';
@@ -50,6 +54,7 @@ export function ManualAiAction({
           className="manual-translator__input"
           value={text}
           rows={4}
+          disabled={!enabled}
           spellCheck={false}
           dir={sourceDirection}
           lang={getTextLanguage('auto')}
@@ -58,14 +63,16 @@ export function ManualAiAction({
           onChange={(event) => updateText(event.currentTarget.value)}
         />
         {text && (
-          <Button
-            className="manual-translator__clear"
-            type="button"
-            aria-label={t('actionClearText')}
-            onClick={clearText}
-          >
-            <X size={13} />
-          </Button>
+          <span className="manual-translator__field-actions">
+            <Button
+              className="manual-translator__icon-button"
+              type="button"
+              aria-label={t('actionClearText')}
+              onClick={clearText}
+            >
+              <X size={13} />
+            </Button>
+          </span>
         )}
       </div>
 
@@ -78,25 +85,32 @@ export function ManualAiAction({
           <span>{t(resultLabelKey)}</span>
           {isLoading && <Loader2 className="manual-translator__spinner" size={13} aria-hidden="true" />}
           {response?.ok && (
-            <Button
-              className="manual-translator__copy"
-              type="button"
-              aria-label={t(copyLabelKey)}
-              onClick={copyResult}
-            >
-              <Copy size={13} />
-            </Button>
+            <span className="manual-translator__result-actions">
+              <Button
+                className="manual-translator__icon-button"
+                type="button"
+                aria-label={t(copyLabelKey)}
+                onClick={copyResult}
+              >
+                <Copy size={13} />
+              </Button>
+            </span>
           )}
         </div>
 
-        <p
-          className="manual-translator__result-text"
-          dir={response?.ok ? resultDirection : undefined}
-          lang={response?.ok ? getTextLanguage(language) : undefined}
-          style={response?.ok ? { textAlign: getTextAlign(resultDirection) } : undefined}
-        >
-          {getManualAiResultText(trimmedText, response, isLoading, loadingLabelKey)}
-        </p>
+        {response?.ok ? (
+          <MarkdownText
+            className="manual-translator__result-text manual-translator__markdown"
+            dir={resultDirection}
+            lang={getTextLanguage(language)}
+            style={{ textAlign: getTextAlign(resultDirection) }}
+            text={response.resultText}
+          />
+        ) : (
+          <p className="manual-translator__result-text">
+            {getManualAiResultText(trimmedText, response, isLoading, loadingLabelKey)}
+          </p>
+        )}
       </div>
     </section>
   );

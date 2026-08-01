@@ -14,11 +14,17 @@
   "actionClose": {
     "message": "Close"
   },
+  "actionCloseReader": {
+    "message": "Return to compact view"
+  },
   "actionCopyTranslation": {
     "message": "Copy translation"
   },
   "actionClearHistory": {
     "message": "Clear history"
+  },
+  "actionClearCache": {
+    "message": "Clear cache"
   },
   "actionAddProvider": {
     "message": "Add provider"
@@ -31,6 +37,9 @@
   },
   "actionCopyHistoryItem": {
     "message": "Copy"
+  },
+  "actionOpenGithub": {
+    "message": "Open GitHub repository"
   },
   "actionCopyRewrite": {
     "message": "Copy rewrite"
@@ -47,11 +56,20 @@
   "actionEditProvider": {
     "message": "Edit"
   },
+  "actionGetApiKey": {
+    "message": "Get API key"
+  },
   "actionReset": {
     "message": "Reset"
   },
+  "actionResetPopupSize": {
+    "message": "Reset popup size"
+  },
   "actionResizePopup": {
     "message": "Resize popup"
+  },
+  "actionOpenReader": {
+    "message": "Open reader view"
   },
   "actionReadOriginal": {
     "message": "Read original"
@@ -77,8 +95,8 @@
   "actionRewriteText": {
     "message": "Rewrite"
   },
-  "aiEnabled": {
-    "message": "Enable AI"
+  "aiExplainEnabled": {
+    "message": "Enable explain"
   },
   "aiEmptyDescription": {
     "message": "Add a provider with your own API key to use AI actions."
@@ -95,20 +113,47 @@
   "aiLocalOnlyNote": {
     "message": "AI API keys and prompts stay in local extension storage."
   },
-  "aiProviderDescription": {
-    "message": "Manage AI providers and their API keys."
-  },
   "aiProviderDeepSeekDescription": {
     "message": "DeepSeek via Vercel AI SDK"
   },
   "aiProviderDeepSeekName": {
     "message": "DeepSeek"
   },
+  "aiProviderKimiDescription": {
+    "message": "Kimi models via Moonshot AI and Vercel AI SDK"
+  },
+  "aiProviderKimiName": {
+    "message": "Kimi"
+  },
+  "aiProviderOpenRouterDescription": {
+    "message": "Multiple model providers through one API key"
+  },
+  "aiProviderOpenRouterModelDescription": {
+    "message": "Use Auto Router or enter any OpenRouter model ID."
+  },
+  "aiProviderOpenRouterName": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPickerDescription": {
+    "message": "Choose the AI service you want to connect."
+  },
   "aiExplainPromptDescription": {
     "message": "Tell AI how to explain selected text. The selected text is added after this instruction."
   },
   "aiProviderPromptDescription": {
     "message": "Tell AI how to rewrite selected text. The selected text is added after this instruction."
+  },
+  "aiRewriteEnabled": {
+    "message": "Enable rewrite"
+  },
+  "aboutAppTypeValue": {
+    "message": "Local BYOK browser extension"
+  },
+  "aboutDescription": {
+    "message": "Selected-text translation and AI writing tools for Chrome, Edge, and Firefox."
+  },
+  "aboutDetails": {
+    "message": "App details"
   },
   "appTitle": {
     "message": "Translate"
@@ -121,6 +166,15 @@
   },
   "cacheTranslations": {
     "message": "Cache results"
+  },
+  "cacheEmptyDescription": {
+    "message": "Repeated translation and AI results will appear here when caching is enabled."
+  },
+  "cacheEmptyTitle": {
+    "message": "No cached results yet"
+  },
+  "cacheLegacyOriginalUnavailable": {
+    "message": "Original text unavailable"
   },
   "closeOnOutsideClick": {
     "message": "Close on outside click"
@@ -191,17 +245,11 @@
   "groupBehavior": {
     "message": "Behavior"
   },
-  "groupAiProvider": {
-    "message": "Provider"
-  },
   "groupAiExplain": {
     "message": "Explain"
   },
   "groupAiRewrite": {
     "message": "Rewrite"
-  },
-  "groupHistory": {
-    "message": "History"
   },
   "groupInterface": {
     "message": "Interface"
@@ -212,8 +260,17 @@
   "groupSelection": {
     "message": "Selection"
   },
-  "groupSettings": {
-    "message": "Settings"
+  "groupPopupSize": {
+    "message": "Result window"
+  },
+  "groupReset": {
+    "message": "Reset"
+  },
+  "groupStoragePreferences": {
+    "message": "Storage preferences"
+  },
+  "groupStoredContent": {
+    "message": "Stored content"
   },
   "historyEmptyDescription": {
     "message": "Successful translations will appear here. They stay on this device."
@@ -229,6 +286,12 @@
   },
   "labelApiKey": {
     "message": "API key"
+  },
+  "labelAppType": {
+    "message": "Type"
+  },
+  "labelDeveloper": {
+    "message": "Developer"
   },
   "labelExtensionLanguage": {
     "message": "Extension language"
@@ -257,23 +320,35 @@
   "labelAiModel": {
     "message": "Model"
   },
-  "labelAiProvider": {
-    "message": "Provider"
-  },
   "labelOriginal": {
     "message": "Original"
   },
   "labelPopupStyle": {
     "message": "Popup style"
   },
-  "labelProviderName": {
-    "message": "Provider name"
+  "labelPopupWidth": {
+    "message": "Popup width"
+  },
+  "labelReaderSize": {
+    "message": "Page coverage"
+  },
+  "labelPopupHeight": {
+    "message": "Popup height"
+  },
+  "labelProviderNameOptional": {
+    "message": "Name (optional)"
+  },
+  "labelRepository": {
+    "message": "Repository"
   },
   "labelTo": {
     "message": "To"
   },
   "labelTrigger": {
     "message": "Trigger"
+  },
+  "labelVersion": {
+    "message": "Version"
   },
   "labelTheme": {
     "message": "Theme"
@@ -374,6 +449,15 @@
   "optionInstant": {
     "message": "Instant"
   },
+  "optionReaderFull": {
+    "message": "Full"
+  },
+  "optionReaderLarge": {
+    "message": "85%"
+  },
+  "optionReaderMedium": {
+    "message": "70%"
+  },
   "optionSystemLanguage": {
     "message": "Automatic"
   },
@@ -392,9 +476,6 @@
   "providerEmptyDescription": {
     "message": "Add Google Translate with your own API key to start translating."
   },
-  "providerEmptyTitle": {
-    "message": "No providers yet"
-  },
   "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -406,6 +487,21 @@
   },
   "providerNotConfigured": {
     "message": "Not configured"
+  },
+  "providerSetupOpenConsole": {
+    "message": "Open Console"
+  },
+  "providerSetupStepApi": {
+    "message": "Enable the Cloud Translation API for the project."
+  },
+  "providerSetupStepKey": {
+    "message": "Create an API key under APIs & Services > Credentials, restrict it to Cloud Translation API, then paste it below."
+  },
+  "providerSetupStepProject": {
+    "message": "Create or select a Google Cloud project and enable billing."
+  },
+  "providerSetupTitle": {
+    "message": "Google Cloud setup"
   },
   "footerAiProvider": {
     "message": "$1 - $2"
@@ -452,8 +548,17 @@
   "siteToggleUnsupported": {
     "message": "Available on normal web pages"
   },
-  "titleHistory": {
-    "message": "History"
+  "titleCache": {
+    "message": "Cache"
+  },
+  "titleStorage": {
+    "message": "Storage"
+  },
+  "titleTranslationHistory": {
+    "message": "Translation History"
+  },
+  "titleAbout": {
+    "message": "About"
   },
   "titleAi": {
     "message": "AI"
@@ -467,52 +572,31 @@
   "titleAiProviders": {
     "message": "Providers"
   },
+  "titleChooseAiProvider": {
+    "message": "Choose provider"
+  },
   "titleInteraction": {
     "message": "Interaction"
   },
-  "titleExtension": {
-    "message": "Extension"
+  "titleGeneral": {
+    "message": "General"
   },
-  "titleProvider": {
-    "message": "Provider"
+  "titleLanguages": {
+    "message": "Languages"
   },
   "titleSettings": {
     "message": "Settings"
   },
   "titleTranslation": {
-    "message": "Language"
+    "message": "Translation"
+  },
+  "titleTranslationProviders": {
+    "message": "Providers"
   },
   "translationTitle": {
     "message": "Translate"
   },
   "translatingTo": {
     "message": "Translating to $1..."
-  },
-  "actionOpenGithub": {
-    "message": "Open GitHub repository"
-  },
-  "aboutAppTypeValue": {
-    "message": "Local BYOK browser extension"
-  },
-  "aboutDescription": {
-    "message": "Selected-text translation and AI writing tools for Chrome, Edge, and Firefox."
-  },
-  "aboutDetails": {
-    "message": "App details"
-  },
-  "labelAppType": {
-    "message": "Type"
-  },
-  "labelDeveloper": {
-    "message": "Developer"
-  },
-  "labelRepository": {
-    "message": "Repository"
-  },
-  "labelVersion": {
-    "message": "Version"
-  },
-  "titleAbout": {
-    "message": "About"
   }
 }

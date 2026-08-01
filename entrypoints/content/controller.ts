@@ -15,7 +15,7 @@ import {
   type TranslationResponse,
 } from '@/lib/messages';
 import {
-  DEFAULT_SETTINGS,
+  normalizeSettings,
   normalizeResultPopupSize,
   settingsItem,
   type ExtensionSettings,
@@ -30,7 +30,7 @@ import {
   getWordCount,
   normalizeRange,
 } from './alignment';
-import { clampFloatingPopupPosition, clampFloatingPopupSize } from './floating-geometry';
+import { clampFloatingPopupPosition, fitFloatingPopupGeometry } from './floating-geometry';
 import { getOverlayResultText, TranslateOverlay } from './Overlay';
 import {
   addRuntimeMessageListener,
@@ -59,7 +59,7 @@ const MAX_SELECTION_LENGTH = 5000;
 const MAX_ALIGNMENT_WORDS = 12;
 const MAX_ALIGNMENT_CHARACTERS = 160;
 const ICON_SIZE = 38;
-const ACTION_BUBBLE_WIDTH = 110;
+const ACTION_BUTTON_WIDTH = 36;
 const ACTION_BUBBLE_HEIGHT = 36;
 
 export type ContentOverlayController = {
@@ -99,11 +99,6 @@ export function createContentOverlayController(
       return;
     }
 
-    const unwatchSettings = watchSettingsSafely();
-    if (unwatchSettings) {
-      ctx.onInvalidated(unwatchSettings);
-    }
-
     ctx.addEventListener(document, 'pointermove', (event) => {
       lastPointerPosition = clampFloatingPopupPosition(
         { left: event.clientX, top: event.clientY + 12 },
@@ -117,6 +112,10 @@ export function createContentOverlayController(
 
     ctx.addEventListener(document, 'keyup', () => {
       ctx.setTimeout(handleSelectionChanged, 25);
+    });
+
+    ctx.addEventListener(window, 'focus', () => {
+      void refreshSettingsSafely();
     });
 
     ctx.addEventListener(document, 'pointerdown', (event) => {
@@ -134,23 +133,31 @@ export function createContentOverlayController(
         return;
       }
 
-      const popupSize = clampFloatingPopupSize(overlayState.popupSize, overlayState.position);
-      updateOverlay({
-        popupSize,
-        position: clampFloatingPopupPosition(overlayState.position, popupSize),
-      });
+      updateOverlay(fitFloatingPopupGeometry(overlayState.position, overlayState.popupSize));
     });
 
-    const messageListener = (message: unknown) => {
+    const messageListener = (
+      message: unknown,
+      _sender: unknown,
+      sendResponse: (response?: unknown) => void,
+    ) => {
       if (!contentScriptActive) {
         return;
       }
 
-      if (!isRuntimeMessage(message) || message.type !== 'SHOW_CONTEXT_TRANSLATION') {
+      if (!isRuntimeMessage(message)) {
         return;
       }
 
-      void showFromContextMenu(message);
+      if (message.type === 'GET_SELECTED_TEXT') {
+        const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+        sendResponse(selection ? { ok: true, text: selection.text } : { ok: false });
+        return;
+      }
+
+      if (message.type === 'SHOW_CONTEXT_TRANSLATION') {
+        void showFromContextMenu(message);
+      }
     };
 
     if (addRuntimeMessageListener(messageListener, markContentScriptInactive)) {
@@ -189,26 +196,41 @@ export function createContentOverlayController(
     }
   }
 
-  function watchSettingsSafely(): (() => void) | undefined {
+  async function refreshSettingsSafely(): Promise<void> {
     try {
-      return settingsItem.watch((nextSettings) => {
-        if (!contentScriptActive) {
-          return;
-        }
-
-        const nextPopupSize = normalizeResultPopupSize(nextSettings.resultPopupSize);
-        settings = { ...DEFAULT_SETTINGS, ...nextSettings, resultPopupSize: nextPopupSize };
-        updateOverlay({ settings, popupSize: nextPopupSize });
-
-        if (!isCurrentSiteEnabled(settings.disabledHosts)) {
-          hideOverlay();
-        }
-      });
+      applySettings(normalizeSettings(await settingsItem.getValue()));
     } catch (error) {
       if (isExtensionContextInvalidatedError(error)) {
         markContentScriptInactive();
       }
-      return undefined;
+    }
+  }
+
+  function applySettings(nextSettings: ExtensionSettings): void {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    settings = nextSettings;
+
+    const nextOverlayState: Partial<OverlayState> = {
+      settings,
+      popupSize: settings.resultPopupSize,
+    };
+
+    if (overlayState.status === 'icon') {
+      const nextControlWidth = getSelectionControlWidth(settings);
+      nextOverlayState.position = clampPosition(
+        overlayState.position,
+        nextControlWidth,
+        nextControlWidth === ICON_SIZE ? ICON_SIZE : ACTION_BUBBLE_HEIGHT,
+      );
+    }
+
+    updateOverlay(nextOverlayState);
+
+    if (!isCurrentSiteEnabled(settings.disabledHosts)) {
+      hideOverlay();
     }
   }
 
@@ -229,7 +251,12 @@ export function createContentOverlayController(
     shadowHostElement = undefined;
   }
 
-  function handleSelectionChanged(): void {
+  async function handleSelectionChanged(): Promise<void> {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    await refreshSettingsSafely();
     if (!contentScriptActive) {
       return;
     }
@@ -262,8 +289,8 @@ export function createContentOverlayController(
       status: 'icon',
       position: clampPosition(
         selection.position,
-        settings.aiEnabled ? ACTION_BUBBLE_WIDTH : ICON_SIZE,
-        settings.aiEnabled ? ACTION_BUBBLE_HEIGHT : ICON_SIZE,
+        getSelectionControlWidth(settings),
+        getSelectionControlWidth(settings) === ICON_SIZE ? ICON_SIZE : ACTION_BUBBLE_HEIGHT,
       ),
       action: 'translate',
       selectedText: selection.text,
@@ -275,6 +302,11 @@ export function createContentOverlayController(
   }
 
   async function showFromContextMenu(message: ShowContextTranslationMessage): Promise<void> {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    await refreshSettingsSafely();
     if (!contentScriptActive) {
       return;
     }
@@ -317,12 +349,12 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
-    const popupSize = clampFloatingPopupSize(overlayState.popupSize, position);
+    const popupGeometry = fitFloatingPopupGeometry(position, overlayState.popupSize);
     updateOverlay({
       status: 'loading',
       action: 'translate',
-      position: clampFloatingPopupPosition(position, popupSize),
-      popupSize,
+      position: popupGeometry.position,
+      popupSize: popupGeometry.size,
       selectedText: normalizedText,
       translation: undefined,
       ai: undefined,
@@ -386,12 +418,12 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
-    const popupSize = clampFloatingPopupSize(overlayState.popupSize, position);
+    const popupGeometry = fitFloatingPopupGeometry(position, overlayState.popupSize);
     updateOverlay({
       status: 'loading',
       action,
-      position: clampFloatingPopupPosition(position, popupSize),
-      popupSize,
+      position: popupGeometry.position,
+      popupSize: popupGeometry.size,
       selectedText: normalizedText,
       translation: undefined,
       ai: undefined,
@@ -493,9 +525,7 @@ export function createContentOverlayController(
       },
       onMove: (position) => {
         suppressSelectionHandling();
-        updateOverlay({
-          position: clampFloatingPopupPosition(position, overlayState.popupSize),
-        });
+        updateOverlay(fitFloatingPopupGeometry(position, overlayState.popupSize));
       },
       onResize: (popupSize, position) => {
         suppressSelectionHandling();
@@ -700,4 +730,16 @@ export function createContentOverlayController(
   }
 
   return { start };
+}
+
+function getSelectionControlWidth(settings: ExtensionSettings): number {
+  if (!settings.aiRewriteEnabled && !settings.aiExplainEnabled) {
+    return ICON_SIZE;
+  }
+
+  const buttonCount = 1
+    + (settings.aiRewriteEnabled ? 1 : 0)
+    + (settings.aiExplainEnabled ? 1 : 0);
+
+  return buttonCount * ACTION_BUTTON_WIDTH;
 }

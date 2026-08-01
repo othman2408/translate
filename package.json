@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
+    "install:chrome": "wxt -b chrome -m chrome",
+    "install:edge": "wxt -b edge -m edge",
+    "install:firefox": "wxt -b firefox -m firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
@@ -15,13 +18,16 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^2.0.35",
+    "@ai-sdk/deepseek": "^3.0.19",
+    "@ai-sdk/moonshotai": "^3.0.23",
     "@base-ui/react": "^1.5.0",
-    "ai": "^6.0.195",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
+    "ai": "^7.0.47",
     "lucide-react": "^1.17.0",
     "motion": "^12.40.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

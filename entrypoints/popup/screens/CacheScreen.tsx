@@ -1,6 +1,6 @@
 import { Button } from '@base-ui/react';
 import { Check, Copy, Sparkles, Trash2, Languages } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   aiActionCacheItem,
@@ -14,8 +14,9 @@ import {
 } from '@/lib/cache';
 import { t } from '@/lib/i18n';
 import { getLanguageName } from '@/lib/languages';
+import { MarkdownText } from '@/lib/markdown-text';
 import type { AiActionType } from '@/lib/messages';
-import type { ExtensionSettings } from '@/lib/settings';
+import { getAiProviderTypeName, type ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
 
 import { AppHeader } from '../components/AppHeader';
@@ -197,14 +198,24 @@ function CacheItem({
         >
           {originalText || t('cacheLegacyOriginalUnavailable', undefined, settings.appLanguage)}
         </p>
-        <p
-          className="history-item__text history-item__text--translation"
-          dir={resultDirection}
-          lang={getTextLanguage(resultLanguage)}
-          style={{ textAlign: getTextAlign(resultDirection) }}
-        >
-          {resultText}
-        </p>
+        {cacheEntry.kind === 'ai' ? (
+          <MarkdownText
+            className="history-item__text history-item__text--translation history-item__markdown"
+            dir={resultDirection}
+            lang={getTextLanguage(resultLanguage)}
+            style={{ textAlign: getTextAlign(resultDirection) }}
+            text={resultText}
+          />
+        ) : (
+          <p
+            className="history-item__text history-item__text--translation"
+            dir={resultDirection}
+            lang={getTextLanguage(resultLanguage)}
+            style={{ textAlign: getTextAlign(resultDirection) }}
+          >
+            {resultText}
+          </p>
+        )}
       </div>
 
       <span className="history-item__actions">
@@ -243,7 +254,8 @@ function getEntryMeta(cacheEntry: CacheEntry, settings: ExtensionSettings): stri
   if (cacheEntry.kind === 'ai') {
     const action = getAiAction(cacheEntry);
     const actionLabel = t(action === 'explain' ? 'explainTitle' : 'rewriteTitle', undefined, settings.appLanguage);
-    const providerName = cacheEntry.entry.providerName ?? t('aiProviderDeepSeekName', undefined, settings.appLanguage);
+    const providerName = cacheEntry.entry.providerName
+      ?? getAiProviderTypeName(cacheEntry.entry.providerType ?? 'deepseek');
 
     return cacheEntry.entry.language
       ? t('footerAiProviderWithLanguage', [

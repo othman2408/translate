@@ -11,7 +11,7 @@ import type {
 import { AboutScreen } from './AboutScreen';
 import { AiSettings } from './AiSettings';
 import { InteractionSettings } from './InteractionSettings';
-import { ExtensionSettings as ExtensionSettingsScreen } from './ExtensionSettings';
+import { GeneralSettings } from './GeneralSettings';
 import { ProviderSettings } from './ProviderSettings';
 import { TranslationSettings } from './TranslationSettings';
 
@@ -44,7 +44,7 @@ export function SettingsScreen({
         onBack={onBack}
       />
 
-      {screen === 'translation' && (
+      {screen === 'translation-languages' && (
         <TranslationSettings settings={settings} onUpdate={onUpdate} />
       )}
 
@@ -52,7 +52,7 @@ export function SettingsScreen({
         <InteractionSettings settings={settings} onUpdate={onUpdate} />
       )}
 
-      {screen === 'provider' && (
+      {screen === 'translation-providers' && (
         <ProviderSettings settings={settings} onUpdateSettings={onUpdateSettings} />
       )}
 
@@ -65,8 +65,8 @@ export function SettingsScreen({
         />
       )}
 
-      {screen === 'extension' && (
-        <ExtensionSettingsScreen settings={settings} onUpdate={onUpdate} onReset={onReset} />
+      {screen === 'general' && (
+        <GeneralSettings settings={settings} onUpdate={onUpdate} onReset={onReset} />
       )}
 
       {screen === 'about' && (
@@ -80,17 +80,17 @@ function getScreenMeta(screen: SettingsScreenName): {
   title: string;
 } {
   switch (screen) {
-    case 'translation':
+    case 'translation-languages':
       return {
-        title: t('titleTranslation'),
+        title: t('titleLanguages'),
       };
     case 'interaction':
       return {
         title: t('titleInteraction'),
       };
-    case 'provider':
+    case 'translation-providers':
       return {
-        title: t('titleProvider'),
+        title: t('titleTranslationProviders'),
       };
     case 'ai-behavior':
       return {
@@ -108,9 +108,9 @@ function getScreenMeta(screen: SettingsScreenName): {
       return {
         title: t('titleAiProviders'),
       };
-    case 'extension':
+    case 'general':
       return {
-        title: t('titleExtension'),
+        title: t('titleGeneral'),
       };
     case 'about':
       return {

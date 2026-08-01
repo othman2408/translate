@@ -33,6 +33,17 @@ export type ShowContextTranslationMessage = {
   text: string;
 };
 
+type GetSelectedTextMessage = {
+  type: 'GET_SELECTED_TEXT';
+};
+
+export type GetSelectedTextResponse = {
+  ok: true;
+  text: string;
+} | {
+  ok: false;
+};
+
 export type RunAiActionMessage = {
   type: 'RUN_AI_ACTION';
   action: AiActionType;
@@ -43,7 +54,11 @@ export type RunAiActionMessage = {
   recordHistory?: boolean;
 };
 
-export type RuntimeMessage = TranslateTextMessage | ShowContextTranslationMessage | RunAiActionMessage;
+export type RuntimeMessage =
+  | TranslateTextMessage
+  | ShowContextTranslationMessage
+  | GetSelectedTextMessage
+  | RunAiActionMessage;
 
 export type TranslationSuccess = {
   ok: true;
@@ -53,7 +68,7 @@ export type TranslationSuccess = {
   fromCache: boolean;
 };
 
-export type TranslationFailure = {
+type TranslationFailure = {
   ok: false;
   error: {
     code: TranslationErrorCode;
@@ -73,7 +88,7 @@ export type AiActionSuccess = {
   fromCache?: boolean;
 };
 
-export type AiActionFailure = {
+type AiActionFailure = {
   ok: false;
   error: {
     code: AiActionErrorCode;
@@ -91,6 +106,7 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     (
       value.type === 'TRANSLATE_TEXT' ||
       value.type === 'SHOW_CONTEXT_TRANSLATION' ||
+      value.type === 'GET_SELECTED_TEXT' ||
       value.type === 'RUN_AI_ACTION'
     )
   );

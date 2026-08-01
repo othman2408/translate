@@ -14,11 +14,17 @@
   "actionClose": {
     "message": "إغلاق"
   },
+  "actionCloseReader": {
+    "message": "العودة إلى العرض المصغر"
+  },
   "actionCopyTranslation": {
     "message": "نسخ الترجمة"
   },
   "actionClearHistory": {
     "message": "مسح السجل"
+  },
+  "actionClearCache": {
+    "message": "مسح التخزين المؤقت"
   },
   "actionAddProvider": {
     "message": "إضافة مزود"
@@ -31,6 +37,9 @@
   },
   "actionCopyHistoryItem": {
     "message": "نسخ"
+  },
+  "actionOpenGithub": {
+    "message": "فتح مستودع GitHub"
   },
   "actionCopyRewrite": {
     "message": "نسخ إعادة الصياغة"
@@ -47,11 +56,20 @@
   "actionEditProvider": {
     "message": "تعديل"
   },
+  "actionGetApiKey": {
+    "message": "الحصول على مفتاح API"
+  },
   "actionReset": {
     "message": "إعادة ضبط"
   },
+  "actionResetPopupSize": {
+    "message": "إعادة ضبط حجم النافذة"
+  },
   "actionResizePopup": {
     "message": "تغيير حجم النافذة"
+  },
+  "actionOpenReader": {
+    "message": "فتح وضع القراءة"
   },
   "actionReadOriginal": {
     "message": "قراءة النص الأصلي"
@@ -77,8 +95,8 @@
   "actionRewriteText": {
     "message": "إعادة صياغة"
   },
-  "aiEnabled": {
-    "message": "تفعيل الذكاء الاصطناعي"
+  "aiExplainEnabled": {
+    "message": "تفعيل الشرح"
   },
   "aiEmptyDescription": {
     "message": "أضف مزودا باستخدام مفتاح API الخاص بك لاستخدام إجراءات AI."
@@ -101,11 +119,41 @@
   "aiProviderDeepSeekName": {
     "message": "DeepSeek"
   },
+  "aiProviderKimiDescription": {
+    "message": "نماذج Kimi عبر Moonshot AI وVercel AI SDK"
+  },
+  "aiProviderKimiName": {
+    "message": "Kimi"
+  },
+  "aiProviderOpenRouterDescription": {
+    "message": "مزودون ونماذج متعددة عبر مفتاح API واحد"
+  },
+  "aiProviderOpenRouterModelDescription": {
+    "message": "استخدم الموجّه التلقائي أو أدخل معرّف أي نموذج في OpenRouter."
+  },
+  "aiProviderOpenRouterName": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPickerDescription": {
+    "message": "اختر خدمة الذكاء الاصطناعي التي تريد توصيلها."
+  },
   "aiExplainPromptDescription": {
     "message": "أخبر الذكاء الاصطناعي كيف يشرح النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
   },
   "aiProviderPromptDescription": {
     "message": "أخبر الذكاء الاصطناعي كيف يعيد صياغة النص المحدد. سيتم إضافة النص المحدد بعد هذه التعليمات."
+  },
+  "aiRewriteEnabled": {
+    "message": "تفعيل إعادة الصياغة"
+  },
+  "aboutAppTypeValue": {
+    "message": "إضافة متصفح محلية بمفتاحك الخاص"
+  },
+  "aboutDescription": {
+    "message": "أدوات ترجمة النص المحدد والكتابة بالذكاء الاصطناعي لمتصفحات Chrome وEdge وFirefox."
+  },
+  "aboutDetails": {
+    "message": "تفاصيل التطبيق"
   },
   "appTitle": {
     "message": "ترجمة"
@@ -118,6 +166,15 @@
   },
   "cacheTranslations": {
     "message": "تخزين النتائج مؤقتا"
+  },
+  "cacheEmptyDescription": {
+    "message": "ستظهر نتائج الترجمة والذكاء الاصطناعي المتكررة هنا عند تفعيل التخزين المؤقت."
+  },
+  "cacheEmptyTitle": {
+    "message": "لا توجد نتائج مخزنة بعد"
+  },
+  "cacheLegacyOriginalUnavailable": {
+    "message": "النص الأصلي غير متاح"
   },
   "closeOnOutsideClick": {
     "message": "الإغلاق عند النقر خارج النافذة"
@@ -188,17 +245,11 @@
   "groupBehavior": {
     "message": "السلوك"
   },
-  "groupAiProvider": {
-    "message": "المزود"
-  },
   "groupAiExplain": {
     "message": "الشرح"
   },
   "groupAiRewrite": {
     "message": "إعادة الصياغة"
-  },
-  "groupHistory": {
-    "message": "السجل"
   },
   "groupInterface": {
     "message": "الواجهة"
@@ -209,8 +260,17 @@
   "groupSelection": {
     "message": "التحديد"
   },
-  "groupSettings": {
-    "message": "الإعدادات"
+  "groupPopupSize": {
+    "message": "نافذة النتيجة"
+  },
+  "groupReset": {
+    "message": "إعادة الضبط"
+  },
+  "groupStoragePreferences": {
+    "message": "تفضيلات التخزين"
+  },
+  "groupStoredContent": {
+    "message": "المحتوى المحفوظ"
   },
   "historyEmptyDescription": {
     "message": "ستظهر الترجمات الناجحة هنا. تبقى محفوظة على هذا الجهاز."
@@ -226,6 +286,12 @@
   },
   "labelApiKey": {
     "message": "مفتاح API"
+  },
+  "labelAppType": {
+    "message": "النوع"
+  },
+  "labelDeveloper": {
+    "message": "المطور"
   },
   "labelExtensionLanguage": {
     "message": "لغة الإضافة"
@@ -254,23 +320,35 @@
   "labelAiModel": {
     "message": "النموذج"
   },
-  "labelAiProvider": {
-    "message": "المزود"
-  },
   "labelOriginal": {
     "message": "الأصل"
   },
   "labelPopupStyle": {
     "message": "نمط النافذة"
   },
-  "labelProviderName": {
-    "message": "اسم المزود"
+  "labelPopupWidth": {
+    "message": "عرض النافذة"
+  },
+  "labelReaderSize": {
+    "message": "تغطية الصفحة"
+  },
+  "labelPopupHeight": {
+    "message": "ارتفاع النافذة"
+  },
+  "labelProviderNameOptional": {
+    "message": "الاسم (اختياري)"
+  },
+  "labelRepository": {
+    "message": "المستودع"
   },
   "labelTo": {
     "message": "إلى"
   },
   "labelTrigger": {
     "message": "طريقة التشغيل"
+  },
+  "labelVersion": {
+    "message": "الإصدار"
   },
   "labelTheme": {
     "message": "المظهر"
@@ -371,6 +449,15 @@
   "optionInstant": {
     "message": "فوري"
   },
+  "optionReaderFull": {
+    "message": "كامل"
+  },
+  "optionReaderLarge": {
+    "message": "85%"
+  },
+  "optionReaderMedium": {
+    "message": "70%"
+  },
   "optionSystemLanguage": {
     "message": "تلقائي"
   },
@@ -389,9 +476,6 @@
   "providerEmptyDescription": {
     "message": "أضف Google Translate باستخدام مفتاح API الخاص بك لبدء الترجمة."
   },
-  "providerEmptyTitle": {
-    "message": "لا توجد مزودات بعد"
-  },
   "providerGoogleDescription": {
     "message": "Google Cloud Translation Basic v2"
   },
@@ -403,6 +487,21 @@
   },
   "providerNotConfigured": {
     "message": "غير معد"
+  },
+  "providerSetupOpenConsole": {
+    "message": "فتح وحدة التحكم"
+  },
+  "providerSetupStepApi": {
+    "message": "فعّل \u2066Cloud Translation API\u2069 للمشروع."
+  },
+  "providerSetupStepKey": {
+    "message": "أنشئ مفتاح API من \u2066APIs & Services > Credentials\u2069، وقيّده بخدمة \u2066Cloud Translation API\u2069، ثم الصقه أدناه."
+  },
+  "providerSetupStepProject": {
+    "message": "أنشئ مشروع \u2066Google Cloud\u2069 أو اختر مشروعًا حاليًا، ثم فعّل الفوترة."
+  },
+  "providerSetupTitle": {
+    "message": "إعداد Google Cloud"
   },
   "footerAiProvider": {
     "message": "$1 - $2"
@@ -449,8 +548,17 @@
   "siteToggleUnsupported": {
     "message": "متاح في صفحات الويب العادية"
   },
-  "titleHistory": {
-    "message": "السجل"
+  "titleCache": {
+    "message": "التخزين المؤقت"
+  },
+  "titleStorage": {
+    "message": "التخزين"
+  },
+  "titleTranslationHistory": {
+    "message": "سجل الترجمة"
+  },
+  "titleAbout": {
+    "message": "حول"
   },
   "titleAi": {
     "message": "AI"
@@ -464,55 +572,31 @@
   "titleAiProviders": {
     "message": "المزودون"
   },
+  "titleChooseAiProvider": {
+    "message": "اختر مزوداً"
+  },
   "titleInteraction": {
     "message": "التفاعل"
   },
-  "titleExtension": {
-    "message": "الإضافة"
+  "titleGeneral": {
+    "message": "عام"
   },
-  "titleProvider": {
-    "message": "المزود"
+  "titleLanguages": {
+    "message": "اللغات"
   },
   "titleSettings": {
     "message": "الإعدادات"
   },
   "titleTranslation": {
-    "message": "اللغة"
+    "message": "الترجمة"
+  },
+  "titleTranslationProviders": {
+    "message": "المزودون"
   },
   "translationTitle": {
     "message": "ترجمة"
   },
   "translatingTo": {
     "message": "جار الترجمة إلى $1..."
-  },
-  "aiProviderDescription": {
-    "message": "إدارة مزودي AI ومفاتيح API الخاصة بهم."
-  },
-  "actionOpenGithub": {
-    "message": "فتح مستودع GitHub"
-  },
-  "aboutAppTypeValue": {
-    "message": "إضافة متصفح محلية بمفتاحك الخاص"
-  },
-  "aboutDescription": {
-    "message": "أدوات ترجمة النص المحدد والكتابة بالذكاء الاصطناعي لمتصفحات Chrome وEdge وFirefox."
-  },
-  "aboutDetails": {
-    "message": "تفاصيل التطبيق"
-  },
-  "labelAppType": {
-    "message": "النوع"
-  },
-  "labelDeveloper": {
-    "message": "المطور"
-  },
-  "labelRepository": {
-    "message": "المستودع"
-  },
-  "labelVersion": {
-    "message": "الإصدار"
-  },
-  "titleAbout": {
-    "message": "حول"
   }
 }

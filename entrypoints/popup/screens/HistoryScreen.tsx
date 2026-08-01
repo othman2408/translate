@@ -15,7 +15,8 @@ import {
 } from '@/lib/history';
 import { t } from '@/lib/i18n';
 import { getLanguageName } from '@/lib/languages';
-import type { ExtensionSettings } from '@/lib/settings';
+import { MarkdownText } from '@/lib/markdown-text';
+import { getAiProviderTypeName, type ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
 
 import { AppHeader } from '../components/AppHeader';
@@ -191,14 +192,24 @@ function HistoryItem({
         >
           {entry.originalText}
         </p>
-        <p
-          className="history-item__text history-item__text--translation"
-          dir={resultDirection}
-          lang={getTextLanguage(resultLanguage)}
-          style={{ textAlign: getTextAlign(resultDirection) }}
-        >
-          {resultText}
-        </p>
+        {isAiHistoryEntry(entry) ? (
+          <MarkdownText
+            className="history-item__text history-item__text--translation history-item__markdown"
+            dir={resultDirection}
+            lang={getTextLanguage(resultLanguage)}
+            style={{ textAlign: getTextAlign(resultDirection) }}
+            text={resultText}
+          />
+        ) : (
+          <p
+            className="history-item__text history-item__text--translation"
+            dir={resultDirection}
+            lang={getTextLanguage(resultLanguage)}
+            style={{ textAlign: getTextAlign(resultDirection) }}
+          >
+            {resultText}
+          </p>
+        )}
       </div>
 
       <span className="history-item__actions">
@@ -234,11 +245,11 @@ function getEntryMeta(entry: HistoryEntry, settings: ExtensionSettings): string 
     const actionLabel = t(entry.action === 'explain' ? 'explainTitle' : 'rewriteTitle', undefined, settings.appLanguage);
     const providerLabel = entry.language
       ? t('footerAiProviderWithLanguage', [
-        entry.providerName ?? t('aiProviderDeepSeekName'),
+        entry.providerName ?? getAiProviderTypeName(entry.provider),
         entry.model,
         getLanguageName(entry.language, settings.appLanguage),
       ], settings.appLanguage)
-      : t('footerAiProvider', [entry.providerName ?? t('aiProviderDeepSeekName'), entry.model], settings.appLanguage);
+      : t('footerAiProvider', [entry.providerName ?? getAiProviderTypeName(entry.provider), entry.model], settings.appLanguage);
 
     return `${actionLabel} - ${providerLabel}`;
   }

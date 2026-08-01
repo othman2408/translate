@@ -14,6 +14,7 @@ import {
 
 import { getUiDirection, getUiLanguage, t } from '@/lib/i18n';
 import { getLanguageName } from '@/lib/languages';
+import { MarkdownText } from '@/lib/markdown-text';
 import type { AiActionResponse } from '@/lib/messages';
 import type { ExtensionSettings } from '@/lib/settings';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
@@ -104,6 +105,8 @@ export function TranslateOverlay({
   const errorText = getOverlayErrorText(state);
   const errorDirection = getTextDirection(errorText, 'en');
   const speech = useTextToSpeech();
+  const showRewriteAction = state.settings.aiRewriteEnabled;
+  const showExplainAction = state.settings.aiExplainEnabled;
 
   useEffect(() => {
     if (state.status !== 'result') {
@@ -120,7 +123,7 @@ export function TranslateOverlay({
   }
 
   if (state.status === 'icon') {
-    if (state.settings.aiEnabled) {
+    if (showRewriteAction || showExplainAction) {
       return (
         <div
           className="selection-action-bubble"
@@ -136,24 +139,28 @@ export function TranslateOverlay({
           >
             <Languages size={17} strokeWidth={2.3} />
           </button>
-          <button
-            className="selection-action-button"
-            type="button"
-            title={t('actionRewriteText', undefined, state.settings.appLanguage)}
-            aria-label={t('actionRewriteText', undefined, state.settings.appLanguage)}
-            onClick={onRewrite}
-          >
-            <PenLine size={16} strokeWidth={2.3} />
-          </button>
-          <button
-            className="selection-action-button"
-            type="button"
-            title={t('actionExplainText', undefined, state.settings.appLanguage)}
-            aria-label={t('actionExplainText', undefined, state.settings.appLanguage)}
-            onClick={onExplain}
-          >
-            <Sparkles size={16} strokeWidth={2.3} />
-          </button>
+          {showRewriteAction && (
+            <button
+              className="selection-action-button"
+              type="button"
+              title={t('actionRewriteText', undefined, state.settings.appLanguage)}
+              aria-label={t('actionRewriteText', undefined, state.settings.appLanguage)}
+              onClick={onRewrite}
+            >
+              <PenLine size={16} strokeWidth={2.3} />
+            </button>
+          )}
+          {showExplainAction && (
+            <button
+              className="selection-action-button"
+              type="button"
+              title={t('actionExplainText', undefined, state.settings.appLanguage)}
+              aria-label={t('actionExplainText', undefined, state.settings.appLanguage)}
+              onClick={onExplain}
+            >
+              <Sparkles size={16} strokeWidth={2.3} />
+            </button>
+          )}
         </div>
       );
     }
@@ -174,8 +181,12 @@ export function TranslateOverlay({
 
   return (
     <FloatingPopup
+      allowReaderMode={state.status === 'result' && Boolean(resultText)}
       className={`translation-card translation-card--${state.status}`}
       closeLabel={t('actionClose', undefined, state.settings.appLanguage)}
+      collapseReaderLabel={t('actionCloseReader', undefined, state.settings.appLanguage)}
+      readerLabel={t('actionOpenReader', undefined, state.settings.appLanguage)}
+      readerModeSize={state.settings.readerModeSize}
       resizeLabel={t('actionResizePopup', undefined, state.settings.appLanguage)}
       dir={uiDirection}
       lang={uiLanguage}
@@ -241,10 +252,12 @@ export function TranslateOverlay({
                 ? t('labelExplanation', undefined, state.settings.appLanguage)
                 : isRewrite
                 ? t('labelRewritten', undefined, state.settings.appLanguage)
-                : t('titleTranslation', undefined, state.settings.appLanguage)}
+                : t('manualTranslationLabel', undefined, state.settings.appLanguage)}
               language={resultLanguage}
+              markdown={isAiAction}
               originalParts={originalParts}
               parts={resultParts}
+              rawText={resultText}
               readControl={speech.isSupported ? (
                 <ReadAloudButton
                   active={speech.activeTarget === 'result'}
@@ -283,6 +296,7 @@ export function TranslateOverlay({
               className="icon-control"
               type="button"
               title={t(isExplain ? 'actionCopyExplanation' : isRewrite ? 'actionCopyRewrite' : 'actionCopyTranslation', undefined, state.settings.appLanguage)}
+              aria-label={t(isExplain ? 'actionCopyExplanation' : isRewrite ? 'actionCopyRewrite' : 'actionCopyTranslation', undefined, state.settings.appLanguage)}
               onClick={onCopy}
             >
               {state.copied ? <Check size={16} /> : <Copy size={16} />}
@@ -344,8 +358,10 @@ function TokenTextBlock({
   direction,
   label,
   language,
+  markdown = false,
   originalParts,
   parts,
+  rawText,
   readControl,
   side,
   translationParts,
@@ -356,8 +372,10 @@ function TokenTextBlock({
   direction: ReturnType<typeof getTextDirection>;
   label: string;
   language?: string;
+  markdown?: boolean;
   originalParts: TokenPart[];
   parts: TokenPart[];
+  rawText?: string;
   readControl?: ReactNode;
   side: TextSide;
   translationParts: TokenPart[];
@@ -378,19 +396,29 @@ function TokenTextBlock({
         <span className="translation-card__text-label">{label}</span>
         {readControl}
       </div>
-      <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}>
-        {parts.map((part) => renderTokenPart({
-          dragRange,
-          matchedRange,
-          onRangeSelected,
-          originalParts,
-          part,
-          selectedRange,
-          setDragRange,
-          side,
-          translationParts,
-        }))}
-      </p>
+      {markdown ? (
+        <MarkdownText
+          className="translation-card__markdown"
+          dir={direction}
+          lang={language}
+          style={{ textAlign: getTextAlign(direction) }}
+          text={rawText ?? parts.map((part) => part.text).join('')}
+        />
+      ) : (
+        <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}>
+          {parts.map((part) => renderTokenPart({
+            dragRange,
+            matchedRange,
+            onRangeSelected,
+            originalParts,
+            part,
+            selectedRange,
+            setDragRange,
+            side,
+            translationParts,
+          }))}
+        </p>
+      )}
     </div>
   );
 }

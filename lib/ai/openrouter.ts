@@ -1,21 +1,24 @@
-import { createDeepSeek } from '@ai-sdk/deepseek';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 import { getDefaultAiModel, type AiProviderConfig } from '@/lib/settings';
 
 import { runAiSdkTextAction } from './run-text-action';
 import type { IAiProvider, AiTextActionProviderRequest, AiTextActionProviderResult } from './types';
 
-export class DeepSeekAiProvider implements IAiProvider {
-  readonly providerType = 'deepseek' as const;
+export class OpenRouterAiProvider implements IAiProvider {
+  readonly providerType = 'openrouter' as const;
   readonly providerName: string;
 
   constructor(private readonly config: AiProviderConfig) {
     this.providerName = config.name;
   }
 
-  async runTextAction(request: AiTextActionProviderRequest): Promise<AiTextActionProviderResult> {
+  runTextAction(request: AiTextActionProviderRequest): Promise<AiTextActionProviderResult> {
     const model = this.config.model || getDefaultAiModel(this.providerType);
-    const deepseek = createDeepSeek({ apiKey: this.config.apiKey });
-    return runAiSdkTextAction(deepseek(model), model, request);
+    const openrouter = createOpenRouter({
+      apiKey: this.config.apiKey,
+      appName: 'Translate Bubble',
+    });
+    return runAiSdkTextAction(openrouter(model), model, request);
   }
 }

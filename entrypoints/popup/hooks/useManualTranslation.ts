@@ -2,7 +2,7 @@ import { browser } from '#imports';
 import { useEffect, useRef, useState } from 'react';
 
 import { t } from '@/lib/i18n';
-import type { TranslationResponse } from '@/lib/messages';
+import type { GetSelectedTextResponse, TranslationResponse } from '@/lib/messages';
 import type { ExtensionSettings } from '@/lib/settings';
 
 const MANUAL_TRANSLATION_DEBOUNCE_MS = 450;
@@ -13,7 +13,28 @@ export function useManualTranslation(settings: ExtensionSettings) {
   const [response, setResponse] = useState<TranslationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef(0);
+  const loadedActiveSelectionRef = useRef(false);
+  const userEditedTextRef = useRef(false);
   const trimmedText = text.trim();
+
+  useEffect(() => {
+    if (loadedActiveSelectionRef.current) {
+      return;
+    }
+
+    loadedActiveSelectionRef.current = true;
+    let active = true;
+
+    void getActiveTabSelection().then((selectedText) => {
+      if (active && selectedText && !userEditedTextRef.current) {
+        setText(selectedText.slice(0, MANUAL_TRANSLATION_MAX_LENGTH));
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const requestId = requestIdRef.current + 1;
@@ -64,6 +85,7 @@ export function useManualTranslation(settings: ExtensionSettings) {
   }, [settings.appLanguage, settings.sourceLanguage, settings.targetLanguage, trimmedText]);
 
   function updateText(nextText: string): void {
+    userEditedTextRef.current = true;
     setText(nextText.slice(0, MANUAL_TRANSLATION_MAX_LENGTH));
   }
 
@@ -76,6 +98,7 @@ export function useManualTranslation(settings: ExtensionSettings) {
   }
 
   function clearText(): void {
+    userEditedTextRef.current = true;
     setText('');
     setResponse(null);
     setIsLoading(false);
@@ -91,6 +114,23 @@ export function useManualTranslation(settings: ExtensionSettings) {
     trimmedText,
     updateText,
   };
+}
+
+async function getActiveTabSelection(): Promise<string> {
+  try {
+    const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (!activeTab?.id) {
+      return '';
+    }
+
+    const response = await browser.tabs.sendMessage(activeTab.id, {
+      type: 'GET_SELECTED_TEXT',
+    }) as GetSelectedTextResponse;
+
+    return response.ok ? response.text.trim() : '';
+  } catch {
+    return '';
+  }
 }
 
 function isTranslationResponse(value: unknown): value is TranslationResponse {

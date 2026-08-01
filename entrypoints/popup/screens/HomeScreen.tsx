@@ -1,6 +1,6 @@
 import { browser } from '#imports';
 import { Switch } from '@base-ui/react';
-import { Languages, Settings2, Sparkles } from 'lucide-react';
+import { Languages, PenLine, Settings2, Sparkles } from 'lucide-react';
 
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
@@ -61,13 +61,26 @@ export function HomeScreen({
           <Switch.Root
             className="home-status-toggle"
             data-kind="ai"
-            checked={settings.aiEnabled}
-            aria-label={t('aiEnabled')}
-            onCheckedChange={(checked) => onUpdate('aiEnabled', checked)}
-            title={t('aiEnabled')}
+            checked={settings.aiRewriteEnabled}
+            aria-label={t('aiRewriteEnabled')}
+            onCheckedChange={(checked) => onUpdate('aiRewriteEnabled', checked)}
+            title={t('aiRewriteEnabled')}
+          >
+            <PenLine size={14} aria-hidden="true" />
+            <span>{t('rewriteTitle')}</span>
+            <span className="home-status-toggle__dot" />
+          </Switch.Root>
+
+          <Switch.Root
+            className="home-status-toggle"
+            data-kind="ai"
+            checked={settings.aiExplainEnabled}
+            aria-label={t('aiExplainEnabled')}
+            onCheckedChange={(checked) => onUpdate('aiExplainEnabled', checked)}
+            title={t('aiExplainEnabled')}
           >
             <Sparkles size={14} aria-hidden="true" />
-            <span>{t('titleAi')}</span>
+            <span>{t('explainTitle')}</span>
             <span className="home-status-toggle__dot" />
           </Switch.Root>
         </div>

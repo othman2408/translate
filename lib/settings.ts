@@ -6,8 +6,9 @@ import type { ThemeMode } from './theme';
 
 export type TriggerMode = 'click' | 'instant';
 export type PopupMode = 'bubble' | 'dictionary';
+export type ReaderModeSize = 'medium' | 'large' | 'full';
 export type ProviderType = 'google-v2';
-export type AiProviderType = 'deepseek';
+export type AiProviderType = 'deepseek' | 'openrouter' | 'kimi';
 
 export type TranslationProviderConfig = {
   id: string;
@@ -33,9 +34,10 @@ export type ExtensionSettings = {
   apiKey: string;
   providers: TranslationProviderConfig[];
   defaultProviderId: string;
-  aiEnabled: boolean;
   aiProviders: AiProviderConfig[];
   defaultAiProviderId: string;
+  aiRewriteEnabled: boolean;
+  aiExplainEnabled: boolean;
   aiRewritePrompt: string;
   aiRewriteLanguage: string;
   aiExplainPrompt: string;
@@ -54,33 +56,74 @@ export type ExtensionSettings = {
   historyEnabled: boolean;
   historyLimit: number;
   resultPopupSize: ResultPopupSize;
+  readerModeSize: ReaderModeSize;
 };
 
 export const RESULT_POPUP_SIZE_LIMITS = {
   minWidth: 280,
   minHeight: 220,
-  maxWidth: 720,
-  maxHeight: 720,
   defaultWidth: 360,
   defaultHeight: 420,
 } as const;
 
 export const DEFAULT_AI_REWRITE_PROMPT = 'Rewrite the selected text to be clearer, more natural, and polished while preserving the original meaning. Return only the rewritten text.';
 export const DEFAULT_AI_EXPLAIN_PROMPT = 'Explain the selected text clearly and briefly. Define key terms or context when useful. Return only the explanation.';
-export const DEEPSEEK_MODEL_OPTIONS = [
+const DEEPSEEK_MODEL_OPTIONS = [
   { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
   { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
 ] as const;
-export type DeepSeekModel = typeof DEEPSEEK_MODEL_OPTIONS[number]['value'];
-export const DEFAULT_AI_MODEL: DeepSeekModel = 'deepseek-v4-flash';
+const OPENROUTER_MODEL_OPTIONS = [
+  { value: 'openrouter/auto', label: 'Auto Router' },
+  { value: 'openrouter/free', label: 'Free Models Router' },
+] as const;
+const KIMI_MODEL_OPTIONS = [
+  { value: 'kimi-k2.5', label: 'Kimi K2.5' },
+  { value: 'kimi-k2.6', label: 'Kimi K2.6' },
+  { value: 'kimi-k2.7-code', label: 'Kimi K2.7 Code' },
+  { value: 'kimi-k2.7-code-highspeed', label: 'Kimi K2.7 Code Highspeed' },
+  { value: 'kimi-k3', label: 'Kimi K3' },
+] as const;
+
+export type AiModelOption = { value: string; label: string };
+
+const AI_PROVIDER_MODEL_OPTIONS: Record<AiProviderType, readonly AiModelOption[]> = {
+  deepseek: DEEPSEEK_MODEL_OPTIONS,
+  openrouter: OPENROUTER_MODEL_OPTIONS,
+  kimi: KIMI_MODEL_OPTIONS,
+};
+
+const DEFAULT_AI_MODELS: Record<AiProviderType, string> = {
+  deepseek: 'deepseek-v4-flash',
+  openrouter: 'openrouter/auto',
+  kimi: 'kimi-k2.5',
+};
+
+const AI_PROVIDER_NAMES: Record<AiProviderType, string> = {
+  deepseek: 'DeepSeek',
+  openrouter: 'OpenRouter',
+  kimi: 'Kimi',
+};
+
+export function getAiProviderModelOptions(type: AiProviderType): readonly AiModelOption[] {
+  return AI_PROVIDER_MODEL_OPTIONS[type];
+}
+
+export function getDefaultAiModel(type: AiProviderType): string {
+  return DEFAULT_AI_MODELS[type];
+}
+
+export function getAiProviderTypeName(type: AiProviderType): string {
+  return AI_PROVIDER_NAMES[type];
+}
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   apiKey: '',
   providers: [],
   defaultProviderId: '',
-  aiEnabled: false,
   aiProviders: [],
   defaultAiProviderId: '',
+  aiRewriteEnabled: false,
+  aiExplainEnabled: false,
   aiRewritePrompt: DEFAULT_AI_REWRITE_PROMPT,
   aiRewriteLanguage: 'en',
   aiExplainPrompt: DEFAULT_AI_EXPLAIN_PROMPT,
@@ -102,6 +145,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     width: RESULT_POPUP_SIZE_LIMITS.defaultWidth,
     height: RESULT_POPUP_SIZE_LIMITS.defaultHeight,
   },
+  readerModeSize: 'large',
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {
@@ -111,8 +155,13 @@ export const settingsItem = storage.defineItem<ExtensionSettings>('local:setting
 export async function getSettings(): Promise<ExtensionSettings> {
   const settings = await settingsItem.getValue();
   const nextSettings = normalizeSettings(settings);
+  const legacySettings = settings as Partial<ExtensionSettings> & { aiEnabled?: boolean };
 
-  if (!settings.aiRewriteLanguage?.trim() || !settings.aiExplanationLanguage?.trim()) {
+  if (
+    'aiEnabled' in legacySettings
+    || !settings.aiRewriteLanguage?.trim()
+    || !settings.aiExplanationLanguage?.trim()
+  ) {
     await settingsItem.setValue(nextSettings);
   }
 
@@ -124,46 +173,49 @@ export async function saveSettings(settings: ExtensionSettings): Promise<void> {
   await settingsItem.setValue(nextSettings);
 }
 
-function normalizeSettings(settings: Partial<ExtensionSettings>): ExtensionSettings {
-  const providers = normalizeProviders(settings.providers, settings.apiKey);
-  const defaultProviderId = getNormalizedDefaultProviderId(providers, settings.defaultProviderId);
-  const aiProviders = normalizeAiProviders(settings.aiProviders);
-  const defaultAiProviderId = getNormalizedDefaultAiProviderId(aiProviders, settings.defaultAiProviderId);
-  const aiRewritePrompt = settings.aiRewritePrompt?.trim() || DEFAULT_AI_REWRITE_PROMPT;
-  const aiRewriteLanguage = settings.aiRewriteLanguage?.trim() || settings.targetLanguage || DEFAULT_SETTINGS.targetLanguage;
-  const aiExplainPrompt = settings.aiExplainPrompt?.trim() || DEFAULT_AI_EXPLAIN_PROMPT;
-  const aiExplanationLanguage = settings.aiExplanationLanguage?.trim() || settings.targetLanguage || DEFAULT_SETTINGS.targetLanguage;
+export function normalizeSettings(settings: Partial<ExtensionSettings>): ExtensionSettings {
+  const { aiEnabled, ...currentSettings } = settings as Partial<ExtensionSettings> & { aiEnabled?: boolean };
+  const legacyAiEnabled = aiEnabled === true;
+  const providers = normalizeProviders(currentSettings.providers, currentSettings.apiKey);
+  const defaultProviderId = getNormalizedDefaultProviderId(providers, currentSettings.defaultProviderId);
+  const aiProviders = normalizeAiProviders(currentSettings.aiProviders);
+  const defaultAiProviderId = getNormalizedDefaultAiProviderId(aiProviders, currentSettings.defaultAiProviderId);
+  const aiRewritePrompt = currentSettings.aiRewritePrompt?.trim() || DEFAULT_AI_REWRITE_PROMPT;
+  const aiRewriteLanguage = currentSettings.aiRewriteLanguage?.trim() || currentSettings.targetLanguage || DEFAULT_SETTINGS.targetLanguage;
+  const aiExplainPrompt = currentSettings.aiExplainPrompt?.trim() || DEFAULT_AI_EXPLAIN_PROMPT;
+  const aiExplanationLanguage = currentSettings.aiExplanationLanguage?.trim() || currentSettings.targetLanguage || DEFAULT_SETTINGS.targetLanguage;
 
   return {
     ...DEFAULT_SETTINGS,
-    ...settings,
+    ...currentSettings,
     apiKey: providers.find((provider) => provider.id === defaultProviderId)?.apiKey ?? '',
     providers,
     defaultProviderId,
     aiProviders,
     defaultAiProviderId,
+    aiRewriteEnabled: currentSettings.aiRewriteEnabled ?? legacyAiEnabled,
+    aiExplainEnabled: currentSettings.aiExplainEnabled ?? legacyAiEnabled,
     aiRewritePrompt,
     aiRewriteLanguage,
     aiExplainPrompt,
     aiExplanationLanguage,
-    historyLimit: clampHistoryLimit(settings.historyLimit ?? DEFAULT_SETTINGS.historyLimit),
-    aiHistoryLimit: clampHistoryLimit(settings.aiHistoryLimit ?? DEFAULT_SETTINGS.aiHistoryLimit),
-    resultPopupSize: normalizeResultPopupSize(settings.resultPopupSize),
+    historyLimit: clampHistoryLimit(currentSettings.historyLimit ?? DEFAULT_SETTINGS.historyLimit),
+    aiHistoryLimit: clampHistoryLimit(currentSettings.aiHistoryLimit ?? DEFAULT_SETTINGS.aiHistoryLimit),
+    resultPopupSize: normalizeResultPopupSize(currentSettings.resultPopupSize),
+    readerModeSize: normalizeReaderModeSize(currentSettings.readerModeSize),
   };
 }
 
 export function normalizeResultPopupSize(size: Partial<ResultPopupSize> | undefined): ResultPopupSize {
   return {
-    width: clampNumber(
+    width: clampNumberMin(
       size?.width,
       RESULT_POPUP_SIZE_LIMITS.minWidth,
-      RESULT_POPUP_SIZE_LIMITS.maxWidth,
       RESULT_POPUP_SIZE_LIMITS.defaultWidth,
     ),
-    height: clampNumber(
+    height: clampNumberMin(
       size?.height,
       RESULT_POPUP_SIZE_LIMITS.minHeight,
-      RESULT_POPUP_SIZE_LIMITS.maxHeight,
       RESULT_POPUP_SIZE_LIMITS.defaultHeight,
     ),
   };
@@ -227,14 +279,22 @@ function normalizeAiProviders(providers: AiProviderConfig[] | undefined): AiProv
     return [];
   }
 
+  const providerCounts = new Map<AiProviderType, number>();
+
   return providers
-    .map((provider, index) => ({
-      id: provider.id || createProviderId(),
-      type: provider.type === 'deepseek' ? provider.type : 'deepseek',
-      name: provider.name.trim() || getDefaultAiProviderName(index),
-      apiKey: provider.apiKey.trim(),
-      model: normalizeDeepSeekModel(provider.model),
-    }))
+    .map((provider) => {
+      const type = normalizeAiProviderType(provider.type);
+      const typeIndex = providerCounts.get(type) ?? 0;
+      providerCounts.set(type, typeIndex + 1);
+
+      return {
+        id: provider.id || createProviderId(),
+        type,
+        name: provider.name.trim() || getDefaultAiProviderName(type, typeIndex),
+        apiKey: provider.apiKey.trim(),
+        model: normalizeAiModel(type, provider.model),
+      };
+    })
     .filter((provider) => provider.apiKey.length > 0);
 }
 
@@ -253,23 +313,38 @@ function getDefaultProviderName(index: number): string {
   return index === 0 ? 'Google Translate' : `Google Translate ${index + 1}`;
 }
 
-function getDefaultAiProviderName(index: number): string {
-  return index === 0 ? 'DeepSeek' : `DeepSeek ${index + 1}`;
+function getDefaultAiProviderName(type: AiProviderType, index: number): string {
+  const name = getAiProviderTypeName(type);
+  return index === 0 ? name : `${name} ${index + 1}`;
 }
 
-function normalizeDeepSeekModel(model: string | undefined): DeepSeekModel {
+function normalizeAiProviderType(type: AiProviderType | undefined): AiProviderType {
+  return type === 'openrouter' || type === 'kimi' ? type : 'deepseek';
+}
+
+function normalizeAiModel(type: AiProviderType, model: string | undefined): string {
   const normalizedModel = model?.trim();
-  return DEEPSEEK_MODEL_OPTIONS.some((option) => option.value === normalizedModel)
-    ? normalizedModel as DeepSeekModel
-    : DEFAULT_AI_MODEL;
+  if (type === 'openrouter' && normalizedModel) {
+    return normalizedModel;
+  }
+
+  if (normalizedModel && getAiProviderModelOptions(type).some((option) => option.value === normalizedModel)) {
+    return normalizedModel;
+  }
+
+  return getDefaultAiModel(type);
 }
 
-function clampNumber(value: number | undefined, min: number, max: number, fallback: number): number {
+function normalizeReaderModeSize(value: ReaderModeSize | undefined): ReaderModeSize {
+  return value === 'medium' || value === 'full' ? value : 'large';
+}
+
+function clampNumberMin(value: number | undefined, min: number, fallback: number): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return fallback;
   }
 
-  return Math.round(Math.min(Math.max(value, min), max));
+  return Math.round(Math.max(value, min));
 }
 
 function createProviderId(): string {

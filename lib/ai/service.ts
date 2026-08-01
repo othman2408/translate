@@ -35,7 +35,7 @@ export class AiTextActionService {
     const settings = await getSettings();
     const text = request.text.trim();
 
-    if (!settings.aiEnabled) {
+    if (!isActionEnabled(request.action, settings)) {
       return failure('disabled', t('errorAiDisabled', undefined, settings.appLanguage));
     }
 
@@ -196,6 +196,10 @@ function getRequestedAiProvider(
   }
 
   return getDefaultAiProvider(settings);
+}
+
+function isActionEnabled(action: AiActionType, settings: ExtensionSettings): boolean {
+  return action === 'rewrite' ? settings.aiRewriteEnabled : settings.aiExplainEnabled;
 }
 
 function getActionPrompt(request: AiTextActionServiceRequest, settings: ExtensionSettings): string {

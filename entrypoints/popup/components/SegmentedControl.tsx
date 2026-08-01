@@ -1,6 +1,6 @@
 import { Button } from '@base-ui/react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 
 export function SegmentedControl<TValue extends string>({
   value,
@@ -15,7 +15,11 @@ export function SegmentedControl<TValue extends string>({
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="segmented-control" role="radiogroup">
+    <div
+      className="segmented-control"
+      role="radiogroup"
+      style={{ '--segment-count': options.length } as CSSProperties}
+    >
       {options.map((option) => {
         const isActive = option.value === value;
 
