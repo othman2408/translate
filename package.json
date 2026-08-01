@@ -20,20 +20,26 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^3.0.19",
     "@ai-sdk/moonshotai": "^3.0.23",
-    "@base-ui/react": "^1.5.0",
+    "@base-ui/react": "^1.6.0",
     "@openrouter/ai-sdk-provider": "^3.0.0",
     "ai": "^7.0.47",
-    "lucide-react": "^1.17.0",
-    "motion": "^12.40.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "lucide-react": "^1.28.0",
+    "motion": "^12.43.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@wxt-dev/module-react": "^1.1.5",
-    "typescript": "^5.9.3",
-    "wxt": "^0.20.26"
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@wxt-dev/module-react": "^1.2.2",
+    "esbuild": "^0.28.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0",
+    "web-ext": "^10.5.0",
+    "wxt": "^0.21.3"
+  },
+  "overrides": {
+    "brace-expansion": "1.1.17"
   }
 }
