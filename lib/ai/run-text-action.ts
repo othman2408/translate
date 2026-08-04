@@ -1,6 +1,11 @@
-import { generateText, type LanguageModel } from 'ai';
+import { APICallError, streamText, type LanguageModel } from 'ai';
 
-import { AiProviderError, type AiTextActionProviderRequest, type AiTextActionProviderResult } from './types';
+import {
+  AiProviderError,
+  type AiTextActionProviderRequest,
+  type AiTextActionProviderResult,
+  type AiTextActionRunOptions,
+} from './types';
 
 const SYSTEM_PROMPT = 'You process selected text. Follow the user instruction exactly and return only the requested result.';
 
@@ -8,14 +13,38 @@ export async function runAiSdkTextAction(
   model: LanguageModel,
   modelId: string,
   request: AiTextActionProviderRequest,
+  options: AiTextActionRunOptions = {},
 ): Promise<AiTextActionProviderResult> {
   try {
-    const result = await generateText({
+    let streamError: unknown;
+    const result = streamText({
       model,
       system: SYSTEM_PROMPT,
       prompt: buildPrompt(request),
+      abortSignal: options.abortSignal,
+      onError: ({ error }) => {
+        streamError ??= error;
+      },
     });
-    const resultText = result.text.trim();
+    let resultText = '';
+
+    for await (const part of result.stream) {
+      if (part.type === 'error') {
+        streamError ??= part.error;
+        continue;
+      }
+
+      if (part.type === 'text-delta') {
+        resultText += part.text;
+        options.onTextDelta?.(part.text);
+      }
+    }
+
+    if (streamError) {
+      throw streamError;
+    }
+
+    resultText = resultText.trim();
 
     if (!resultText) {
       throw new AiProviderError({
@@ -30,6 +59,10 @@ export async function runAiSdkTextAction(
       throw error;
     }
 
+    if (APICallError.isInstance(error)) {
+      throw mapApiCallError(error);
+    }
+
     const networkError = isNetworkError(error);
     throw new AiProviderError({
       code: networkError ? 'network' : 'provider',
@@ -37,6 +70,27 @@ export async function runAiSdkTextAction(
       providerMessage: getErrorMessage(error),
     });
   }
+}
+
+function mapApiCallError(error: APICallError): AiProviderError {
+  if (error.statusCode === 401 || error.statusCode === 403) {
+    return new AiProviderError({
+      code: 'auth',
+      messageKey: 'errorAiApiKeyRejected',
+    });
+  }
+
+  if (error.statusCode === 429) {
+    return new AiProviderError({
+      code: 'quota',
+      messageKey: 'errorAiQuota',
+    });
+  }
+
+  return new AiProviderError({
+    code: 'provider',
+    messageKey: 'errorAiProviderFailed',
+  });
 }
 
 function buildPrompt(request: AiTextActionProviderRequest): string {

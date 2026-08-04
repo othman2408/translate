@@ -12,7 +12,7 @@ import {
 } from '@/lib/settings';
 
 import { AiProviderFactory } from './factory';
-import type { AiTextActionProviderResult, IAiProvider } from './types';
+import type { AiTextActionProviderResult, AiTextActionRunOptions, IAiProvider } from './types';
 import { AiProviderError } from './types';
 
 export type AiTextActionServiceRequest = {
@@ -31,7 +31,10 @@ const inFlightAiActions = new Map<string, Promise<AiTextActionProviderResult>>()
 export class AiTextActionService {
   constructor(private readonly providerFactory = new AiProviderFactory()) {}
 
-  async run(request: AiTextActionServiceRequest): Promise<AiActionResponse> {
+  async run(
+    request: AiTextActionServiceRequest,
+    options: AiTextActionRunOptions = {},
+  ): Promise<AiActionResponse> {
     const settings = await getSettings();
     const text = request.text.trim();
 
@@ -43,45 +46,69 @@ export class AiTextActionService {
       return failure('empty-text', t('errorSelectText', undefined, settings.appLanguage));
     }
 
-    const providerConfig = getRequestedAiProvider(settings, request.providerId);
-    if (!providerConfig) {
+    const providerConfigs = getRequestedAiProviders(settings, request.providerId);
+    if (providerConfigs.length === 0) {
       return failure('missing-api-key', t('errorAiMissingApiKey', undefined, settings.appLanguage));
     }
 
-    try {
-      const provider = this.providerFactory.createProvider(providerConfig);
-      const language = getActionLanguage(request, settings);
-      const prompt = getActionPrompt(request, settings);
-      const result: AiTextActionResult = settings.cacheEnabled
-        ? await runCachedAiAction(request.action, text, prompt, language, providerConfig, provider)
-        : {
-          ...await provider.runTextAction({
-            action: request.action,
-            text,
-            prompt,
-            language,
-          }),
-          fromCache: false,
-        };
+    const language = getActionLanguage(request, settings);
+    const prompt = getActionPrompt(request, settings);
+    let lastError: unknown;
 
-      const response: AiActionSuccess = {
-        ok: true,
-        action: request.action,
-        resultText: result.resultText,
-        providerName: provider.providerName,
-        model: result.model,
-        language,
-        fromCache: result.fromCache,
+    for (const providerConfig of providerConfigs) {
+      let streamedText = false;
+      const attemptOptions: AiTextActionRunOptions = {
+        ...options,
+        onTextDelta: (textDelta) => {
+          streamedText = true;
+          options.onTextDelta?.(textDelta);
+        },
       };
 
-      if (request.recordHistory !== false && settings.aiHistoryEnabled && settings.aiHistoryLimit > 0) {
-        await recordAiHistory(request.action, text, response.resultText, providerConfig, response.model, settings, language);
-      }
+      try {
+        const provider = this.providerFactory.createProvider(providerConfig);
+        const result: AiTextActionResult = settings.cacheEnabled
+          ? await runCachedAiAction(request.action, text, prompt, language, providerConfig, provider, attemptOptions)
+          : {
+            ...await provider.runTextAction({
+              action: request.action,
+              text,
+              prompt,
+              language,
+            }, attemptOptions),
+            fromCache: false,
+          };
 
-      return response;
-    } catch (error) {
-      return providerFailure(error, settings);
+        const response: AiActionSuccess = {
+          ok: true,
+          action: request.action,
+          resultText: result.resultText,
+          providerName: provider.providerName,
+          model: result.model,
+          language,
+          fromCache: result.fromCache,
+        };
+
+        if (request.recordHistory !== false && settings.aiHistoryEnabled && settings.aiHistoryLimit > 0) {
+          await recordAiHistory(request.action, text, response.resultText, providerConfig, response.model, settings, language);
+        }
+
+        return response;
+      } catch (error) {
+        lastError = error;
+        if (
+          !settings.providerFallbackEnabled
+          || request.providerId
+          || streamedText
+          || options.abortSignal?.aborted
+          || !(error instanceof AiProviderError)
+        ) {
+          break;
+        }
+      }
     }
+
+    return providerFailure(lastError, settings);
   }
 }
 
@@ -92,6 +119,7 @@ async function runCachedAiAction(
   language: string | undefined,
   providerConfig: AiProviderConfig,
   provider: IAiProvider,
+  options: AiTextActionRunOptions,
 ): Promise<AiTextActionProviderResult & { fromCache?: boolean }> {
   const cacheKey = getAiActionCacheKey({
     providerId: providerConfig.id,
@@ -105,6 +133,7 @@ async function runCachedAiAction(
   const cached = await getCachedAiActionSafely(cacheKey);
 
   if (cached) {
+    options.onTextDelta?.(cached.resultText);
     return {
       resultText: cached.resultText,
       model: cached.model,
@@ -112,12 +141,7 @@ async function runCachedAiAction(
     };
   }
 
-  const existingRequest = inFlightAiActions.get(cacheKey);
-  if (existingRequest) {
-    return existingRequest;
-  }
-
-  const nextRequest = provider.runTextAction({ action, text, prompt, language })
+  const runProvider = () => provider.runTextAction({ action, text, prompt, language }, options)
     .then(async (result) => {
       await setCachedAiActionSafely(cacheKey, {
         action,
@@ -135,7 +159,20 @@ async function runCachedAiAction(
         ...result,
         fromCache: false,
       };
-    })
+    });
+
+  // A streamed request is owned by one UI and can be aborted when that UI closes.
+  // Sharing it would let one consumer cancel every other consumer of the same key.
+  if (options.abortSignal || options.onTextDelta) {
+    return runProvider();
+  }
+
+  const existingRequest = inFlightAiActions.get(cacheKey);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const nextRequest = runProvider()
     .finally(() => {
       inFlightAiActions.delete(cacheKey);
     });
@@ -187,15 +224,24 @@ async function recordAiHistory(
   }
 }
 
-function getRequestedAiProvider(
+function getRequestedAiProviders(
   settings: ExtensionSettings,
   providerId: string | undefined,
-): AiProviderConfig | undefined {
+): AiProviderConfig[] {
   if (providerId) {
-    return settings.aiProviders.find((provider) => provider.id === providerId);
+    const provider = settings.aiProviders.find((candidate) => candidate.id === providerId);
+    return provider ? [provider] : [];
   }
 
-  return getDefaultAiProvider(settings);
+  const defaultProvider = getDefaultAiProvider(settings);
+  if (!defaultProvider) {
+    return [];
+  }
+
+  return [
+    defaultProvider,
+    ...settings.aiProviders.filter((provider) => provider.id !== defaultProvider.id),
+  ];
 }
 
 function isActionEnabled(action: AiActionType, settings: ExtensionSettings): boolean {
@@ -203,13 +249,14 @@ function isActionEnabled(action: AiActionType, settings: ExtensionSettings): boo
 }
 
 function getActionPrompt(request: AiTextActionServiceRequest, settings: ExtensionSettings): string {
-  if (request.prompt?.trim()) {
-    return request.prompt.trim();
-  }
-
-  return request.action === 'explain'
+  const actionPrompt = request.prompt?.trim() || (request.action === 'explain'
     ? settings.aiExplainPrompt || DEFAULT_AI_EXPLAIN_PROMPT
-    : settings.aiRewritePrompt || DEFAULT_AI_REWRITE_PROMPT;
+    : settings.aiRewritePrompt || DEFAULT_AI_REWRITE_PROMPT);
+  const glossary = settings.aiGlossary.trim();
+
+  return glossary
+    ? `${actionPrompt}\n\nUse these preferred terms when relevant:\n${glossary}`
+    : actionPrompt;
 }
 
 function getActionLanguage(

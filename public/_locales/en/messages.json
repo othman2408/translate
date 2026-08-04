@@ -77,6 +77,9 @@
   "actionReadResult": {
     "message": "Read result"
   },
+  "actionReplaceSelection": {
+    "message": "Replace selected text"
+  },
   "actionSaveProvider": {
     "message": "Save"
   },
@@ -88,6 +91,9 @@
   },
   "actionStopReadingResult": {
     "message": "Stop reading result"
+  },
+  "actionUndoReplacement": {
+    "message": "Undo replacement"
   },
   "actionExplainText": {
     "message": "Explain"
@@ -109,6 +115,12 @@
   },
   "aiHistoryEmptyTitle": {
     "message": "No AI history yet"
+  },
+  "aiGlossaryDescription": {
+    "message": "Add preferred terminology, one instruction per line. It is included only in AI requests."
+  },
+  "aiGlossaryPlaceholder": {
+    "message": "API = application programming interface\nProduct name: keep unchanged"
   },
   "aiLocalOnlyNote": {
     "message": "AI API keys and prompts stay in local extension storage."
@@ -179,6 +191,15 @@
   "closeOnOutsideClick": {
     "message": "Close on outside click"
   },
+  "commandTranslateSelection": {
+    "message": "Translate selected text"
+  },
+  "commandRewriteSelection": {
+    "message": "Rewrite selected text"
+  },
+  "commandExplainSelection": {
+    "message": "Explain selected text"
+  },
   "contextMenuTranslateSelection": {
     "message": "Translate selected text"
   },
@@ -195,19 +216,25 @@
     "message": "AI is disabled. Enable it in AI settings."
   },
   "errorAiEmptyResponse": {
-    "message": "DeepSeek returned an empty response."
+    "message": "The AI provider returned an empty response."
+  },
+  "errorAiApiKeyRejected": {
+    "message": "The AI provider rejected the API key. Check the key and try again."
   },
   "errorAiMissingApiKey": {
-    "message": "Add your DeepSeek API key in AI settings."
+    "message": "Add an AI provider API key in AI settings."
   },
   "errorAiNetwork": {
-    "message": "Could not reach DeepSeek. Check your connection and try again."
+    "message": "Could not reach the AI provider. Check your connection and try again."
   },
   "errorAiProviderFailed": {
     "message": "The AI provider could not complete the request."
   },
   "errorAiProviderUnavailable": {
     "message": "The selected AI provider is not available."
+  },
+  "errorAiQuota": {
+    "message": "The AI provider quota or rate limit was reached. Check your provider account and try again."
   },
   "errorEmptyProviderResponse": {
     "message": "Google Translate returned an empty response."
@@ -254,6 +281,9 @@
   "groupInterface": {
     "message": "Interface"
   },
+  "groupGlossary": {
+    "message": "Glossary"
+  },
   "groupLanguages": {
     "message": "Languages"
   },
@@ -262,6 +292,9 @@
   },
   "groupPopupSize": {
     "message": "Result window"
+  },
+  "groupProviders": {
+    "message": "Providers"
   },
   "groupReset": {
     "message": "Reset"
@@ -316,6 +349,9 @@
   },
   "labelAiHistoryLimit": {
     "message": "AI history limit"
+  },
+  "labelAiGlossary": {
+    "message": "Preferred terminology"
   },
   "labelAiModel": {
     "message": "Model"
@@ -469,6 +505,9 @@
   },
   "providerConfigured": {
     "message": "Configured"
+  },
+  "providerFallbackEnabled": {
+    "message": "Try another provider if the default fails"
   },
   "providerDefaultBadge": {
     "message": "Default provider"

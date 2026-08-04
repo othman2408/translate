@@ -26,49 +26,67 @@ export class TranslationService {
       return failure('empty-text', t('errorSelectText', undefined, settings.appLanguage));
     }
 
-    const providerConfig = getRequestedProvider(settings, request.providerId);
-    if (!providerConfig) {
+    const providerConfigs = getRequestedProviders(settings, request.providerId);
+    if (providerConfigs.length === 0) {
       return failure('missing-api-key', t('errorMissingApiKey', undefined, settings.appLanguage));
     }
 
-    try {
-      const sourceLanguage = request.sourceLanguage ?? settings.sourceLanguage;
-      const targetLanguage = request.targetLanguage ?? settings.targetLanguage;
-      const provider = createProvider(providerConfig, settings.cacheEnabled, this.providerFactory);
-      const result = await provider.translate({
-        text,
-        sourceLanguage,
-        targetLanguage,
-      });
+    const sourceLanguage = request.sourceLanguage ?? settings.sourceLanguage;
+    const targetLanguage = request.targetLanguage ?? settings.targetLanguage;
+    let lastError: unknown;
 
-      const response = {
-        ok: true as const,
-        translatedText: result.translatedText,
-        detectedSourceLanguage: result.detectedSourceLanguage,
-        targetLanguage: result.targetLanguage,
-        fromCache: result.fromCache === true,
-      };
+    for (const providerConfig of providerConfigs) {
+      try {
+        const provider = createProvider(providerConfig, settings.cacheEnabled, this.providerFactory);
+        const result = await provider.translate({
+          text,
+          sourceLanguage,
+          targetLanguage,
+        });
 
-      if (request.recordHistory === true) {
-        await recordTranslationHistory(text, sourceLanguage, response, providerConfig, settings);
+        const response = {
+          ok: true as const,
+          translatedText: result.translatedText,
+          detectedSourceLanguage: result.detectedSourceLanguage,
+          targetLanguage: result.targetLanguage,
+          fromCache: result.fromCache === true,
+        };
+
+        if (request.recordHistory === true) {
+          await recordTranslationHistory(text, sourceLanguage, response, providerConfig, settings);
+        }
+
+        return response;
+      } catch (error) {
+        lastError = error;
+        if (!settings.providerFallbackEnabled || request.providerId || !(error instanceof TranslationProviderError)) {
+          break;
+        }
       }
-
-      return response;
-    } catch (error) {
-      return providerFailure(error, settings);
     }
+
+    return providerFailure(lastError, settings);
   }
 }
 
-function getRequestedProvider(
+function getRequestedProviders(
   settings: ExtensionSettings,
   providerId: string | undefined,
-): TranslationProviderConfig | undefined {
+): TranslationProviderConfig[] {
   if (providerId) {
-    return settings.providers.find((provider) => provider.id === providerId);
+    const provider = settings.providers.find((candidate) => candidate.id === providerId);
+    return provider ? [provider] : [];
   }
 
-  return getDefaultProvider(settings);
+  const defaultProvider = getDefaultProvider(settings);
+  if (!defaultProvider) {
+    return [];
+  }
+
+  return [
+    defaultProvider,
+    ...settings.providers.filter((provider) => provider.id !== defaultProvider.id),
+  ];
 }
 
 function createProvider(

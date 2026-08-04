@@ -487,14 +487,17 @@ export const overlayCss = `
     border-top: 1px solid var(--translate-border-soft);
   }
 
-  .translation-card__footer > span {
+  .translation-card__footer-meta {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .translation-card__footer > .icon-control {
+  .translation-card__footer-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
     flex: 0 0 auto;
   }
 

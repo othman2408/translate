@@ -7,6 +7,7 @@ import { getThemeModeOptions, type ThemeMode } from '@/lib/theme';
 
 import { GroupedSection } from '../components/GroupedSection';
 import { SettingSelect } from '../components/SettingSelect';
+import { SettingToggle } from '../components/SettingToggle';
 import type { SettingUpdateHandler } from '../types';
 
 export function GeneralSettings({
@@ -32,6 +33,14 @@ export function GeneralSettings({
           value={settings.themeMode}
           options={getThemeModeOptions(settings.appLanguage)}
           onValueChange={(value) => onUpdate('themeMode', value as ThemeMode)}
+        />
+      </GroupedSection>
+
+      <GroupedSection label={t('groupProviders')}>
+        <SettingToggle
+          label={t('providerFallbackEnabled')}
+          checked={settings.providerFallbackEnabled}
+          onCheckedChange={(checked) => onUpdate('providerFallbackEnabled', checked)}
         />
       </GroupedSection>
 

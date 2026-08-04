@@ -58,6 +58,25 @@ function AiBehaviorSettings({
           onCheckedChange={(checked) => onUpdate('aiExplainEnabled', checked)}
         />
       </GroupedSection>
+
+      <GroupedSection label={t('groupGlossary')}>
+        <Field.Root className="setting-row setting-row--stacked">
+          <span className="setting-row__copy">
+            <Field.Label className="setting-label">{t('labelAiGlossary')}</Field.Label>
+            <Field.Description className="setting-description">
+              {t('aiGlossaryDescription')}
+            </Field.Description>
+          </span>
+          <textarea
+            className="text-input text-input--textarea"
+            value={settings.aiGlossary}
+            rows={6}
+            spellCheck={false}
+            placeholder={t('aiGlossaryPlaceholder')}
+            onChange={(event) => onUpdate('aiGlossary', event.currentTarget.value)}
+          />
+        </Field.Root>
+      </GroupedSection>
     </div>
   );
 }

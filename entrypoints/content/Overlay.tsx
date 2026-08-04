@@ -7,7 +7,9 @@ import {
   Languages,
   LoaderCircle,
   PenLine,
+  Replace,
   Sparkles,
+  Undo2,
   Volume2,
   VolumeX,
 } from 'lucide-react';
@@ -48,6 +50,8 @@ export function TranslateOverlay({
   onResize,
   onTokenRangeSelected,
   onCopy,
+  onReplace,
+  onUndo,
 }: {
   state: OverlayState;
   onTranslate: () => void;
@@ -63,22 +67,15 @@ export function TranslateOverlay({
     translationParts: TokenPart[],
   ) => void;
   onCopy: () => void;
+  onReplace: () => void;
+  onUndo: () => void;
 }) {
   const style = {
     transform: `translate3d(${state.position.left}px, ${state.position.top}px, 0)`,
   };
 
-  const isRewrite = state.action === 'rewrite';
-  const isExplain = state.action === 'explain';
   const isAiAction = isAiOverlayAction(state.action);
-  const isDictionary = state.settings.popupMode === 'dictionary';
-  const title = isExplain
-    ? t('explainTitle', undefined, state.settings.appLanguage)
-    : isRewrite
-    ? t('rewriteTitle', undefined, state.settings.appLanguage)
-    : isDictionary
-    ? t('dictionaryTitle', undefined, state.settings.appLanguage)
-    : t('translationTitle', undefined, state.settings.appLanguage);
+  const presentation = getOverlayPresentation(state);
   const uiLanguage = getUiLanguage(state.settings.appLanguage);
   const uiDirection = getUiDirection(uiLanguage);
   const originalLanguageCode = !isAiAction && state.translation?.ok && state.translation.detectedSourceLanguage
@@ -87,11 +84,7 @@ export function TranslateOverlay({
   const originalDirection = getTextDirection(state.selectedText, originalLanguageCode);
   const originalLanguage = getTextLanguage(originalLanguageCode);
   const resultText = getOverlayResultText(state);
-  const resultLanguageCode = isExplain
-    ? state.ai?.ok ? state.ai.language : state.settings.aiExplanationLanguage
-    : isRewrite
-    ? state.ai?.ok ? state.ai.language : state.settings.aiRewriteLanguage
-    : state.translation?.ok ? state.translation.targetLanguage : state.settings.targetLanguage;
+  const resultLanguageCode = presentation.resultLanguageCode;
   const resultDirection = getTextDirection(resultText, resultLanguageCode);
   const resultLanguage = getTextLanguage(resultLanguageCode);
   const originalParts = useMemo(
@@ -107,6 +100,7 @@ export function TranslateOverlay({
   const speech = useTextToSpeech();
   const showRewriteAction = state.settings.aiRewriteEnabled;
   const showExplainAction = state.settings.aiExplainEnabled;
+  const showStreamingResult = state.isStreaming && Boolean(state.streamedText);
 
   useEffect(() => {
     if (state.status !== 'result') {
@@ -195,32 +189,26 @@ export function TranslateOverlay({
       themeMode={state.settings.themeMode}
       title={(
         <>
-          {isExplain
-            ? <Sparkles size={16} />
-            : isRewrite ? <PenLine size={16} /> : isDictionary ? <BookOpen size={16} /> : <Languages size={16} />}
-          <span>{title}</span>
+          {presentation.icon}
+          <span>{presentation.title}</span>
         </>
       )}
       onClose={onClose}
       onMove={onMove}
       onResize={onResize}
     >
-      {state.status === 'loading' && (
+      {state.status === 'loading' && !showStreamingResult && (
         <div className="translation-card__body translation-card__body--center">
           <div className="translation-card__status">
             <LoaderCircle className="spin" size={18} />
             <span dir={uiDirection} lang={uiLanguage}>
-              {isExplain ? t('explainingText', undefined, state.settings.appLanguage) : isRewrite ? t('rewritingText', undefined, state.settings.appLanguage) : t(
-                'translatingTo',
-                getLanguageName(state.settings.targetLanguage, state.settings.appLanguage),
-                state.settings.appLanguage,
-              )}
+              {presentation.loadingText}
             </span>
           </div>
         </div>
       )}
 
-      {state.status === 'result' && resultText && (
+      {(state.status === 'result' || showStreamingResult) && resultText && (
         <>
           <div className="translation-card__body translation-card__body--result">
             <TokenTextBlock
@@ -231,7 +219,7 @@ export function TranslateOverlay({
               language={originalLanguage}
               originalParts={originalParts}
               parts={originalParts}
-              readControl={speech.isSupported ? (
+              readControl={speech.isSupported && !state.isStreaming ? (
                 <ReadAloudButton
                   active={speech.activeTarget === 'original'}
                   label={t('actionReadOriginal', undefined, state.settings.appLanguage)}
@@ -248,17 +236,13 @@ export function TranslateOverlay({
               alignment={isAiAction ? undefined : state.alignment}
               className="translation-card__translation"
               direction={resultDirection}
-              label={isExplain
-                ? t('labelExplanation', undefined, state.settings.appLanguage)
-                : isRewrite
-                ? t('labelRewritten', undefined, state.settings.appLanguage)
-                : t('manualTranslationLabel', undefined, state.settings.appLanguage)}
+              label={presentation.resultLabel}
               language={resultLanguage}
               markdown={isAiAction}
               originalParts={originalParts}
               parts={resultParts}
               rawText={resultText}
-              readControl={speech.isSupported ? (
+              readControl={speech.isSupported && !state.isStreaming ? (
                 <ReadAloudButton
                   active={speech.activeTarget === 'result'}
                   label={t('actionReadResult', undefined, state.settings.appLanguage)}
@@ -272,8 +256,10 @@ export function TranslateOverlay({
             />
           </div>
           <footer className="translation-card__footer">
-            <span dir={uiDirection} lang={uiLanguage}>
-              {isAiAction && state.ai?.ok
+            <span className="translation-card__footer-meta" dir={uiDirection} lang={uiLanguage}>
+              {state.isStreaming
+                ? presentation.loadingText
+                : isAiAction && state.ai?.ok
                 ? getAiFooterText(state.ai, state.settings)
                 : state.translation?.ok && state.translation.detectedSourceLanguage
                 ? t('footerLanguagePair', [
@@ -292,15 +278,41 @@ export function TranslateOverlay({
                 ? ` - ${t('footerCached', undefined, state.settings.appLanguage)}`
                 : ''}
             </span>
-            <button
-              className="icon-control"
-              type="button"
-              title={t(isExplain ? 'actionCopyExplanation' : isRewrite ? 'actionCopyRewrite' : 'actionCopyTranslation', undefined, state.settings.appLanguage)}
-              aria-label={t(isExplain ? 'actionCopyExplanation' : isRewrite ? 'actionCopyRewrite' : 'actionCopyTranslation', undefined, state.settings.appLanguage)}
-              onClick={onCopy}
-            >
-              {state.copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
+            <span className="translation-card__footer-actions">
+              {state.canReplace && (
+                <button
+                  className="icon-control"
+                  type="button"
+                  title={t('actionReplaceSelection', undefined, state.settings.appLanguage)}
+                  aria-label={t('actionReplaceSelection', undefined, state.settings.appLanguage)}
+                  onClick={onReplace}
+                >
+                  <Replace size={16} />
+                </button>
+              )}
+              {state.canUndo && (
+                <button
+                  className="icon-control"
+                  type="button"
+                  title={t('actionUndoReplacement', undefined, state.settings.appLanguage)}
+                  aria-label={t('actionUndoReplacement', undefined, state.settings.appLanguage)}
+                  onClick={onUndo}
+                >
+                  <Undo2 size={16} />
+                </button>
+              )}
+              {!state.isStreaming && (
+                <button
+                  className="icon-control"
+                  type="button"
+                  title={presentation.copyLabel}
+                  aria-label={presentation.copyLabel}
+                  onClick={onCopy}
+                >
+                  {state.copied ? <Check size={16} /> : <Copy size={16} />}
+                </button>
+              )}
+            </span>
           </footer>
         </>
       )}
@@ -321,7 +333,7 @@ export function TranslateOverlay({
 
 export function getOverlayResultText(state: OverlayState): string {
   if (isAiOverlayAction(state.action)) {
-    return state.ai?.ok ? state.ai.resultText : '';
+    return state.streamedText ?? (state.ai?.ok ? state.ai.resultText : '');
   }
 
   return state.translation?.ok ? state.translation.translatedText : '';
@@ -329,6 +341,55 @@ export function getOverlayResultText(state: OverlayState): string {
 
 export function isAiOverlayAction(action: OverlayAction): action is 'rewrite' | 'explain' {
   return action === 'rewrite' || action === 'explain';
+}
+
+function getOverlayPresentation(state: OverlayState): {
+  copyLabel: string;
+  icon: ReactNode;
+  loadingText: string;
+  resultLabel: string;
+  resultLanguageCode: string | undefined;
+  title: string;
+} {
+  const appLanguage = state.settings.appLanguage;
+
+  if (state.action === 'explain') {
+    return {
+      copyLabel: t('actionCopyExplanation', undefined, appLanguage),
+      icon: <Sparkles size={16} />,
+      loadingText: t('explainingText', undefined, appLanguage),
+      resultLabel: t('labelExplanation', undefined, appLanguage),
+      resultLanguageCode: state.ai?.ok ? state.ai.language : state.settings.aiExplanationLanguage,
+      title: t('explainTitle', undefined, appLanguage),
+    };
+  }
+
+  if (state.action === 'rewrite') {
+    return {
+      copyLabel: t('actionCopyRewrite', undefined, appLanguage),
+      icon: <PenLine size={16} />,
+      loadingText: t('rewritingText', undefined, appLanguage),
+      resultLabel: t('labelRewritten', undefined, appLanguage),
+      resultLanguageCode: state.ai?.ok ? state.ai.language : state.settings.aiRewriteLanguage,
+      title: t('rewriteTitle', undefined, appLanguage),
+    };
+  }
+
+  const isDictionary = state.settings.popupMode === 'dictionary';
+  return {
+    copyLabel: t('actionCopyTranslation', undefined, appLanguage),
+    icon: isDictionary ? <BookOpen size={16} /> : <Languages size={16} />,
+    loadingText: t(
+      'translatingTo',
+      getLanguageName(state.settings.targetLanguage, appLanguage),
+      appLanguage,
+    ),
+    resultLabel: t('manualTranslationLabel', undefined, appLanguage),
+    resultLanguageCode: state.translation?.ok
+      ? state.translation.targetLanguage
+      : state.settings.targetLanguage,
+    title: t(isDictionary ? 'dictionaryTitle' : 'translationTitle', undefined, appLanguage),
+  };
 }
 
 function getOverlayErrorText(state: OverlayState): string {

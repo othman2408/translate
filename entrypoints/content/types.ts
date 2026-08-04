@@ -36,8 +36,12 @@ export type OverlayState = {
   selectedText: string;
   translation?: TranslationResponse;
   ai?: AiActionResponse;
+  streamedText?: string;
+  isStreaming: boolean;
   alignment?: AlignmentState;
   copied: boolean;
+  canReplace: boolean;
+  canUndo: boolean;
   popupSize: ResultPopupSize;
   settings: ExtensionSettings;
 };

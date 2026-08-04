@@ -42,6 +42,7 @@ export type ExtensionSettings = {
   aiRewriteLanguage: string;
   aiExplainPrompt: string;
   aiExplanationLanguage: string;
+  aiGlossary: string;
   aiHistoryEnabled: boolean;
   aiHistoryLimit: number;
   targetLanguage: string;
@@ -49,6 +50,7 @@ export type ExtensionSettings = {
   triggerMode: TriggerMode;
   popupMode: PopupMode;
   cacheEnabled: boolean;
+  providerFallbackEnabled: boolean;
   closeOnOutsideClick: boolean;
   appLanguage: AppLanguage;
   themeMode: ThemeMode;
@@ -128,6 +130,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   aiRewriteLanguage: 'en',
   aiExplainPrompt: DEFAULT_AI_EXPLAIN_PROMPT,
   aiExplanationLanguage: 'en',
+  aiGlossary: '',
   aiHistoryEnabled: true,
   aiHistoryLimit: DEFAULT_HISTORY_LIMIT,
   targetLanguage: 'en',
@@ -135,6 +138,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   triggerMode: 'click',
   popupMode: 'bubble',
   cacheEnabled: true,
+  providerFallbackEnabled: false,
   closeOnOutsideClick: true,
   appLanguage: 'auto',
   themeMode: 'system',

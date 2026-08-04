@@ -15,6 +15,8 @@ export type AiActionErrorCode =
   | 'disabled'
   | 'missing-api-key'
   | 'empty-text'
+  | 'auth'
+  | 'quota'
   | 'network'
   | 'provider'
   | 'unknown';
@@ -31,6 +33,11 @@ export type TranslateTextMessage = {
 export type ShowContextTranslationMessage = {
   type: 'SHOW_CONTEXT_TRANSLATION';
   text: string;
+};
+
+export type RunSelectionActionMessage = {
+  type: 'RUN_SELECTION_ACTION';
+  action: 'translate' | AiActionType;
 };
 
 type GetSelectedTextMessage = {
@@ -57,6 +64,7 @@ export type RunAiActionMessage = {
 export type RuntimeMessage =
   | TranslateTextMessage
   | ShowContextTranslationMessage
+  | RunSelectionActionMessage
   | GetSelectedTextMessage
   | RunAiActionMessage;
 
@@ -98,6 +106,12 @@ type AiActionFailure = {
 
 export type AiActionResponse = AiActionSuccess | AiActionFailure;
 
+export const AI_ACTION_STREAM_PORT = 'ai-action-stream';
+
+export type AiActionStreamEvent =
+  | { type: 'AI_ACTION_DELTA'; textDelta: string }
+  | { type: 'AI_ACTION_COMPLETE'; response: AiActionResponse };
+
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   return (
     typeof value === 'object' &&
@@ -106,6 +120,7 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
     (
       value.type === 'TRANSLATE_TEXT' ||
       value.type === 'SHOW_CONTEXT_TRANSLATION' ||
+      value.type === 'RUN_SELECTION_ACTION' ||
       value.type === 'GET_SELECTED_TEXT' ||
       value.type === 'RUN_AI_ACTION'
     )

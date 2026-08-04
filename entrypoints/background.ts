@@ -2,7 +2,13 @@ import { browser, defineBackground } from '#imports';
 
 import { AiTextActionService } from '@/lib/ai/service';
 import { t } from '@/lib/i18n';
-import { isRuntimeMessage, type AiActionResponse, type TranslationResponse } from '@/lib/messages';
+import {
+  AI_ACTION_STREAM_PORT,
+  isRuntimeMessage,
+  type AiActionResponse,
+  type AiActionStreamEvent,
+  type TranslationResponse,
+} from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
 import { getHttpHost, isHostDisabled } from '@/lib/sites';
 import { TranslationService } from '@/lib/translation/service';
@@ -41,6 +47,69 @@ export default defineBackground(() => {
     } catch {
       // Some pages cannot receive extension messages; the menu is still useful elsewhere.
     }
+  });
+
+  browser.commands.onCommand.addListener(async (command, tab) => {
+    if (!isSelectionCommand(command)) {
+      return;
+    }
+
+    const targetTab = tab?.id
+      ? tab
+      : (await browser.tabs.query({ active: true, currentWindow: true }))[0];
+    if (!targetTab?.id || await isTabDisabled(targetTab.url)) {
+      return;
+    }
+
+    try {
+      await browser.tabs.sendMessage(targetTab.id, {
+        type: 'RUN_SELECTION_ACTION',
+        action: command.replace('-selection', ''),
+      });
+    } catch {
+      // Restricted pages do not run the content script.
+    }
+  });
+
+  browser.runtime.onConnect.addListener((port) => {
+    if (port.name !== AI_ACTION_STREAM_PORT) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    port.onDisconnect.addListener(() => abortController.abort());
+    port.onMessage.addListener((message) => {
+      if (!isRuntimeMessage(message) || message.type !== 'RUN_AI_ACTION') {
+        return;
+      }
+
+      void aiTextActionService.run({
+        action: message.action,
+        text: message.text,
+        prompt: message.prompt,
+        providerId: message.providerId,
+        language: message.language,
+        recordHistory: message.recordHistory,
+      }, {
+        abortSignal: abortController.signal,
+        onTextDelta: (textDelta) => postStreamEvent(port, {
+          type: 'AI_ACTION_DELTA',
+          textDelta,
+        }),
+      }).then((response) => postStreamEvent(port, {
+        type: 'AI_ACTION_COMPLETE',
+        response,
+      })).catch(() => postStreamEvent(port, {
+        type: 'AI_ACTION_COMPLETE',
+        response: {
+          ok: false,
+          error: {
+            code: 'unknown',
+            message: t('errorAiProviderFailed'),
+          },
+        },
+      }));
+    });
   });
 
   browser.runtime.onMessage.addListener((message): Promise<AiActionResponse | TranslationResponse> | undefined => {
@@ -101,5 +170,22 @@ async function setupContextMenu(): Promise<void> {
     });
   } catch {
     // Context menus are unavailable in a few extension contexts during startup.
+  }
+}
+
+function isSelectionCommand(command: string): command is 'translate-selection' | 'rewrite-selection' | 'explain-selection' {
+  return command === 'translate-selection'
+    || command === 'rewrite-selection'
+    || command === 'explain-selection';
+}
+
+function postStreamEvent(
+  port: Parameters<Parameters<typeof browser.runtime.onConnect.addListener>[0]>[0],
+  event: AiActionStreamEvent,
+): void {
+  try {
+    port.postMessage(event);
+  } catch {
+    // The user may close the popup while a streamed request is finishing.
   }
 }

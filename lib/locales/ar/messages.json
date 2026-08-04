@@ -77,6 +77,9 @@
   "actionReadResult": {
     "message": "قراءة النتيجة"
   },
+  "actionReplaceSelection": {
+    "message": "استبدال النص المحدد"
+  },
   "actionSaveProvider": {
     "message": "حفظ"
   },
@@ -88,6 +91,9 @@
   },
   "actionStopReadingResult": {
     "message": "إيقاف قراءة النتيجة"
+  },
+  "actionUndoReplacement": {
+    "message": "التراجع عن الاستبدال"
   },
   "actionExplainText": {
     "message": "شرح"
@@ -109,6 +115,12 @@
   },
   "aiHistoryEmptyTitle": {
     "message": "لا يوجد سجل AI بعد"
+  },
+  "aiGlossaryDescription": {
+    "message": "أضف المصطلحات المفضلة، تعليمة واحدة في كل سطر. تُرسل فقط مع طلبات الذكاء الاصطناعي."
+  },
+  "aiGlossaryPlaceholder": {
+    "message": "API = واجهة برمجة التطبيقات\nاسم المنتج: اتركه دون تغيير"
   },
   "aiLocalOnlyNote": {
     "message": "تبقى مفاتيح AI والتعليمات في التخزين المحلي للإضافة."
@@ -179,6 +191,15 @@
   "closeOnOutsideClick": {
     "message": "الإغلاق عند النقر خارج النافذة"
   },
+  "commandTranslateSelection": {
+    "message": "ترجمة النص المحدد"
+  },
+  "commandRewriteSelection": {
+    "message": "إعادة صياغة النص المحدد"
+  },
+  "commandExplainSelection": {
+    "message": "شرح النص المحدد"
+  },
   "contextMenuTranslateSelection": {
     "message": "ترجمة النص المحدد"
   },
@@ -195,19 +216,25 @@
     "message": "AI غير مفعل. فعله من إعدادات AI."
   },
   "errorAiEmptyResponse": {
-    "message": "أعاد DeepSeek استجابة فارغة."
+    "message": "أعاد مزود الذكاء الاصطناعي استجابة فارغة."
+  },
+  "errorAiApiKeyRejected": {
+    "message": "رفض مزود الذكاء الاصطناعي مفتاح API. تحقق من المفتاح وحاول مرة أخرى."
   },
   "errorAiMissingApiKey": {
-    "message": "أضف مفتاح DeepSeek API في إعدادات AI."
+    "message": "أضف مفتاح API لمزود ذكاء اصطناعي في إعدادات AI."
   },
   "errorAiNetwork": {
-    "message": "تعذر الوصول إلى DeepSeek. تحقق من الاتصال وحاول مرة أخرى."
+    "message": "تعذر الوصول إلى مزود الذكاء الاصطناعي. تحقق من الاتصال وحاول مرة أخرى."
   },
   "errorAiProviderFailed": {
     "message": "تعذر على مزود AI إكمال الطلب."
   },
   "errorAiProviderUnavailable": {
     "message": "مزود AI المحدد غير متاح."
+  },
+  "errorAiQuota": {
+    "message": "تم بلوغ حصة مزود الذكاء الاصطناعي أو حد الطلبات. تحقق من حساب المزود وحاول مرة أخرى."
   },
   "errorEmptyProviderResponse": {
     "message": "أعاد Google Translate استجابة فارغة."
@@ -254,6 +281,9 @@
   "groupInterface": {
     "message": "الواجهة"
   },
+  "groupGlossary": {
+    "message": "مسرد المصطلحات"
+  },
   "groupLanguages": {
     "message": "اللغات"
   },
@@ -262,6 +292,9 @@
   },
   "groupPopupSize": {
     "message": "نافذة النتيجة"
+  },
+  "groupProviders": {
+    "message": "المزودون"
   },
   "groupReset": {
     "message": "إعادة الضبط"
@@ -316,6 +349,9 @@
   },
   "labelAiHistoryLimit": {
     "message": "حد سجل AI"
+  },
+  "labelAiGlossary": {
+    "message": "المصطلحات المفضلة"
   },
   "labelAiModel": {
     "message": "النموذج"
@@ -469,6 +505,9 @@
   },
   "providerConfigured": {
     "message": "معد"
+  },
+  "providerFallbackEnabled": {
+    "message": "تجربة مزود آخر عند فشل المزود الافتراضي"
   },
   "providerDefaultBadge": {
     "message": "المزود الافتراضي"

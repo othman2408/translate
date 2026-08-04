@@ -14,6 +14,11 @@ export type AiTextActionProviderResult = {
   model: string;
 };
 
+export type AiTextActionRunOptions = {
+  abortSignal?: AbortSignal;
+  onTextDelta?: (textDelta: string) => void;
+};
+
 export type AiProviderErrorOptions = {
   code: AiActionErrorCode;
   messageKey: I18nKey;
@@ -38,5 +43,8 @@ export interface IAiProvider {
   readonly providerType: AiProviderType;
   readonly providerName: string;
 
-  runTextAction(request: AiTextActionProviderRequest): Promise<AiTextActionProviderResult>;
+  runTextAction(
+    request: AiTextActionProviderRequest,
+    options?: AiTextActionRunOptions,
+  ): Promise<AiTextActionProviderResult>;
 }

@@ -37,11 +37,14 @@ import {
   isExtensionContextInvalidatedError,
   removeRuntimeMessageListener,
   sendRuntimeMessage,
+  streamRuntimeAiAction,
 } from './runtime';
 import {
   clampPosition,
   isCurrentSiteEnabled,
   readCurrentSelection,
+  type EditableSelection,
+  type UndoEdit,
 } from './selection';
 import { overlayCss } from './styles';
 import type {
@@ -77,7 +80,10 @@ export function createContentOverlayController(
   let lastInstantKey = '';
   let lastPointerPosition: OverlayPosition = { left: Math.round(window.innerWidth / 2), top: 120 };
   let popupSizeSaveTimer: number | undefined;
+  let cancelAiStream: (() => void) | undefined;
   let suppressSelectionHandlingUntil = 0;
+  let editableSelection: EditableSelection | undefined;
+  let undoEdit: UndoEdit | undefined;
   let shadowHostElement: HTMLElement | undefined;
   let contentScriptActive = true;
   let overlayState: OverlayState = {
@@ -87,6 +93,9 @@ export function createContentOverlayController(
     selectedText: '',
     alignment: undefined,
     copied: false,
+    isStreaming: false,
+    canReplace: false,
+    canUndo: false,
     popupSize: settings.resultPopupSize,
     settings,
   };
@@ -157,6 +166,11 @@ export function createContentOverlayController(
 
       if (message.type === 'SHOW_CONTEXT_TRANSLATION') {
         void showFromContextMenu(message);
+        return;
+      }
+
+      if (message.type === 'RUN_SELECTION_ACTION') {
+        void runSelectionAction(message.action);
       }
     };
 
@@ -238,6 +252,8 @@ export function createContentOverlayController(
     contentScriptActive = false;
     latestRequestId += 1;
     latestAlignmentRequestId += 1;
+    cancelAiStream?.();
+    cancelAiStream = undefined;
     clearPopupSizeSaveTimer();
 
     try {
@@ -278,19 +294,21 @@ export function createContentOverlayController(
       return;
     }
 
-    lastInstantKey = `${selection.text}:${settings.sourceLanguage}:${settings.targetLanguage}`;
+    editableSelection = selection.editable;
+    undoEdit = undefined;
 
     if (settings.triggerMode === 'instant') {
       void requestTranslation(selection.text, selection.position);
       return;
     }
 
+    const controlWidth = getSelectionControlWidth(settings);
     updateOverlay({
       status: 'icon',
       position: clampPosition(
         selection.position,
-        getSelectionControlWidth(settings),
-        getSelectionControlWidth(settings) === ICON_SIZE ? ICON_SIZE : ACTION_BUBBLE_HEIGHT,
+        controlWidth,
+        controlWidth === ICON_SIZE ? ICON_SIZE : ACTION_BUBBLE_HEIGHT,
       ),
       action: 'translate',
       selectedText: selection.text,
@@ -298,6 +316,8 @@ export function createContentOverlayController(
       ai: undefined,
       alignment: undefined,
       copied: false,
+      canReplace: false,
+      canUndo: false,
     });
   }
 
@@ -321,7 +341,35 @@ export function createContentOverlayController(
     }
 
     const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+    editableSelection = selection?.text === text ? selection.editable : undefined;
+    undoEdit = undefined;
     await requestTranslation(text, selection?.position ?? lastPointerPosition);
+  }
+
+  async function runSelectionAction(action: 'translate' | AiActionType): Promise<void> {
+    if (!contentScriptActive) {
+      return;
+    }
+
+    await refreshSettingsSafely();
+    if (!contentScriptActive || hideWhenSiteDisabled()) {
+      return;
+    }
+
+    const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+    if (!selection) {
+      return;
+    }
+
+    editableSelection = selection.editable;
+    undoEdit = undefined;
+
+    if (action === 'translate') {
+      await requestTranslation(selection.text, selection.position);
+      return;
+    }
+
+    await requestAiAction(action, selection.text, selection.position);
   }
 
   async function requestTranslation(
@@ -349,6 +397,9 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
+    cancelAiStream?.();
+    cancelAiStream = undefined;
+    undoEdit = undefined;
     const popupGeometry = fitFloatingPopupGeometry(position, overlayState.popupSize);
     updateOverlay({
       status: 'loading',
@@ -360,6 +411,10 @@ export function createContentOverlayController(
       ai: undefined,
       alignment: undefined,
       copied: false,
+      canReplace: false,
+      canUndo: false,
+      streamedText: undefined,
+      isStreaming: false,
     });
 
     const message: TranslateTextMessage = {
@@ -395,6 +450,10 @@ export function createContentOverlayController(
       translation: response,
       ai: undefined,
       alignment: undefined,
+      canReplace: response.ok && Boolean(editableSelection),
+      canUndo: false,
+      streamedText: undefined,
+      isStreaming: false,
     });
   }
 
@@ -418,6 +477,8 @@ export function createContentOverlayController(
 
     const requestId = ++latestRequestId;
     latestAlignmentRequestId += 1;
+    cancelAiStream?.();
+    undoEdit = undefined;
     const popupGeometry = fitFloatingPopupGeometry(position, overlayState.popupSize);
     updateOverlay({
       status: 'loading',
@@ -429,6 +490,10 @@ export function createContentOverlayController(
       ai: undefined,
       alignment: undefined,
       copied: false,
+      canReplace: false,
+      canUndo: false,
+      streamedText: '',
+      isStreaming: true,
     });
 
     const message: RunAiActionMessage = {
@@ -439,8 +504,20 @@ export function createContentOverlayController(
       recordHistory: true,
     };
 
+    const stream = streamRuntimeAiAction(
+      message,
+      contentScriptActive,
+      (textDelta) => {
+        if (requestId === latestRequestId) {
+          updateOverlay({ streamedText: `${overlayState.streamedText ?? ''}${textDelta}` });
+        }
+      },
+      markContentScriptInactive,
+    );
+    cancelAiStream = stream.cancel;
+
     let response: AiActionResponse;
-    const sendResult = await sendMessage<AiActionResponse>(message);
+    const sendResult = await stream.result;
     if (sendResult.ok) {
       response = sendResult.value;
     } else if (sendResult.invalidated) {
@@ -459,11 +536,17 @@ export function createContentOverlayController(
       return;
     }
 
+    cancelAiStream = undefined;
+
     updateOverlay({
       status: response.ok ? 'result' : 'error',
       translation: undefined,
       ai: response,
       alignment: undefined,
+      canReplace: response.ok && Boolean(editableSelection),
+      canUndo: false,
+      streamedText: undefined,
+      isStreaming: false,
     });
   }
 
@@ -488,6 +571,10 @@ export function createContentOverlayController(
   function hideOverlay(): void {
     latestRequestId += 1;
     latestAlignmentRequestId += 1;
+    cancelAiStream?.();
+    cancelAiStream = undefined;
+    editableSelection = undefined;
+    undoEdit = undefined;
     updateOverlay({
       status: 'hidden',
       action: 'translate',
@@ -497,6 +584,10 @@ export function createContentOverlayController(
       ai: undefined,
       alignment: undefined,
       copied: false,
+      canReplace: false,
+      canUndo: false,
+      streamedText: undefined,
+      isStreaming: false,
     });
   }
 
@@ -540,7 +631,43 @@ export function createContentOverlayController(
         suppressSelectionHandling();
         void copyResult();
       },
+      onReplace: () => {
+        suppressSelectionHandling();
+        replaceEditableSelection();
+      },
+      onUndo: () => {
+        suppressSelectionHandling();
+        undoEditableReplacement();
+      },
     }));
+  }
+
+  function replaceEditableSelection(): void {
+    const resultText = getOverlayResultText(overlayState);
+    if (!resultText || !editableSelection) {
+      return;
+    }
+
+    const nextUndoEdit = editableSelection.replace(resultText);
+    if (!nextUndoEdit) {
+      editableSelection = undefined;
+      updateOverlay({ canReplace: false, canUndo: false });
+      return;
+    }
+
+    undoEdit = nextUndoEdit;
+    editableSelection = undefined;
+    updateOverlay({ canReplace: false, canUndo: true });
+  }
+
+  function undoEditableReplacement(): void {
+    const didUndo = undoEdit?.undo() ?? false;
+    undoEdit = undefined;
+    updateOverlay({ canReplace: false, canUndo: false });
+
+    if (didUndo) {
+      suppressSelectionHandling();
+    }
   }
 
   async function copyResult(): Promise<void> {

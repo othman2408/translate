@@ -3,7 +3,12 @@ import { createMoonshotAI } from '@ai-sdk/moonshotai';
 import { getDefaultAiModel, type AiProviderConfig } from '@/lib/settings';
 
 import { runAiSdkTextAction } from './run-text-action';
-import type { IAiProvider, AiTextActionProviderRequest, AiTextActionProviderResult } from './types';
+import type {
+  IAiProvider,
+  AiTextActionProviderRequest,
+  AiTextActionProviderResult,
+  AiTextActionRunOptions,
+} from './types';
 
 export class KimiAiProvider implements IAiProvider {
   readonly providerType = 'kimi' as const;
@@ -13,9 +18,12 @@ export class KimiAiProvider implements IAiProvider {
     this.providerName = config.name;
   }
 
-  runTextAction(request: AiTextActionProviderRequest): Promise<AiTextActionProviderResult> {
+  runTextAction(
+    request: AiTextActionProviderRequest,
+    options?: AiTextActionRunOptions,
+  ): Promise<AiTextActionProviderResult> {
     const model = this.config.model || getDefaultAiModel(this.providerType);
     const moonshot = createMoonshotAI({ apiKey: this.config.apiKey });
-    return runAiSdkTextAction(moonshot(model), model, request);
+    return runAiSdkTextAction(moonshot(model), model, request, options);
   }
 }
