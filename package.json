@@ -15,27 +15,24 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^3.0.19",
-    "@ai-sdk/moonshotai": "^3.0.23",
-    "@base-ui/react": "^1.6.0",
+    "@ai-sdk/deepseek": "^3.0.42",
+    "@ai-sdk/moonshotai": "^3.0.48",
+    "@base-ui/react": "^1.8.0",
     "@openrouter/ai-sdk-provider": "^3.0.0",
-    "ai": "^7.0.47",
-    "lucide-react": "^1.28.0",
-    "motion": "^12.43.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "ai": "^7.0.97",
+    "lucide-react": "^1.44.0",
+    "motion": "^13.2.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@wxt-dev/module-react": "^1.2.2",
     "typescript": "^7.0.2",
-    "vite": "^8.2.0",
-    "web-ext": "^10.5.0",
-    "wxt": "^0.21.3"
-  },
-  "overrides": {
-    "brace-expansion": "1.1.17"
+    "vite": "^8.3.0",
+    "web-ext": "^10.6.0",
+    "wxt": "^0.21.4"
   }
 }

@@ -1,4 +1,4 @@
-import { isHostDisabled } from '@/lib/sites';
+import { getSiteKey, isSiteDisabled } from '@/lib/sites';
 
 import type { OverlayPosition } from './types';
 
@@ -54,7 +54,8 @@ export function clampPosition(position: OverlayPosition, width: number, height: 
 }
 
 export function isCurrentSiteEnabled(disabledHosts: string[]): boolean {
-  return !isHostDisabled(window.location.hostname, disabledHosts);
+  const siteKey = getSiteKey(window.location.href);
+  return siteKey !== null && !isSiteDisabled(siteKey, disabledHosts);
 }
 
 function getRangeRect(range: Range): DOMRect | null {

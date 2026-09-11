@@ -1,4 +1,19 @@
 {
+  "labelPreferredLanguage": { "message": "Preferred language" },
+  "manualReverseDestination": { "message": "Back to $1" },
+  "actionReadText": { "message": "Read text" },
+  "actionStopReading": { "message": "Stop reading" },
+  "actionCopyText": { "message": "Copy text" },
+  "actionLoadModels": { "message": "Load models" },
+  "actionCheckProviderModels": { "message": "Check models with API key" },
+  "actionRefreshModels": { "message": "Refresh models" },
+  "labelCustomModel": { "message": "Custom model ID" },
+  "modelSearchPlaceholder": { "message": "Search models" },
+  "modelsEmpty": { "message": "No models found." },
+  "modelsLoadError": { "message": "Could not load models. Try again or enter a custom model ID." },
+  "modelsLoading": { "message": "Loading models..." },
+  "modelsChoose": { "message": "Choose a model" },
+  "modelsMore": { "message": "Keep typing to narrow the results." },
   "extName": {
     "message": "Translate"
   },
@@ -139,9 +154,6 @@
   },
   "aiProviderOpenRouterDescription": {
     "message": "Multiple model providers through one API key"
-  },
-  "aiProviderOpenRouterModelDescription": {
-    "message": "Use Auto Router or enter any OpenRouter model ID."
   },
   "aiProviderOpenRouterName": {
     "message": "OpenRouter"
@@ -524,9 +536,6 @@
   "providerLocalOnlyNote": {
     "message": "API keys stay in local extension storage."
   },
-  "providerNotConfigured": {
-    "message": "Not configured"
-  },
   "providerSetupOpenConsole": {
     "message": "Open Console"
   },
@@ -581,11 +590,14 @@
   "siteToggleCurrentSite": {
     "message": "Current site"
   },
-  "siteToggleUnavailable": {
-    "message": "No website selected"
+  "siteToggleLocalFiles": {
+    "message": "Local files"
+  },
+  "fileAccessRequired": {
+    "message": "Allow local file access in your browser's extension details, then refresh the page."
   },
   "siteToggleUnsupported": {
-    "message": "Available on normal web pages"
+    "message": "Available on web pages and permitted local HTML files"
   },
   "titleCache": {
     "message": "Cache"

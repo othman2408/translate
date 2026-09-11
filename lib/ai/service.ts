@@ -59,10 +59,10 @@ export class AiTextActionService {
       let streamedText = false;
       const attemptOptions: AiTextActionRunOptions = {
         ...options,
-        onTextDelta: (textDelta) => {
+        onTextDelta: options.onTextDelta ? (textDelta) => {
           streamedText = true;
           options.onTextDelta?.(textDelta);
-        },
+        } : undefined,
       };
 
       try {

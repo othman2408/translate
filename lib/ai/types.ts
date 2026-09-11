@@ -43,8 +43,15 @@ export interface IAiProvider {
   readonly providerType: AiProviderType;
   readonly providerName: string;
 
+  listModels(): Promise<AiModel[]>;
+
   runTextAction(
     request: AiTextActionProviderRequest,
     options?: AiTextActionRunOptions,
   ): Promise<AiTextActionProviderResult>;
 }
+
+export type AiModel = {
+  id: string;
+  name: string;
+};

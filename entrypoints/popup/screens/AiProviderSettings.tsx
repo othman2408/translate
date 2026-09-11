@@ -1,18 +1,22 @@
 import { Button, Field, Input } from '@base-ui/react';
-import { Check, ChevronRight, ExternalLink, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 'lucide-react';
+import {
+  Check,
+  ChevronRight,
+  ExternalLink,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Star,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { t, type I18nKey } from '@/lib/i18n';
-import {
-  getAiProviderModelOptions,
-  getDefaultAiModel,
-  type AiProviderConfig,
-  type AiProviderType,
-  type ExtensionSettings,
-} from '@/lib/settings';
+import { createProviderId, type AiProviderConfig, type AiProviderType, type ExtensionSettings } from '@/lib/settings';
 
 import { ProviderLogo } from '../components/ProviderLogo';
-import { ProviderSelect } from '../components/ProviderSelect';
+import { AiModelPicker } from '../components/AiModelPicker';
 
 type AiProviderDraft = Pick<AiProviderConfig, 'type' | 'name' | 'apiKey' | 'model'>;
 
@@ -22,7 +26,6 @@ type AiProviderDefinition = {
   descriptionKey: I18nKey;
   apiKeyUrl: string;
   apiKeyPlaceholder: string;
-  acceptsCustomModel?: boolean;
 };
 
 const AI_PROVIDER_DEFINITIONS: readonly AiProviderDefinition[] = [
@@ -39,7 +42,6 @@ const AI_PROVIDER_DEFINITIONS: readonly AiProviderDefinition[] = [
     descriptionKey: 'aiProviderOpenRouterDescription',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
     apiKeyPlaceholder: 'sk-or-v1-...',
-    acceptsCustomModel: true,
   },
   {
     type: 'kimi',
@@ -59,7 +61,9 @@ export function AiProviderSettings({
 }) {
   const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(null);
   const [choosingProvider, setChoosingProvider] = useState(false);
-  const [draftProvider, setDraftProvider] = useState<AiProviderDraft>(() => createDraft('deepseek'));
+  const [draftProvider, setDraftProvider] = useState<AiProviderDraft>(() =>
+    createDraft('deepseek'),
+  );
 
   useEffect(() => {
     if (!editingProviderId || editingProviderId === 'new') {
@@ -96,13 +100,16 @@ export function AiProviderSettings({
 
   function saveProvider(): void {
     const apiKey = draftProvider.apiKey.trim();
-    if (!apiKey || !editingProviderId) {
+    if (!apiKey || !draftProvider.model.trim() || !editingProviderId) {
       return;
     }
 
-    const sameTypeCount = settings.aiProviders.filter((provider) => provider.type === draftProvider.type).length;
-    const providerName = draftProvider.name.trim() || getDefaultProviderName(draftProvider.type, sameTypeCount);
-    const model = draftProvider.model.trim() || getDefaultAiModel(draftProvider.type);
+    const sameTypeCount = settings.aiProviders.filter(
+      (provider) => provider.type === draftProvider.type,
+    ).length;
+    const providerName =
+      draftProvider.name.trim() || getDefaultProviderName(draftProvider.type, sameTypeCount);
+    const model = draftProvider.model.trim();
 
     if (editingProviderId === 'new') {
       const provider: AiProviderConfig = {
@@ -118,20 +125,21 @@ export function AiProviderSettings({
       return;
     }
 
-    const aiProviders = settings.aiProviders.map((provider) => (
+    const aiProviders = settings.aiProviders.map((provider) =>
       provider.id === editingProviderId
         ? { ...provider, name: providerName, apiKey, model }
-        : provider
-    ));
+        : provider,
+    );
     saveProviders(aiProviders, settings.defaultAiProviderId);
     cancelEditing();
   }
 
   function deleteProvider(providerId: string): void {
     const aiProviders = settings.aiProviders.filter((provider) => provider.id !== providerId);
-    const defaultAiProviderId = settings.defaultAiProviderId === providerId
-      ? aiProviders[0]?.id ?? ''
-      : settings.defaultAiProviderId;
+    const defaultAiProviderId =
+      settings.defaultAiProviderId === providerId
+        ? (aiProviders[0]?.id ?? '')
+        : settings.defaultAiProviderId;
     saveProviders(aiProviders, defaultAiProviderId);
     if (editingProviderId === providerId) {
       cancelEditing();
@@ -139,7 +147,8 @@ export function AiProviderSettings({
   }
 
   function saveProviders(aiProviders: AiProviderConfig[], defaultAiProviderId: string): void {
-    const defaultProvider = aiProviders.find((provider) => provider.id === defaultAiProviderId) ?? aiProviders[0];
+    const defaultProvider =
+      aiProviders.find((provider) => provider.id === defaultAiProviderId) ?? aiProviders[0];
     onUpdateSettings({
       ...settings,
       aiProviders,
@@ -147,7 +156,8 @@ export function AiProviderSettings({
     });
   }
 
-  const canSaveDraft = draftProvider.apiKey.trim().length > 0 && draftProvider.model.trim().length > 0;
+  const canSaveDraft =
+    draftProvider.apiKey.trim().length > 0 && draftProvider.model.trim().length > 0;
   const isIdle = editingProviderId === null && !choosingProvider;
 
   return (
@@ -170,9 +180,7 @@ export function AiProviderSettings({
         </div>
       )}
 
-      {choosingProvider && (
-        <ProviderPicker onChoose={chooseProvider} onCancel={cancelEditing} />
-      )}
+      {choosingProvider && <ProviderPicker onChoose={chooseProvider} onCancel={cancelEditing} />}
 
       {editingProviderId === 'new' && (
         <AiProviderEditor
@@ -199,10 +207,13 @@ export function AiProviderSettings({
           </Button>
         </section>
       ) : (
-        !choosingProvider && editingProviderId !== 'new' && settings.aiProviders.map((provider) => (
+        !choosingProvider &&
+        editingProviderId !== 'new' &&
+        settings.aiProviders.map((provider) =>
           editingProviderId === provider.id ? (
             <AiProviderEditor
               key={provider.id}
+              savedProvider={provider}
               draft={draftProvider}
               title={t('actionEditProvider')}
               canSave={canSaveDraft}
@@ -219,8 +230,8 @@ export function AiProviderSettings({
               onDelete={() => deleteProvider(provider.id)}
               onSetDefault={() => saveProviders(settings.aiProviders, provider.id)}
             />
-          )
-        ))
+          ),
+        )
       )}
     </div>
   );
@@ -294,7 +305,7 @@ function AiProviderCard({
         <div className="provider-card__copy">
           <span className="provider-card__eyebrow">{t(definition.nameKey)}</span>
           <h2>{provider.name}</h2>
-          <p>{getModelLabel(provider.type, provider.model)}</p>
+          <p>{provider.model}</p>
         </div>
         {isDefault && (
           <span
@@ -343,6 +354,7 @@ function AiProviderCard({
 }
 
 function AiProviderEditor({
+  savedProvider,
   draft,
   title,
   canSave,
@@ -350,6 +362,7 @@ function AiProviderEditor({
   onSave,
   onCancel,
 }: {
+  savedProvider?: AiProviderConfig;
   draft: AiProviderDraft;
   title: string;
   canSave: boolean;
@@ -358,7 +371,6 @@ function AiProviderEditor({
   onCancel: () => void;
 }) {
   const definition = getProviderDefinition(draft.type);
-  const modelOptions = getAiProviderModelOptions(draft.type);
 
   return (
     <section className="provider-card" aria-label={title}>
@@ -371,68 +383,49 @@ function AiProviderEditor({
         </div>
       </div>
 
-      <Field.Root className="provider-editor">
-        <div className="provider-editor__label-line">
-          <Field.Label className="setting-label">{t('labelApiKey')}</Field.Label>
-          <a
-            className="provider-setup-link"
-            href={definition.apiKeyUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {t('actionGetApiKey')}
-            <ExternalLink size={13} aria-hidden="true" />
-          </a>
-        </div>
-        <Input
-          className="text-input"
-          type="password"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder={definition.apiKeyPlaceholder}
-          value={draft.apiKey}
-          onValueChange={(apiKey) => onChange({ ...draft, apiKey })}
-        />
-
-        <Field.Label className="setting-label">{t('labelProviderNameOptional')}</Field.Label>
-        <Input
-          className="text-input"
-          type="text"
-          spellCheck={false}
-          placeholder={t(definition.nameKey)}
-          value={draft.name}
-          onValueChange={(name) => onChange({ ...draft, name })}
-        />
-
-        {definition.acceptsCustomModel ? (
-          <>
-            <Field.Label className="setting-label">{t('labelAiModel')}</Field.Label>
-            <Field.Description className="setting-description">
-              {t('aiProviderOpenRouterModelDescription')}
-            </Field.Description>
-            <Input
-              className="text-input"
-              type="text"
-              list="openrouter-model-options"
-              spellCheck={false}
-              value={draft.model}
-              onValueChange={(model) => onChange({ ...draft, model })}
-            />
-            <datalist id="openrouter-model-options">
-              {modelOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </datalist>
-          </>
-        ) : (
-          <ProviderSelect
-            label={t('labelAiModel')}
-            value={draft.model}
-            options={modelOptions}
-            onValueChange={(model) => onChange({ ...draft, model })}
+      <div className="provider-editor">
+        <Field.Root className="provider-editor__field">
+          <div className="provider-editor__label-line">
+            <Field.Label className="setting-label">{t('labelApiKey')}</Field.Label>
+            <a
+              className="provider-setup-link"
+              href={definition.apiKeyUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('actionGetApiKey')}
+              <ExternalLink size={13} aria-hidden="true" />
+            </a>
+          </div>
+          <Input
+            className="text-input"
+            type="password"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder={definition.apiKeyPlaceholder}
+            value={draft.apiKey}
+            onValueChange={(apiKey) => onChange({ ...draft, apiKey })}
           />
-        )}
-      </Field.Root>
+        </Field.Root>
+        <Field.Root className="provider-editor__field">
+          <Field.Label className="setting-label">{t('labelProviderNameOptional')}</Field.Label>
+          <Input
+            className="text-input"
+            type="text"
+            spellCheck={false}
+            placeholder={t(definition.nameKey)}
+            value={draft.name}
+            onValueChange={(name) => onChange({ ...draft, name })}
+          />
+        </Field.Root>
+        <AiModelPicker
+          type={draft.type}
+          apiKey={draft.apiKey}
+          value={draft.model}
+          savedProvider={savedProvider}
+          onChange={(model) => onChange({ ...draft, model })}
+        />
+      </div>
 
       <div className="provider-actions provider-actions--even">
         <Button
@@ -462,7 +455,7 @@ function createDraft(type: AiProviderType): AiProviderDraft {
     type,
     name: '',
     apiKey: '',
-    model: getDefaultAiModel(type),
+    model: '',
   };
 }
 
@@ -478,16 +471,4 @@ function toDraft(provider: AiProviderConfig): AiProviderDraft {
 function getDefaultProviderName(type: AiProviderType, sameTypeCount: number): string {
   const name = t(getProviderDefinition(type).nameKey);
   return sameTypeCount === 0 ? name : `${name} ${sameTypeCount + 1}`;
-}
-
-function getModelLabel(type: AiProviderType, model: string): string {
-  return getAiProviderModelOptions(type).find((option) => option.value === model)?.label ?? model;
-}
-
-function createProviderId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }

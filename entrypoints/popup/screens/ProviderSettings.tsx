@@ -3,7 +3,7 @@ import { Check, ExternalLink, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 
 import { useEffect, useState } from 'react';
 
 import { t } from '@/lib/i18n';
-import type { ExtensionSettings, TranslationProviderConfig } from '@/lib/settings';
+import { createProviderId, type ExtensionSettings, type TranslationProviderConfig } from '@/lib/settings';
 
 import { ProviderLogo } from '../components/ProviderLogo';
 
@@ -353,12 +353,4 @@ function getEmptyDraft(): ProviderDraft {
 
 function getDefaultProviderName(index: number): string {
   return index === 0 ? 'Google Translate' : `Google Translate ${index + 1}`;
-}
-
-function createProviderId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }

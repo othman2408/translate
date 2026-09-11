@@ -1,6 +1,7 @@
 import { browser, defineBackground } from '#imports';
 
 import { AiTextActionService } from '@/lib/ai/service';
+import { AiModelCatalog } from '@/lib/ai/model-catalog';
 import { t } from '@/lib/i18n';
 import {
   AI_ACTION_STREAM_PORT,
@@ -8,9 +9,10 @@ import {
   type AiActionResponse,
   type AiActionStreamEvent,
   type TranslationResponse,
+  type ListAiModelsResponse,
 } from '@/lib/messages';
 import { getSettings, settingsItem } from '@/lib/settings';
-import { getHttpHost, isHostDisabled } from '@/lib/sites';
+import { getSiteKey, isSiteDisabled } from '@/lib/sites';
 import { TranslationService } from '@/lib/translation/service';
 
 const CONTEXT_MENU_ID = 'translate-bubble-selection';
@@ -19,6 +21,7 @@ let contextMenuSetupPromise = Promise.resolve();
 export default defineBackground(() => {
   const translationService = new TranslationService();
   const aiTextActionService = new AiTextActionService();
+  const aiModelCatalog = new AiModelCatalog();
 
   queueContextMenuSetup();
 
@@ -112,9 +115,16 @@ export default defineBackground(() => {
     });
   });
 
-  browser.runtime.onMessage.addListener((message): Promise<AiActionResponse | TranslationResponse> | undefined => {
+  browser.runtime.onMessage.addListener((message, sender): Promise<AiActionResponse | TranslationResponse | ListAiModelsResponse> | undefined => {
     if (!isRuntimeMessage(message)) {
       return undefined;
+    }
+
+    if (message.type === 'LIST_AI_MODELS') {
+      if (sender.id !== browser.runtime.id || !sender.url?.startsWith(browser.runtime.getURL('/'))) {
+        return undefined;
+      }
+      return aiModelCatalog.list(message);
     }
 
     if (message.type === 'TRANSLATE_TEXT') {
@@ -149,13 +159,13 @@ function queueContextMenuSetup(): void {
 }
 
 async function isTabDisabled(tabUrl: string | undefined): Promise<boolean> {
-  const host = getHttpHost(tabUrl);
-  if (!host) {
-    return false;
+  const siteKey = getSiteKey(tabUrl);
+  if (!siteKey) {
+    return true;
   }
 
   const settings = await getSettings();
-  return isHostDisabled(host, settings.disabledHosts);
+  return isSiteDisabled(siteKey, settings.disabledHosts);
 }
 
 async function setupContextMenu(): Promise<void> {

@@ -4,6 +4,7 @@ import { Languages, PenLine, Settings2, Sparkles } from 'lucide-react';
 
 import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
+import { LOCAL_FILES_SITE_KEY } from '@/lib/sites';
 
 import { ManualTranslator } from '../components/ManualTranslator';
 import { NavigationList } from '../components/NavigationList';
@@ -21,22 +22,27 @@ export function HomeScreen({
 }) {
   const appVersion = browser.runtime.getManifest().version;
   const {
-    currentHost,
+    currentSiteKey,
     isCurrentSiteEnabled,
-    isLoadingHost,
+    isLoadingSite,
+    isFileAccessBlocked,
     isSiteSupported,
     updateCurrentSiteEnabled,
   } = useCurrentSiteToggle(
     settings.disabledHosts,
     (disabledHosts) => onUpdate('disabledHosts', disabledHosts),
   );
+  const isLocalFiles = currentSiteKey === LOCAL_FILES_SITE_KEY;
+  const siteLabel = isLocalFiles
+    ? t('siteToggleLocalFiles') : currentSiteKey ?? t('siteToggleCurrentSite');
+  const siteDescription = isSiteSupported ? siteLabel : t('siteToggleUnsupported');
 
   return (
     <section className="screen screen--home" aria-label={t('ariaTranslateSettings')}>
       <div className="home-brand" aria-label={t('appTitle')}>
         <img className="home-brand__logo" src="/icon/logo.svg" alt="" />
         <div className="home-status-strip" aria-label={t('groupBehavior')}>
-          {isLoadingHost ? (
+          {isLoadingSite ? (
             <span className="home-status-toggle home-status-toggle--loading" aria-hidden="true">
               <Languages size={14} />
               <span>{t('translationTitle')}</span>
@@ -48,12 +54,13 @@ export function HomeScreen({
               data-kind="translation"
               checked={isCurrentSiteEnabled}
               disabled={!isSiteSupported}
-              aria-label={isSiteSupported ? currentHost ?? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}
+              aria-label={siteLabel}
+              aria-describedby={isFileAccessBlocked ? 'file-access-note' : undefined}
               onCheckedChange={updateCurrentSiteEnabled}
-              title={isSiteSupported ? currentHost ?? t('siteToggleCurrentSite') : t('siteToggleUnsupported')}
+              title={isFileAccessBlocked ? t('fileAccessRequired') : siteDescription}
             >
-              <Languages size={14} aria-hidden="true" />
-              <span>{t('translationTitle')}</span>
+              {!isLocalFiles && <Languages size={14} aria-hidden="true" />}
+              <span>{isLocalFiles ? siteLabel : t('translationTitle')}</span>
               <span className="home-status-toggle__dot" />
             </Switch.Root>
           )}
@@ -85,6 +92,10 @@ export function HomeScreen({
           </Switch.Root>
         </div>
       </div>
+
+      {isFileAccessBlocked && (
+        <p id="file-access-note" className="quiet-note" role="status">{t('fileAccessRequired')}</p>
+      )}
 
       <ManualTranslator settings={settings} onUpdate={onUpdate} />
 

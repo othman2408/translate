@@ -1,7 +1,8 @@
-import { storage } from '#imports';
+import { browser, storage } from '#imports';
 
 import { DEFAULT_HISTORY_LIMIT, clampHistoryLimit } from './history';
 import type { AppLanguage } from './i18n';
+import { resolvePreferredLanguage } from './languages';
 import type { ThemeMode } from './theme';
 
 export type TriggerMode = 'click' | 'instant';
@@ -47,6 +48,7 @@ export type ExtensionSettings = {
   aiHistoryLimit: number;
   targetLanguage: string;
   sourceLanguage: 'auto' | string;
+  preferredLanguage: string;
   triggerMode: TriggerMode;
   popupMode: PopupMode;
   cacheEnabled: boolean;
@@ -70,31 +72,8 @@ export const RESULT_POPUP_SIZE_LIMITS = {
 
 export const DEFAULT_AI_REWRITE_PROMPT = 'Rewrite the selected text to be clearer, more natural, and polished while preserving the original meaning. Return only the rewritten text.';
 export const DEFAULT_AI_EXPLAIN_PROMPT = 'Explain the selected text clearly and briefly. Define key terms or context when useful. Return only the explanation.';
-const DEEPSEEK_MODEL_OPTIONS = [
-  { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
-  { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
-] as const;
-const OPENROUTER_MODEL_OPTIONS = [
-  { value: 'openrouter/auto', label: 'Auto Router' },
-  { value: 'openrouter/free', label: 'Free Models Router' },
-] as const;
-const KIMI_MODEL_OPTIONS = [
-  { value: 'kimi-k2.5', label: 'Kimi K2.5' },
-  { value: 'kimi-k2.6', label: 'Kimi K2.6' },
-  { value: 'kimi-k2.7-code', label: 'Kimi K2.7 Code' },
-  { value: 'kimi-k2.7-code-highspeed', label: 'Kimi K2.7 Code Highspeed' },
-  { value: 'kimi-k3', label: 'Kimi K3' },
-] as const;
-
-export type AiModelOption = { value: string; label: string };
-
-const AI_PROVIDER_MODEL_OPTIONS: Record<AiProviderType, readonly AiModelOption[]> = {
-  deepseek: DEEPSEEK_MODEL_OPTIONS,
-  openrouter: OPENROUTER_MODEL_OPTIONS,
-  kimi: KIMI_MODEL_OPTIONS,
-};
-
-const DEFAULT_AI_MODELS: Record<AiProviderType, string> = {
+// Only used to preserve the effective model of old configurations without an ID.
+const LEGACY_AI_MODELS: Record<AiProviderType, string> = {
   deepseek: 'deepseek-v4-flash',
   openrouter: 'openrouter/auto',
   kimi: 'kimi-k2.5',
@@ -105,14 +84,6 @@ const AI_PROVIDER_NAMES: Record<AiProviderType, string> = {
   openrouter: 'OpenRouter',
   kimi: 'Kimi',
 };
-
-export function getAiProviderModelOptions(type: AiProviderType): readonly AiModelOption[] {
-  return AI_PROVIDER_MODEL_OPTIONS[type];
-}
-
-export function getDefaultAiModel(type: AiProviderType): string {
-  return DEFAULT_AI_MODELS[type];
-}
 
 export function getAiProviderTypeName(type: AiProviderType): string {
   return AI_PROVIDER_NAMES[type];
@@ -135,6 +106,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   aiHistoryLimit: DEFAULT_HISTORY_LIMIT,
   targetLanguage: 'en',
   sourceLanguage: 'auto',
+  preferredLanguage: '',
   triggerMode: 'click',
   popupMode: 'bubble',
   cacheEnabled: true,
@@ -165,6 +137,7 @@ export async function getSettings(): Promise<ExtensionSettings> {
     'aiEnabled' in legacySettings
     || !settings.aiRewriteLanguage?.trim()
     || !settings.aiExplanationLanguage?.trim()
+    || !settings.preferredLanguage?.trim()
   ) {
     await settingsItem.setValue(nextSettings);
   }
@@ -183,7 +156,7 @@ export function normalizeSettings(settings: Partial<ExtensionSettings>): Extensi
   const providers = normalizeProviders(currentSettings.providers, currentSettings.apiKey);
   const defaultProviderId = getNormalizedDefaultProviderId(providers, currentSettings.defaultProviderId);
   const aiProviders = normalizeAiProviders(currentSettings.aiProviders);
-  const defaultAiProviderId = getNormalizedDefaultAiProviderId(aiProviders, currentSettings.defaultAiProviderId);
+  const defaultAiProviderId = getNormalizedDefaultProviderId(aiProviders, currentSettings.defaultAiProviderId);
   const aiRewritePrompt = currentSettings.aiRewritePrompt?.trim() || DEFAULT_AI_REWRITE_PROMPT;
   const aiRewriteLanguage = currentSettings.aiRewriteLanguage?.trim() || currentSettings.targetLanguage || DEFAULT_SETTINGS.targetLanguage;
   const aiExplainPrompt = currentSettings.aiExplainPrompt?.trim() || DEFAULT_AI_EXPLAIN_PROMPT;
@@ -192,6 +165,7 @@ export function normalizeSettings(settings: Partial<ExtensionSettings>): Extensi
   return {
     ...DEFAULT_SETTINGS,
     ...currentSettings,
+    preferredLanguage: resolvePreferredLanguage(currentSettings.preferredLanguage || getBrowserLanguage()),
     apiKey: providers.find((provider) => provider.id === defaultProviderId)?.apiKey ?? '',
     providers,
     defaultProviderId,
@@ -247,7 +221,7 @@ function normalizeProviders(
     ? providers
       .map((provider, index) => ({
         id: provider.id || createProviderId(),
-        type: provider.type === 'google-v2' ? provider.type : 'google-v2',
+        type: 'google-v2' as const,
         name: provider.name.trim() || getDefaultProviderName(index),
         apiKey: provider.apiKey.trim(),
       }))
@@ -268,7 +242,7 @@ function normalizeProviders(
 }
 
 function getNormalizedDefaultProviderId(
-  providers: TranslationProviderConfig[],
+  providers: { id: string }[],
   defaultProviderId: string | undefined,
 ): string {
   if (defaultProviderId && providers.some((provider) => provider.id === defaultProviderId)) {
@@ -296,21 +270,10 @@ function normalizeAiProviders(providers: AiProviderConfig[] | undefined): AiProv
         type,
         name: provider.name.trim() || getDefaultAiProviderName(type, typeIndex),
         apiKey: provider.apiKey.trim(),
-        model: normalizeAiModel(type, provider.model),
+        model: provider.model?.trim() || LEGACY_AI_MODELS[type],
       };
     })
     .filter((provider) => provider.apiKey.length > 0);
-}
-
-function getNormalizedDefaultAiProviderId(
-  providers: AiProviderConfig[],
-  defaultProviderId: string | undefined,
-): string {
-  if (defaultProviderId && providers.some((provider) => provider.id === defaultProviderId)) {
-    return defaultProviderId;
-  }
-
-  return providers[0]?.id ?? '';
 }
 
 function getDefaultProviderName(index: number): string {
@@ -326,17 +289,12 @@ function normalizeAiProviderType(type: AiProviderType | undefined): AiProviderTy
   return type === 'openrouter' || type === 'kimi' ? type : 'deepseek';
 }
 
-function normalizeAiModel(type: AiProviderType, model: string | undefined): string {
-  const normalizedModel = model?.trim();
-  if (type === 'openrouter' && normalizedModel) {
-    return normalizedModel;
+function getBrowserLanguage(): string {
+  try {
+    return browser.i18n.getUILanguage();
+  } catch {
+    return 'en';
   }
-
-  if (normalizedModel && getAiProviderModelOptions(type).some((option) => option.value === normalizedModel)) {
-    return normalizedModel;
-  }
-
-  return getDefaultAiModel(type);
 }
 
 function normalizeReaderModeSize(value: ReaderModeSize | undefined): ReaderModeSize {
@@ -351,7 +309,7 @@ function clampNumberMin(value: number | undefined, min: number, fallback: number
   return Math.round(Math.max(value, min));
 }
 
-function createProviderId(): string {
+export function createProviderId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
   }

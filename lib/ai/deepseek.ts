@@ -1,6 +1,7 @@
 import { createDeepSeek } from '@ai-sdk/deepseek';
 
-import { getDefaultAiModel, type AiProviderConfig } from '@/lib/settings';
+import type { AiProviderConfig } from '@/lib/settings';
+import { fetchModels } from './list-models';
 
 import { runAiSdkTextAction } from './run-text-action';
 import type {
@@ -18,11 +19,15 @@ export class DeepSeekAiProvider implements IAiProvider {
     this.providerName = config.name;
   }
 
+  listModels() {
+    return fetchModels('https://api.deepseek.com/models', this.config.apiKey);
+  }
+
   runTextAction(
     request: AiTextActionProviderRequest,
     options?: AiTextActionRunOptions,
   ): Promise<AiTextActionProviderResult> {
-    const model = this.config.model || getDefaultAiModel(this.providerType);
+    const model = this.config.model;
     const deepseek = createDeepSeek({ apiKey: this.config.apiKey });
     return runAiSdkTextAction(deepseek(model), model, request, options);
   }

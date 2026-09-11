@@ -4,6 +4,7 @@ import { trimAiHistory, trimTranslationHistory } from '@/lib/history';
 import {
   DEFAULT_SETTINGS,
   getSettings,
+  normalizeSettings,
   saveSettings,
   settingsItem,
   type ExtensionSettings,
@@ -80,7 +81,7 @@ export function useSettings() {
   }
 
   function resetSettings(): void {
-    updateSettings(DEFAULT_SETTINGS);
+    updateSettings(normalizeSettings(DEFAULT_SETTINGS));
   }
 
   return {

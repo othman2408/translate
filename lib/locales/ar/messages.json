@@ -1,4 +1,19 @@
 {
+  "labelPreferredLanguage": { "message": "اللغة المفضلة" },
+  "manualReverseDestination": { "message": "الترجمة إلى $1" },
+  "actionReadText": { "message": "قراءة النص" },
+  "actionStopReading": { "message": "إيقاف القراءة" },
+  "actionCopyText": { "message": "نسخ النص" },
+  "actionLoadModels": { "message": "تحميل النماذج" },
+  "actionCheckProviderModels": { "message": "تحقق من النماذج بمفتاح API" },
+  "actionRefreshModels": { "message": "تحديث النماذج" },
+  "labelCustomModel": { "message": "معرّف نموذج مخصص" },
+  "modelSearchPlaceholder": { "message": "البحث عن نموذج" },
+  "modelsEmpty": { "message": "لم يتم العثور على نماذج." },
+  "modelsLoadError": { "message": "تعذر تحميل النماذج. حاول مجددًا أو أدخل معرّف نموذج مخصص." },
+  "modelsLoading": { "message": "جارٍ تحميل النماذج..." },
+  "modelsChoose": { "message": "اختر نموذجًا" },
+  "modelsMore": { "message": "واصل الكتابة لتضييق النتائج." },
   "extName": {
     "message": "ترجمة"
   },
@@ -139,9 +154,6 @@
   },
   "aiProviderOpenRouterDescription": {
     "message": "مزودون ونماذج متعددة عبر مفتاح API واحد"
-  },
-  "aiProviderOpenRouterModelDescription": {
-    "message": "استخدم الموجّه التلقائي أو أدخل معرّف أي نموذج في OpenRouter."
   },
   "aiProviderOpenRouterName": {
     "message": "OpenRouter"
@@ -524,9 +536,6 @@
   "providerLocalOnlyNote": {
     "message": "تبقى مفاتيح API في التخزين المحلي للإضافة."
   },
-  "providerNotConfigured": {
-    "message": "غير معد"
-  },
   "providerSetupOpenConsole": {
     "message": "فتح وحدة التحكم"
   },
@@ -578,14 +587,17 @@
   "settingsScreenAria": {
     "message": "إعدادات $1"
   },
+  "siteToggleLocalFiles": {
+    "message": "ملفات محلية"
+  },
+  "fileAccessRequired": {
+    "message": "اسمح بالوصول إلى الملفات المحلية من تفاصيل الإضافة في المتصفح، ثم حدّث الصفحة."
+  },
   "siteToggleCurrentSite": {
     "message": "الموقع الحالي"
   },
-  "siteToggleUnavailable": {
-    "message": "لا يوجد موقع محدد"
-  },
   "siteToggleUnsupported": {
-    "message": "متاح في صفحات الويب العادية"
+    "message": "متاح في صفحات الويب وملفات HTML المحلية المسموح بها"
   },
   "titleCache": {
     "message": "التخزين المؤقت"

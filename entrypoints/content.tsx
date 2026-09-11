@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/settings';
 import { createContentOverlayController } from './content/controller';
 
 export default defineContentScript({
-  matches: ['http://*/*', 'https://*/*'],
+  matches: ['http://*/*', 'https://*/*', 'file:///*'],
   async main(ctx) {
     let entrypointActive = true;
     ctx.onInvalidated(() => {

@@ -31,6 +31,7 @@ export default defineConfig({
       'https://api.deepseek.com/*',
       'https://openrouter.ai/api/*',
       'https://api.moonshot.ai/*',
+      'https://models.dev/api.json',
     ],
     action: {
       default_title: '__MSG_extName__',

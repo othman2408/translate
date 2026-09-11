@@ -31,6 +31,13 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export const TARGET_LANGUAGE_OPTIONS = LANGUAGE_OPTIONS.filter((language) => language.code !== 'auto');
 
+export function resolvePreferredLanguage(locale: string): string {
+  const normalized = locale.replaceAll('_', '-').toLowerCase();
+  return TARGET_LANGUAGE_OPTIONS.find((option) => option.code.toLowerCase() === normalized)?.code
+    ?? TARGET_LANGUAGE_OPTIONS.find((option) => option.code.toLowerCase() === normalized.split('-')[0])?.code
+    ?? 'en';
+}
+
 export function localizeLanguageOptions(
   options: LanguageOption[],
   appLanguage?: AppLanguage,

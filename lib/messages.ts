@@ -1,4 +1,5 @@
-import type { ExtensionSettings } from './settings';
+import type { AiModel } from './ai/types';
+import type { AiProviderType, ExtensionSettings } from './settings';
 
 export type TranslationErrorCode =
   | 'missing-api-key'
@@ -62,11 +63,23 @@ export type RunAiActionMessage = {
 };
 
 export type RuntimeMessage =
+  | ListAiModelsMessage
   | TranslateTextMessage
   | ShowContextTranslationMessage
   | RunSelectionActionMessage
   | GetSelectedTextMessage
   | RunAiActionMessage;
+
+export type ListAiModelsMessage = {
+  type: 'LIST_AI_MODELS';
+  refresh?: boolean;
+} & (
+  | { providerType: AiProviderType }
+  | { providerId: string }
+  | { credentials: { type: AiProviderType; apiKey: string } }
+);
+
+export type ListAiModelsResponse = { ok: true; models: AiModel[] } | AiActionFailure;
 
 export type TranslationSuccess = {
   ok: true;
@@ -113,16 +126,62 @@ export type AiActionStreamEvent =
   | { type: 'AI_ACTION_COMPLETE'; response: AiActionResponse };
 
 export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'type' in value &&
-    (
-      value.type === 'TRANSLATE_TEXT' ||
-      value.type === 'SHOW_CONTEXT_TRANSLATION' ||
-      value.type === 'RUN_SELECTION_ACTION' ||
-      value.type === 'GET_SELECTED_TEXT' ||
-      value.type === 'RUN_AI_ACTION'
-    )
-  );
+  if (!isRecord(value)) return false;
+
+  switch (value.type) {
+    case 'GET_SELECTED_TEXT':
+      return true;
+    case 'SHOW_CONTEXT_TRANSLATION':
+      return typeof value.text === 'string';
+    case 'RUN_SELECTION_ACTION':
+      return value.action === 'translate' || isAiAction(value.action);
+    case 'TRANSLATE_TEXT':
+      return typeof value.text === 'string'
+        && isOptionalString(value.sourceLanguage)
+        && isOptionalString(value.targetLanguage)
+        && isOptionalString(value.providerId)
+        && isOptionalBoolean(value.recordHistory);
+    case 'RUN_AI_ACTION':
+      return isAiAction(value.action)
+        && typeof value.text === 'string'
+        && isOptionalString(value.prompt)
+        && isOptionalString(value.language)
+        && isOptionalString(value.providerId)
+        && isOptionalBoolean(value.recordHistory);
+    case 'LIST_AI_MODELS': {
+      if (!isOptionalBoolean(value.refresh)) return false;
+      if ('providerType' in value) {
+        return isAiProviderType(value.providerType) && !('providerId' in value) && !('credentials' in value);
+      }
+      if ('providerId' in value) {
+        return typeof value.providerId === 'string' && !('credentials' in value);
+      }
+      const credentials = value.credentials;
+      return isRecord(credentials)
+        && typeof credentials.apiKey === 'string'
+        && isAiProviderType(credentials.type);
+    }
+    default:
+      return false;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isAiProviderType(value: unknown): value is AiProviderType {
+  return value === 'deepseek' || value === 'openrouter' || value === 'kimi';
+}
+
+function isAiAction(value: unknown): value is AiActionType {
+  return value === 'rewrite' || value === 'explain';
+}
+
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string';
+}
+
+function isOptionalBoolean(value: unknown): boolean {
+  return value === undefined || typeof value === 'boolean';
 }

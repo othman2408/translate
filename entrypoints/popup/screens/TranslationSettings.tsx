@@ -40,6 +40,12 @@ export function TranslationSettings({
           options={targetLanguageOptions}
           onValueChange={(value) => onUpdate('targetLanguage', value)}
         />
+        <SettingSelect
+          label={t('labelPreferredLanguage')}
+          value={settings.preferredLanguage}
+          options={targetLanguageOptions}
+          onValueChange={(value) => onUpdate('preferredLanguage', value)}
+        />
       </GroupedSection>
 
       <p className="quiet-note">

@@ -1,6 +1,7 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
-import { getDefaultAiModel, type AiProviderConfig } from '@/lib/settings';
+import type { AiProviderConfig } from '@/lib/settings';
+import { fetchModels } from './list-models';
 
 import { runAiSdkTextAction } from './run-text-action';
 import type {
@@ -18,11 +19,15 @@ export class OpenRouterAiProvider implements IAiProvider {
     this.providerName = config.name;
   }
 
+  listModels() {
+    return fetchModels('https://openrouter.ai/api/v1/models', this.config.apiKey);
+  }
+
   runTextAction(
     request: AiTextActionProviderRequest,
     options?: AiTextActionRunOptions,
   ): Promise<AiTextActionProviderResult> {
-    const model = this.config.model || getDefaultAiModel(this.providerType);
+    const model = this.config.model;
     const openrouter = createOpenRouter({
       apiKey: this.config.apiKey,
       appName: 'Translate Bubble',
