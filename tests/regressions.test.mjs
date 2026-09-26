@@ -567,3 +567,16 @@ test('toolbar reader requests render the existing reader immediately, including 
     else globalThis.window = previousWindow;
   }
 });
+
+test('missing-key prompts offer localized settings actions for translation and AI providers', async () => {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { ProviderSetupPrompt } = await import('../lib/components/ProviderSetupPrompt');
+  const translation = renderToStaticMarkup(createElement(ProviderSetupPrompt, { ai: false, appLanguage: 'en' }));
+  expect(translation).toContain('Connect translation');
+  expect(translation).toContain('Google Cloud Translation');
+  expect(translation).toContain('Open API key settings');
+  const ai = renderToStaticMarkup(createElement(ProviderSetupPrompt, { ai: true, appLanguage: 'ar' }));
+  expect(ai).toContain('إعداد مزوّد الذكاء الاصطناعي');
+  expect(ai).not.toContain('Google Cloud');
+});

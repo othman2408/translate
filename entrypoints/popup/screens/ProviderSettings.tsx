@@ -18,7 +18,7 @@ export function ProviderSettings({
   settings: ExtensionSettings;
   onUpdateSettings: (settings: ExtensionSettings) => void;
 }) {
-  const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(null);
+  const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(() => location.hash === '#translation-providers' ? settings.defaultProviderId || settings.providers[0]?.id || 'new' : null);
   const [draftProvider, setDraftProvider] = useState<ProviderDraft>(getEmptyDraft());
 
   useEffect(() => {

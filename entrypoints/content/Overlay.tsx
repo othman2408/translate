@@ -1,3 +1,4 @@
+import { ProviderSetupPrompt } from '@/lib/components/ProviderSetupPrompt';
 import { ReaderPanel } from '@/lib/components/ReaderTools';
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import {
@@ -97,6 +98,8 @@ export function TranslateOverlay({
     [resultLanguage, resultLanguageCode, resultText],
   );
   const errorText = getOverlayErrorText(state);
+  const errorResponse = isAiAction ? state.ai : state.translation;
+  const needsProviderSetup = errorResponse?.ok === false && errorResponse.error.code === 'missing-api-key';
   const errorDirection = getTextDirection(errorText, 'en');
   const speech = useTextToSpeech();
   const showRewriteAction = state.settings.aiRewriteEnabled;
@@ -322,13 +325,13 @@ export function TranslateOverlay({
       )}
 
       {state.status === 'error' && errorText && (
-        <div className="translation-card__body translation-card__body--center">
-          <div className="translation-card__error">
+        <div className={`translation-card__body translation-card__body--center${needsProviderSetup ? ' translation-card__body--setup' : ''}`}>
+          {needsProviderSetup ? <ProviderSetupPrompt ai={isAiAction} appLanguage={state.settings.appLanguage} /> : <div className="translation-card__error">
             <AlertCircle size={18} />
             <p dir={errorDirection} lang="en" style={{ textAlign: getTextAlign(errorDirection) }}>
               {errorText}
             </p>
-          </div>
+          </div>}
         </div>
       )}
     </FloatingPopup>

@@ -4,6 +4,8 @@ import { isRuntimeMessage } from '../lib/messages';
 test('runtime messages accept all supported actions and optional fields', () => {
   for (const message of [
     { type: 'GET_SELECTED_TEXT' },
+    { type: 'OPEN_PROVIDER_SETTINGS', provider: 'translation' },
+    { type: 'OPEN_PROVIDER_SETTINGS', provider: 'ai' },
     { type: 'SHOW_TRANSLATION_READER', text: 'Hello', sourceLanguage: 'en', targetLanguage: 'ar' },
     { type: 'SHOW_CONTEXT_TRANSLATION', text: 'Hello' },
     { type: 'RUN_SELECTION_ACTION', action: 'translate' },
@@ -23,6 +25,8 @@ test('runtime messages reject malformed payloads before service dispatch', () =>
   for (const message of [
     null, undefined, [], 'TRANSLATE_TEXT', {}, { type: 'UNKNOWN' },
     { type: 'TRANSLATE_TEXT' },
+    { type: 'OPEN_PROVIDER_SETTINGS', provider: 'https://example.com' },
+    { type: 'OPEN_PROVIDER_SETTINGS' },
     { type: 'SHOW_TRANSLATION_READER', text: '', sourceLanguage: 'en', targetLanguage: 'ar' },
     { type: 'SHOW_TRANSLATION_READER', text: 'x'.repeat(15001), sourceLanguage: 'en', targetLanguage: 'ar' },
     { type: 'SHOW_TRANSLATION_READER', text: 'Hello', sourceLanguage: 'en', targetLanguage: 'ar', response: { ok: true } },

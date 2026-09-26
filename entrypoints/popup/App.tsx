@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion
 
 import { getUiDirection, getUiLanguage, setActiveAppLanguage, t } from '@/lib/i18n';
 
-import { useSettings } from './hooks/useSettings';
+import { useSettings } from '@/lib/hooks/useSettings';
 import { HomeScreen } from './screens/HomeScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { CacheScreen } from './screens/CacheScreen';
@@ -44,7 +44,7 @@ function clearRestingTransform(
 }
 
 function App() {
-  const [screen, setScreen] = useState<Screen>('home');
+  const [screen, setScreen] = useState<Screen>(() => location.hash === '#translation-providers' ? 'translation-providers' : location.hash === '#ai-providers' ? 'ai-providers' : 'home');
   const [direction, setDirection] = useState<NavigationDirection>('forward');
   const {
     loaded,
@@ -144,6 +144,7 @@ function App() {
   );
 
   function renderScreen(screenName: Screen) {
+    if (!loaded) return null;
     if (screenName === 'home') {
       return (
         <HomeScreen

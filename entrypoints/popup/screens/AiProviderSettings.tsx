@@ -59,8 +59,8 @@ export function AiProviderSettings({
   settings: ExtensionSettings;
   onUpdateSettings: (settings: ExtensionSettings) => void;
 }) {
-  const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(null);
-  const [choosingProvider, setChoosingProvider] = useState(false);
+  const [editingProviderId, setEditingProviderId] = useState<string | 'new' | null>(() => location.hash === '#ai-providers' ? settings.defaultAiProviderId || settings.aiProviders[0]?.id || null : null);
+  const [choosingProvider, setChoosingProvider] = useState(location.hash === '#ai-providers' && settings.aiProviders.length === 0);
   const [draftProvider, setDraftProvider] = useState<AiProviderDraft>(() =>
     createDraft('deepseek'),
   );

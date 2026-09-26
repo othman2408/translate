@@ -304,6 +304,17 @@ export const overlayCss = `
     align-items: flex-start;
   }
 
+  .translation-card__body--setup { align-items: center; justify-content: center; }
+  .provider-setup { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 340px; margin: auto; padding: 20px 12px; text-align: center; }
+  .provider-setup__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--translate-hover); color: var(--translate-blue); }
+  .provider-setup h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--translate-text); }
+  .provider-setup p { margin: 0; color: var(--translate-muted); font-size: 13px; line-height: 1.6; }
+  .provider-setup button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: 0; border-radius: 8px; background: var(--translate-blue); color: white; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .provider-setup button:disabled { opacity: .6; cursor: default; }
+  .provider-setup button:focus-visible { outline: 2px solid var(--translate-blue); outline-offset: 3px; }
+  .provider-setup small { color: var(--translate-muted); font-size: 11px; line-height: 1.5; }
+  .provider-setup [role="alert"] { color: var(--translate-error); }
+
   .translation-card__body--result {
     display: flex;
     flex-direction: column;

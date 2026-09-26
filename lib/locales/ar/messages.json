@@ -692,5 +692,12 @@
   "alternativesClose": {"message": "إغلاق البدائل"},
   "alternativesInvalidResponse": {"message": "لم يُرجع مزوّد الذكاء الاصطناعي بدائل صالحة. حاول مجددًا."},
   "alternativesCopied": {"message": "تم نسخ البديل."},
-  "alternativesCopyFailed": {"message": "تعذّر النسخ. حدد البديل وانسخه يدويًا."}
+  "alternativesCopyFailed": {"message": "تعذّر النسخ. حدد البديل وانسخه يدويًا."},
+  "setupTranslationTitle": {"message": "إعداد الترجمة"},
+  "setupAiTitle": {"message": "إعداد مزوّد الذكاء الاصطناعي"},
+  "setupTranslationDescription": {"message": "أضف مفتاح واجهة Google Cloud Translation لبدء الترجمة."},
+  "setupAiDescription": {"message": "أضف مفتاح واجهة مزوّد الذكاء الاصطناعي المفضل لديك للبدء."},
+  "setupOpenSettings": {"message": "فتح إعدادات مفتاح الواجهة"},
+  "setupReturnHint": {"message": "احفظ المفتاح، ثم عد إلى هنا وترجم مجددًا."},
+  "setupOpenFailed": {"message": "تعذّر فتح الإعدادات. افتح الإضافة من شريط الأدوات وانتقل إلى إعدادات المزوّدين."}
 }

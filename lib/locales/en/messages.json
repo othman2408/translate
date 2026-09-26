@@ -692,5 +692,12 @@
   "alternativesClose": {"message": "Close alternatives"},
   "alternativesInvalidResponse": {"message": "The AI provider returned no usable alternatives. Try again."},
   "alternativesCopied": {"message": "Alternative copied."},
-  "alternativesCopyFailed": {"message": "Could not copy. Select the alternative and copy it manually."}
+  "alternativesCopyFailed": {"message": "Could not copy. Select the alternative and copy it manually."},
+  "setupTranslationTitle": {"message": "Connect translation"},
+  "setupAiTitle": {"message": "Connect an AI provider"},
+  "setupTranslationDescription": {"message": "Add your Google Cloud Translation API key to start translating."},
+  "setupAiDescription": {"message": "Add an API key for your preferred AI provider to get started."},
+  "setupOpenSettings": {"message": "Open API key settings"},
+  "setupReturnHint": {"message": "Save your key, then return here and translate again."},
+  "setupOpenFailed": {"message": "Could not open settings. Open the extension toolbar and go to Settings → Providers."}
 }

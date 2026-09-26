@@ -78,7 +78,10 @@ export type ShowTranslationReaderMessage = {
   response?: TranslationSuccess;
 };
 
+export type OpenProviderSettingsMessage = { type: 'OPEN_PROVIDER_SETTINGS'; provider: 'translation' | 'ai' };
+
 export type RuntimeMessage =
+  | OpenProviderSettingsMessage
   | ShowTranslationReaderMessage
   | TranslationAlternativesMessage
   | ListAiModelsMessage
@@ -147,6 +150,8 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   if (!isRecord(value)) return false;
 
   switch (value.type) {
+    case 'OPEN_PROVIDER_SETTINGS':
+      return value.provider === 'translation' || value.provider === 'ai';
     case 'SHOW_TRANSLATION_READER':
       return typeof value.text === 'string' && Boolean(value.text.trim()) && value.text.length <= TEXT_INPUT_MAX_LENGTH
         && typeof value.sourceLanguage === 'string' && typeof value.targetLanguage === 'string'

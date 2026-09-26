@@ -118,9 +118,16 @@ export default defineBackground(() => {
     });
   });
 
-  browser.runtime.onMessage.addListener((message, sender): Promise<TranslationAlternativesResponse | AiActionResponse | TranslationResponse | ListAiModelsResponse> | undefined => {
+  browser.runtime.onMessage.addListener((message, sender): Promise<{ ok: boolean } | TranslationAlternativesResponse | AiActionResponse | TranslationResponse | ListAiModelsResponse> | undefined => {
     if (!isRuntimeMessage(message)) {
       return undefined;
+    }
+
+    if (message.type === 'OPEN_PROVIDER_SETTINGS') {
+      return browser.windows.create({
+        url: browser.runtime.getURL(`/popup.html?settings-window#${message.provider}-providers`),
+        type: 'popup', width: 420, height: 650,
+      }).then(() => ({ ok: true })).catch(() => ({ ok: false }));
     }
 
     if (message.type === 'LIST_AI_MODELS') {
