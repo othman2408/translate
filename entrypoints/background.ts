@@ -3,6 +3,7 @@ import { browser, defineBackground } from '#imports';
 import { TranslationAlternativesService } from '@/lib/ai/alternatives';
 import { AiTextActionService } from '@/lib/ai/service';
 import { AiModelCatalog } from '@/lib/ai/model-catalog';
+import { testProviderConnection } from '@/lib/provider-connection';
 import { t } from '@/lib/i18n';
 import {
   AI_ACTION_STREAM_PORT,
@@ -128,6 +129,11 @@ export default defineBackground(() => {
         url: browser.runtime.getURL(`/popup.html?settings-window#${message.provider}-providers`),
         type: 'popup', width: 420, height: 650,
       }).then(() => ({ ok: true })).catch(() => ({ ok: false }));
+    }
+
+    if (message.type === 'TEST_PROVIDER_CONNECTION') {
+      if (sender.id !== browser.runtime.id || !sender.url?.startsWith(browser.runtime.getURL('/'))) return undefined;
+      return getSettings().then((settings) => testProviderConnection(message.credentials, settings.appLanguage));
     }
 
     if (message.type === 'LIST_AI_MODELS') {

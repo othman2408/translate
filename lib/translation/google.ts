@@ -56,6 +56,7 @@ export class GoogleTranslationProvider implements ITranslationProvider {
     try {
       response = await fetch(`${GOOGLE_TRANSLATE_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
         method: 'POST',
+        signal: request.abortSignal,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         },

@@ -580,3 +580,27 @@ test('missing-key prompts offer localized settings actions for translation and A
   expect(ai).toContain('إعداد مزوّد الذكاء الاصطناعي');
   expect(ai).not.toContain('Google Cloud');
 });
+
+test('draft connection test uses supplied credentials without persistence and localizes failures', async () => {
+  const { testProviderConnection } = await import('../lib/provider-connection');
+  const previousFetch = globalThis.fetch;
+  const before = new Map(values);
+  try {
+    let calls = 0;
+    globalThis.fetch = async (url, options) => {
+      calls++;
+      expect(String(url)).toContain('key=draft-test');
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(new URLSearchParams(options.body).get('q')).toBe('Hello');
+      return new Response(JSON.stringify({ data: { translations: [{ translatedText: 'مرحبا' }] } }));
+    };
+    expect(await testProviderConnection({ type: 'google-v2', apiKey: 'draft-test' }, 'en')).toEqual({ ok: true });
+    expect(calls).toBe(1);
+    expect(values).toEqual(before);
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: { message: 'private-provider-detail' } }), { status: 403 });
+    const failure = await testProviderConnection({ type: 'google-v2', apiKey: 'draft-test' }, 'en');
+    expect(failure.ok).toBe(false);
+    expect(failure.error.code).toBe('auth');
+    expect(failure.error.message).not.toContain('private-provider-detail');
+  } finally { globalThis.fetch = previousFetch; }
+});

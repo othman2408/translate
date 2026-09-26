@@ -3,6 +3,7 @@ import type { TranslationErrorCode } from '@/lib/messages';
 import type { ProviderType } from '@/lib/settings';
 
 export type TranslationProviderRequest = {
+  abortSignal?: AbortSignal;
   text: string;
   sourceLanguage: 'auto' | string;
   targetLanguage: string;

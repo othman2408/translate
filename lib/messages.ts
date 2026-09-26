@@ -80,7 +80,11 @@ export type ShowTranslationReaderMessage = {
 
 export type OpenProviderSettingsMessage = { type: 'OPEN_PROVIDER_SETTINGS'; provider: 'translation' | 'ai' };
 
+export type ProviderTestCredentials = { type: 'google-v2'; apiKey: string } | { type: AiProviderType; apiKey: string; model: string };
+export type ProviderTestResponse = { ok: true } | AiActionFailure;
+
 export type RuntimeMessage =
+  | { type: 'TEST_PROVIDER_CONNECTION'; credentials: ProviderTestCredentials }
   | OpenProviderSettingsMessage
   | ShowTranslationReaderMessage
   | TranslationAlternativesMessage
@@ -150,6 +154,11 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   if (!isRecord(value)) return false;
 
   switch (value.type) {
+    case 'TEST_PROVIDER_CONNECTION': {
+      const c = value.credentials;
+      return isRecord(c) && typeof c.apiKey === 'string' && Boolean(c.apiKey.trim())
+        && (c.type === 'google-v2' || (isAiProviderType(c.type) && typeof c.model === 'string' && Boolean(c.model.trim())));
+    }
     case 'OPEN_PROVIDER_SETTINGS':
       return value.provider === 'translation' || value.provider === 'ai';
     case 'SHOW_TRANSLATION_READER':
