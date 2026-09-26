@@ -1,3 +1,5 @@
+import './schema-runtime';
+
 import { createMoonshotAI } from '@ai-sdk/moonshotai';
 
 import type { AiProviderConfig } from '@/lib/settings';

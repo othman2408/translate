@@ -1,3 +1,5 @@
+import './schema-runtime';
+
 import { createDeepSeek } from '@ai-sdk/deepseek';
 
 import type { AiProviderConfig } from '@/lib/settings';

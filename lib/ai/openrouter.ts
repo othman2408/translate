@@ -1,3 +1,5 @@
+import './schema-runtime';
+
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 import type { AiProviderConfig } from '@/lib/settings';

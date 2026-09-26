@@ -1,3 +1,5 @@
+import './schema-runtime';
+
 import { APICallError, streamText, type LanguageModel } from 'ai';
 
 import {
