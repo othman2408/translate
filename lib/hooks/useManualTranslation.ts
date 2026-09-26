@@ -1,3 +1,4 @@
+import { TEXT_INPUT_MAX_LENGTH } from '@/lib/text-limits';
 import { browser } from '#imports';
 import { useEffect, useRef, useState } from 'react';
 
@@ -5,25 +6,15 @@ import { t } from '@/lib/i18n';
 import type { GetSelectedTextResponse, TranslationResponse } from '@/lib/messages';
 import type { ExtensionSettings } from '@/lib/settings';
 
-export type TranslationSide = 'source' | 'target';
-export const MANUAL_TRANSLATION_MAX_LENGTH = 5000;
+import { getManualLanguages, getManualRequestKey, type TranslationDraft, type TranslationSide } from '@/lib/translation-draft';
 
-export function getManualLanguages(side: TranslationSide, settings: ExtensionSettings) {
-  return side === 'source'
-    ? { sourceLanguage: settings.sourceLanguage, targetLanguage: settings.targetLanguage }
-    : {
-        sourceLanguage: settings.targetLanguage,
-        targetLanguage:
-          settings.sourceLanguage === 'auto' ? settings.preferredLanguage : settings.sourceLanguage,
-      };
-}
-
-export function useManualTranslation(settings: ExtensionSettings) {
-  const [texts, setTexts] = useState({ source: '', target: '' });
+export function useManualTranslation(settings: ExtensionSettings, initialDraft?: TranslationDraft, readSelection = true) {
+  const [texts, setTexts] = useState(initialDraft?.texts ?? { source: '', target: '' });
   // Only a user edit changes this input; returned translations never do.
-  const [edit, setEdit] = useState({ side: 'source' as TranslationSide, text: '' });
-  const [response, setResponse] = useState<TranslationResponse | null>(null);
+  const [edit, setEdit] = useState(initialDraft?.edit ?? { side: 'source' as TranslationSide, text: '' });
+  const [response, setResponse] = useState<TranslationResponse | null>(initialDraft?.response ?? null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectionLoading, setSelectionLoading] = useState(readSelection && !initialDraft);
   const [isComposing, setIsComposing] = useState(false);
   const requestIdRef = useRef(0);
   const userEditedRef = useRef(false);
@@ -36,18 +27,23 @@ export function useManualTranslation(settings: ExtensionSettings) {
   ]);
 
   useEffect(() => {
+    if (!readSelection || initialDraft) return;
     let active = true;
     selectionRef.current ??= getActiveTabSelection();
     void selectionRef.current.then((selection) => {
-      if (!active || !selection || userEditedRef.current) return;
-      const text = selection.slice(0, MANUAL_TRANSLATION_MAX_LENGTH);
+      if (!active) return;
+      setSelectionLoading(false);
+      if (!selection || userEditedRef.current) return;
+      const text = selection.slice(0, TEXT_INPUT_MAX_LENGTH);
       setTexts({ source: text, target: '' });
       setEdit({ side: 'source', text });
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [readSelection, initialDraft]);
+
+  const requestKey = getManualRequestKey(edit, settings);
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
@@ -63,6 +59,11 @@ export function useManualTranslation(settings: ExtensionSettings) {
       setIsLoading(false);
       if (result.ok) setTexts((current) => ({ ...current, [opposite]: result.translatedText }));
     };
+
+    if (initialDraft?.response?.ok && initialDraft.requestKey === requestKey) {
+      accept(initialDraft.response);
+      return;
+    }
 
     if (languages.sourceLanguage === languages.targetLanguage) {
       accept({
@@ -110,12 +111,14 @@ export function useManualTranslation(settings: ExtensionSettings) {
     languages.targetLanguage,
     providerKey,
     settings.appLanguage,
+    initialDraft,
+    requestKey,
   ]);
 
   function updateText(side: TranslationSide, value: string) {
     userEditedRef.current = true;
     ++requestIdRef.current;
-    const text = value.slice(0, MANUAL_TRANSLATION_MAX_LENGTH);
+    const text = value.slice(0, TEXT_INPUT_MAX_LENGTH);
     setTexts(side === 'source' ? { source: text, target: '' } : { source: '', target: text });
     setResponse(null);
     setIsLoading(Boolean(text.trim()) && !isComposing);
@@ -137,9 +140,11 @@ export function useManualTranslation(settings: ExtensionSettings) {
     sourceLanguage,
     editedSide: edit.side,
     isLoading,
+    selectionLoading,
     response,
     updateText,
     setComposing,
+    draft: { texts, edit, response, requestKey } satisfies TranslationDraft,
   };
 }
 

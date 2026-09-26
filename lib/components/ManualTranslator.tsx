@@ -1,6 +1,9 @@
 import { Select } from '@base-ui/react';
 import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { openTranslationReader } from '@/lib/reader-handoff';
+import type { TranslationDraft } from '@/lib/translation-draft';
 
 import { t } from '@/lib/i18n';
 import {
@@ -9,23 +12,31 @@ import {
   getLanguageName,
   localizeLanguageOptions,
 } from '@/lib/languages';
-import type { ExtensionSettings } from '@/lib/settings';
+import type { ExtensionSettings, SettingUpdateHandler } from '@/lib/settings';
 import { useTextToSpeech } from '@/lib/use-text-to-speech';
 
 import { useManualTranslation } from '../hooks/useManualTranslation';
-import type { SettingUpdateHandler } from '../types';
 import { TranslationTextPanel } from './TranslationTextPanel';
 
 export function ManualTranslator({
   settings,
   onUpdate,
+  expanded = false,
+  initialDraft,
+  onDraftChange,
 }: {
   settings: ExtensionSettings;
+  expanded?: boolean;
+  initialDraft?: TranslationDraft;
+  onDraftChange?: (draft: TranslationDraft) => void;
   onUpdate: SettingUpdateHandler;
 }) {
-  const translator = useManualTranslation(settings);
+  const translator = useManualTranslation(settings, initialDraft, !expanded);
+  const [opening, setOpening] = useState(false);
+  const [openError, setOpenError] = useState(false);
   const { texts, sourceLanguage, editedSide, response, isLoading } = translator;
   const speech = useTextToSpeech();
+  useEffect(() => { onDraftChange?.(translator.draft); }, [onDraftChange, texts, translator.draft.edit, response, translator.draft.requestKey]);
   const sourceOptions = useMemo(
     () => localizeLanguageOptions(LANGUAGE_OPTIONS, settings.appLanguage),
     [settings.appLanguage],
@@ -39,8 +50,21 @@ export function ManualTranslator({
     speech.stop();
   }, [speech.stop, texts.source, texts.target, sourceLanguage, settings.targetLanguage]);
 
+  const readerAction = {
+    onExpand: expanded ? undefined : () => {
+      setOpening(true);
+      setOpenError(false);
+      void openTranslationReader(translator.draft, settings)
+        .then(() => window.close())
+        .catch(() => { setOpenError(true); setOpening(false); });
+    },
+    expandDisabled: opening || translator.selectionLoading || !translator.draft.edit.text.trim(),
+  };
+
   let statusMessage = '';
-  if (response?.ok === false) {
+  if (openError) {
+    statusMessage = t('errorOpenExpanded');
+  } else if (response?.ok === false) {
     statusMessage = response.error.message;
   } else if (isLoading) {
     statusMessage = t('manualTranslating');
@@ -49,7 +73,7 @@ export function ManualTranslator({
   }
 
   return (
-    <section className="manual-translator" aria-label={t('manualTranslatorTitle')}>
+    <section className={`manual-translator${expanded ? ' manual-translator--expanded' : ''}`} aria-label={t('manualTranslatorTitle')}>
       <div className="manual-translator__bar">
         <div className="manual-language-control">
           <LanguageMiniSelect
@@ -74,38 +98,44 @@ export function ManualTranslator({
           onValueChange={(value) => onUpdate('targetLanguage', value)}
         />
       </div>
-      <TranslationTextPanel
-        label={t('labelOriginal')}
-        text={texts.source}
-        language={sourceLanguage}
-        loading={isLoading && editedSide === 'target'}
-        reading={speech.activeTarget === 'original'}
-        onRead={
-          speech.isSupported
-            ? () => speech.toggle('original', texts.source, sourceLanguage)
-            : undefined
-        }
-        onChange={(text) => translator.updateText('source', text)}
-        onCompositionChange={translator.setComposing}
-      />
-      <TranslationTextPanel
-        label={t('manualTranslationLabel')}
-        text={texts.target}
-        language={settings.targetLanguage}
-        loading={isLoading && editedSide === 'source'}
-        reading={speech.activeTarget === 'result'}
-        onRead={
-          speech.isSupported
-            ? () => speech.toggle('result', texts.target, settings.targetLanguage)
-            : undefined
-        }
-        onChange={(text) => translator.updateText('target', text)}
-        onCompositionChange={translator.setComposing}
-      />
+      <div className="reader-panels">
+        <TranslationTextPanel
+          {...readerAction}
+          panelId="original"
+          label={t('labelOriginal')}
+          text={texts.source}
+          language={sourceLanguage}
+          loading={isLoading && editedSide === 'target'}
+          reading={speech.activeTarget === 'original'}
+          onRead={
+            speech.isSupported
+              ? () => speech.toggle('original', texts.source, sourceLanguage)
+              : undefined
+          }
+          onChange={(text) => translator.updateText('source', text)}
+          onCompositionChange={translator.setComposing}
+        />
+        <TranslationTextPanel
+          {...readerAction}
+          panelId="translation"
+          label={t('manualTranslationLabel')}
+          text={texts.target}
+          language={settings.targetLanguage}
+          loading={isLoading && editedSide === 'source'}
+          reading={speech.activeTarget === 'result'}
+          onRead={
+            speech.isSupported
+              ? () => speech.toggle('result', texts.target, settings.targetLanguage)
+              : undefined
+          }
+          onChange={(text) => translator.updateText('target', text)}
+          onCompositionChange={translator.setComposing}
+        />
+      </div>
       <div
         className="manual-translator__status"
-        role="status"
-        data-error={response?.ok === false || undefined}
+        role={openError ? 'alert' : 'status'}
+        data-error={openError || response?.ok === false || undefined}
       >
         {statusMessage}
       </div>

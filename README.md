@@ -36,11 +36,54 @@ content. Browser PDF viewers and other restricted browser pages are not supporte
 ## Checks
 
 ```powershell
-bunx tsc --noEmit
+bun run typecheck
 bun test
 bun run build
 bun run build:firefox
 ```
+
+## Expanded translation view
+
+Use the **expand icon** beside the voice, copy, and clear controls to open the existing
+reader overlay on the current webpage with the current text and completed
+translation. It uses the same reader as selected-text translation, including copy,
+read-aloud, search and alternatives. Pending requests complete in the overlay.
+Pasted text and page selections support up to 15,000 characters.
+
+In **Settings → Interaction → Expanded view layout**, choose **Top and bottom** or
+**Side by side**. The existing page-coverage setting applies to the reader.
+Reader headers also offer layout switches for the current view without changing
+the saved preference.
+Narrow readers stack the panels automatically without changing the saved choice.
+
+Expanded readers include **linked scrolling**, enabled by default. The chain
+button toggles proportional scrolling between the two panels; it follows reading
+progress rather than matching individual sentences.
+
+Use **Find in both panels** (or Ctrl/Cmd+F while focused in the reader) to highlight
+literal, case-insensitive matches. Enter/Shift+Enter and the arrow buttons cycle
+through matches across both panels. Escape clears the search first; another
+Escape collapses the page overlay. Search temporarily shows a read-only text
+preview, including plain source text for Markdown results. Clearing it restores
+the normal reader without changing the text or requesting a translation.
+
+Select a translated word or phrase (up to 500 characters) and choose **Show
+alternatives** in the expanded reader. Click a word or drag across words in the translated panel. The configured
+AI provider returns up to three suggestions with brief definitions or explanations
+in the app language. Copy a suggestion to use it; the translation stays unchanged.
+This feature works independently of the Rewrite and Explain switches and follows
+the provider fallback preference. It sends only the selected phrase and up to
+1,500 characters of nearby translated context, plus your configured glossary.
+Suggestions are not saved to history or cache. Changing the selection or either
+text panel clears them; Escape closes suggestions before clearing search or
+collapsing the overlay. The full translation limit remains 15,000 characters.
+
+The toolbar sends text directly to the current page's content script and closes
+only after the reader acknowledges the request. No new tab or page is opened.
+On restricted pages (such as Firefox settings and the add-ons store), disabled
+sites, or pages needing a reload after installing the extension, the toolbar
+keeps the draft and shows an error. Completed translations are reused without
+another provider request or history entry.
 
 ## Localization
 

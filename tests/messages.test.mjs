@@ -4,6 +4,7 @@ import { isRuntimeMessage } from '../lib/messages';
 test('runtime messages accept all supported actions and optional fields', () => {
   for (const message of [
     { type: 'GET_SELECTED_TEXT' },
+    { type: 'SHOW_TRANSLATION_READER', text: 'Hello', sourceLanguage: 'en', targetLanguage: 'ar' },
     { type: 'SHOW_CONTEXT_TRANSLATION', text: 'Hello' },
     { type: 'RUN_SELECTION_ACTION', action: 'translate' },
     { type: 'RUN_SELECTION_ACTION', action: 'rewrite' },
@@ -22,6 +23,10 @@ test('runtime messages reject malformed payloads before service dispatch', () =>
   for (const message of [
     null, undefined, [], 'TRANSLATE_TEXT', {}, { type: 'UNKNOWN' },
     { type: 'TRANSLATE_TEXT' },
+    { type: 'SHOW_TRANSLATION_READER', text: '', sourceLanguage: 'en', targetLanguage: 'ar' },
+    { type: 'SHOW_TRANSLATION_READER', text: 'x'.repeat(15001), sourceLanguage: 'en', targetLanguage: 'ar' },
+    { type: 'SHOW_TRANSLATION_READER', text: 'Hello', sourceLanguage: 'en', targetLanguage: 'ar', response: { ok: true } },
+    { type: 'SHOW_TRANSLATION_READER', text: 'Hello', sourceLanguage: 'en', targetLanguage: 'ar', response: { ok: true, translatedText: 'Hi', targetLanguage: 'en', fromCache: false } },
     { type: 'TRANSLATE_TEXT', text: 123 },
     { type: 'TRANSLATE_TEXT', text: 'Hello', sourceLanguage: null },
     { type: 'TRANSLATE_TEXT', text: 'Hello', targetLanguage: [] },

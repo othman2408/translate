@@ -649,5 +649,48 @@
   },
   "translatingTo": {
     "message": "Translating to $1..."
-  }
+  },
+  "labelReaderLayout": {
+    "message": "Expanded view layout"
+  },
+  "optionReaderStacked": {
+    "message": "Top and bottom"
+  },
+  "optionReaderColumns": {
+    "message": "Side by side"
+  },
+  "actionOpenExpanded": {
+    "message": "Open expanded view"
+  },
+  "errorOpenExpanded": {
+    "message": "Could not open the reader on this page. Use a regular webpage, enable the extension for this site, and reload the page if needed."
+  },
+  "readerSearchLabel": {
+    "message": "Find in both panels"
+  },
+  "readerLinkedScroll": {
+    "message": "Link panel scrolling"
+  },
+  "readerPreviousMatch": {
+    "message": "Previous match (Shift+Enter)"
+  },
+  "readerNextMatch": {
+    "message": "Next match (Enter)"
+  },
+  "readerClearSearch": {
+    "message": "Clear search and return to reading or editing"
+  },
+  "readerMatchCount": {
+    "message": "$1 of $2"
+  },
+  "readerSearchEditHint": {"message": "Search preview. Clear search to edit the text."},
+  "alternativesShow": {"message": "Show alternatives"},
+  "alternativesTitle": {"message": "Translation alternatives"},
+  "alternativesSelectionHint": {"message": "Select a translated word or phrase, then show AI alternatives. Requires an AI provider in Settings."},
+  "alternativesTooLong": {"message": "Select up to 500 characters for alternatives."},
+  "alternativesLoading": {"message": "Finding alternatives…"},
+  "alternativesClose": {"message": "Close alternatives"},
+  "alternativesInvalidResponse": {"message": "The AI provider returned no usable alternatives. Try again."},
+  "alternativesCopied": {"message": "Alternative copied."},
+  "alternativesCopyFailed": {"message": "Could not copy. Select the alternative and copy it manually."}
 }

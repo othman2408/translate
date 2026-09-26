@@ -8,6 +8,7 @@ import {
   type ExtensionSettings,
   type PopupMode,
   type ReaderModeSize,
+  type ReaderLayout,
   type ResultPopupSize,
   type TriggerMode,
 } from '@/lib/settings';
@@ -103,6 +104,17 @@ export function InteractionSettings({
             onValueChange={(value) => updatePopupSize('height', value)}
           />
         </Field.Root>
+
+        <SettingRow label={t('labelReaderLayout')}>
+          <SegmentedControl<ReaderLayout>
+            value={settings.readerLayout}
+            options={[
+              { value: 'stacked', label: t('optionReaderStacked') },
+              { value: 'columns', label: t('optionReaderColumns') },
+            ]}
+            onChange={(value) => onUpdate('readerLayout', value)}
+          />
+        </SettingRow>
 
         <SettingRow label={t('labelReaderSize')}>
           <SegmentedControl<ReaderModeSize>

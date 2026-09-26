@@ -1,3 +1,4 @@
+import { TEXT_INPUT_MAX_LENGTH } from '@/lib/text-limits';
 import { createShadowRootUi } from '#imports';
 import type { ContentScriptContext } from '#imports';
 import { createElement } from 'react';
@@ -11,6 +12,7 @@ import {
   type AiActionType,
   type RunAiActionMessage,
   type ShowContextTranslationMessage,
+  type ShowTranslationReaderMessage,
   type TranslateTextMessage,
   type TranslationResponse,
 } from '@/lib/messages';
@@ -46,7 +48,7 @@ import {
   type EditableSelection,
   type UndoEdit,
 } from './selection';
-import { overlayCss } from './styles';
+import { overlayCss } from '@/lib/styles/translation-overlay';
 import type {
   AlignmentState,
   OverlayPosition,
@@ -58,7 +60,6 @@ import type {
 } from './types';
 
 const HIDDEN_POSITION: OverlayPosition = { left: -9999, top: -9999 };
-const MAX_SELECTION_LENGTH = 5000;
 const MAX_ALIGNMENT_WORDS = 12;
 const MAX_ALIGNMENT_CHARACTERS = 160;
 const ICON_SIZE = 38;
@@ -159,9 +160,14 @@ export function createContentOverlayController(
       }
 
       if (message.type === 'GET_SELECTED_TEXT') {
-        const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+        const selection = readCurrentSelection(TEXT_INPUT_MAX_LENGTH);
         sendResponse(selection ? { ok: true, text: selection.text } : { ok: false });
         return;
+      }
+
+      if (message.type === 'SHOW_TRANSLATION_READER') {
+        void showTranslationReader(message).then(sendResponse).catch(() => sendResponse({ ok: false }));
+        return true;
       }
 
       if (message.type === 'SHOW_CONTEXT_TRANSLATION') {
@@ -285,7 +291,7 @@ export function createContentOverlayController(
       return;
     }
 
-    const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+    const selection = readCurrentSelection(TEXT_INPUT_MAX_LENGTH);
 
     if (!selection) {
       if (overlayState.status === 'icon') {
@@ -321,6 +327,18 @@ export function createContentOverlayController(
     });
   }
 
+  async function showTranslationReader(message: ShowTranslationReaderMessage): Promise<{ ok: boolean }> {
+    await refreshSettingsSafely();
+    if (!contentScriptActive || !reactRoot || !isCurrentSiteEnabled(settings.disabledHosts)) return { ok: false };
+    suppressSelectionHandling();
+    editableSelection = undefined;
+    undoEdit = undefined;
+    // requestTranslation renders synchronously before its first await; the popup
+    // may close once the reader is visible while a pending translation completes.
+    void requestTranslation(message.text, lastPointerPosition, message);
+    return { ok: true };
+  }
+
   async function showFromContextMenu(message: ShowContextTranslationMessage): Promise<void> {
     if (!contentScriptActive) {
       return;
@@ -335,12 +353,12 @@ export function createContentOverlayController(
       return;
     }
 
-    const text = message.text.trim().slice(0, MAX_SELECTION_LENGTH);
+    const text = message.text.trim().slice(0, TEXT_INPUT_MAX_LENGTH);
     if (!text) {
       return;
     }
 
-    const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+    const selection = readCurrentSelection(TEXT_INPUT_MAX_LENGTH);
     editableSelection = selection?.text === text ? selection.editable : undefined;
     undoEdit = undefined;
     await requestTranslation(text, selection?.position ?? lastPointerPosition);
@@ -356,7 +374,7 @@ export function createContentOverlayController(
       return;
     }
 
-    const selection = readCurrentSelection(MAX_SELECTION_LENGTH);
+    const selection = readCurrentSelection(TEXT_INPUT_MAX_LENGTH);
     if (!selection) {
       return;
     }
@@ -375,6 +393,7 @@ export function createContentOverlayController(
   async function requestTranslation(
     text = overlayState.selectedText,
     position = overlayState.position,
+    reader?: ShowTranslationReaderMessage,
   ): Promise<void> {
     if (!contentScriptActive) {
       return;
@@ -384,13 +403,15 @@ export function createContentOverlayController(
       return;
     }
 
-    const normalizedText = text.trim().slice(0, MAX_SELECTION_LENGTH);
+    const normalizedText = text.trim().slice(0, TEXT_INPUT_MAX_LENGTH);
     if (!normalizedText) {
       return;
     }
 
-    const requestKey = `${normalizedText}:${settings.sourceLanguage}:${settings.targetLanguage}`;
-    if (settings.triggerMode === 'instant' && overlayState.status === 'loading' && requestKey === lastInstantKey) {
+    const sourceLanguage = reader?.sourceLanguage ?? settings.sourceLanguage;
+    const targetLanguage = reader?.targetLanguage ?? settings.targetLanguage;
+    const requestKey = `${normalizedText}:${sourceLanguage}:${targetLanguage}`;
+    if (!reader && settings.triggerMode === 'instant' && overlayState.status === 'loading' && requestKey === lastInstantKey) {
       return;
     }
     lastInstantKey = requestKey;
@@ -403,6 +424,8 @@ export function createContentOverlayController(
     const popupGeometry = fitFloatingPopupGeometry(position, overlayState.popupSize);
     updateOverlay({
       status: 'loading',
+      readerRequestId: reader ? requestId : undefined,
+      sourceLanguage,
       action: 'translate',
       position: popupGeometry.position,
       popupSize: popupGeometry.size,
@@ -417,12 +440,17 @@ export function createContentOverlayController(
       isStreaming: false,
     });
 
+    if (reader?.response) {
+      updateOverlay({ status: 'result', translation: reader.response });
+      return;
+    }
+
     const message: TranslateTextMessage = {
       type: 'TRANSLATE_TEXT',
       text: normalizedText,
-      sourceLanguage: settings.sourceLanguage,
-      targetLanguage: settings.targetLanguage,
-      recordHistory: true,
+      sourceLanguage,
+      targetLanguage,
+      recordHistory: !reader,
     };
 
     let response: TranslationResponse;
@@ -470,7 +498,7 @@ export function createContentOverlayController(
       return;
     }
 
-    const normalizedText = text.trim().slice(0, MAX_SELECTION_LENGTH);
+    const normalizedText = text.trim().slice(0, TEXT_INPUT_MAX_LENGTH);
     if (!normalizedText) {
       return;
     }
@@ -577,6 +605,8 @@ export function createContentOverlayController(
     undoEdit = undefined;
     updateOverlay({
       status: 'hidden',
+      readerRequestId: undefined,
+      sourceLanguage: undefined,
       action: 'translate',
       position: HIDDEN_POSITION,
       selectedText: '',
@@ -749,9 +779,9 @@ export function createContentOverlayController(
 
     const targetLanguage = side === 'original'
       ? currentTranslation.targetLanguage
-      : getResolvedSourceLanguage(currentTranslation, settings.sourceLanguage);
+      : getResolvedSourceLanguage(currentTranslation, overlayState.sourceLanguage ?? settings.sourceLanguage);
     const sourceLanguage = side === 'original'
-      ? settings.sourceLanguage
+      ? overlayState.sourceLanguage ?? settings.sourceLanguage
       : currentTranslation.targetLanguage;
 
     if (!targetLanguage) {

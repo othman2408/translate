@@ -649,5 +649,48 @@
   },
   "translatingTo": {
     "message": "جار الترجمة إلى $1..."
-  }
+  },
+  "labelReaderLayout": {
+    "message": "تخطيط العرض الموسّع"
+  },
+  "optionReaderStacked": {
+    "message": "أعلى وأسفل"
+  },
+  "optionReaderColumns": {
+    "message": "جنبًا إلى جنب"
+  },
+  "actionOpenExpanded": {
+    "message": "فتح العرض الموسّع"
+  },
+  "errorOpenExpanded": {
+    "message": "تعذّر فتح وضع القراءة في هذه الصفحة. افتح صفحة ويب عادية، وفعّل الإضافة لهذا الموقع، وأعد تحميل الصفحة عند الحاجة."
+  },
+  "readerSearchLabel": {
+    "message": "البحث في اللوحتين"
+  },
+  "readerLinkedScroll": {
+    "message": "مزامنة تمرير اللوحتين"
+  },
+  "readerPreviousMatch": {
+    "message": "التطابق السابق (Shift+Enter)"
+  },
+  "readerNextMatch": {
+    "message": "التطابق التالي (Enter)"
+  },
+  "readerClearSearch": {
+    "message": "مسح البحث والعودة للقراءة أو التحرير"
+  },
+  "readerMatchCount": {
+    "message": "$1 من $2"
+  },
+  "readerSearchEditHint": {"message": "معاينة البحث. امسح البحث لتحرير النص."},
+  "alternativesShow": {"message": "عرض البدائل"},
+  "alternativesTitle": {"message": "بدائل الترجمة"},
+  "alternativesSelectionHint": {"message": "حدد كلمة أو عبارة مترجمة، ثم اعرض بدائل الذكاء الاصطناعي. يتطلب إعداد مزوّد ذكاء اصطناعي في الإعدادات."},
+  "alternativesTooLong": {"message": "حدد نصًا لا يتجاوز 500 حرف لعرض البدائل."},
+  "alternativesLoading": {"message": "جارٍ البحث عن بدائل…"},
+  "alternativesClose": {"message": "إغلاق البدائل"},
+  "alternativesInvalidResponse": {"message": "لم يُرجع مزوّد الذكاء الاصطناعي بدائل صالحة. حاول مجددًا."},
+  "alternativesCopied": {"message": "تم نسخ البديل."},
+  "alternativesCopyFailed": {"message": "تعذّر النسخ. حدد البديل وانسخه يدويًا."}
 }

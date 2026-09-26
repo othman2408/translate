@@ -3,7 +3,7 @@ import type { AiActionErrorCode, AiActionType } from '@/lib/messages';
 import type { AiProviderType } from '@/lib/settings';
 
 export type AiTextActionProviderRequest = {
-  action: AiActionType;
+  action: AiActionType | 'alternatives';
   text: string;
   prompt: string;
   language?: string;

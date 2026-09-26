@@ -1,3 +1,4 @@
+import { TEXT_INPUT_MAX_LENGTH } from '@/lib/text-limits';
 import { browser } from '#imports';
 import { useEffect, useRef, useState } from 'react';
 
@@ -6,7 +7,6 @@ import type { AiActionResponse, AiActionType, RunAiActionMessage } from '@/lib/m
 import type { ExtensionSettings } from '@/lib/settings';
 
 const MANUAL_AI_DEBOUNCE_MS = 450;
-const MANUAL_AI_MAX_LENGTH = 5000;
 
 export function useManualAiAction({
   action,
@@ -79,7 +79,7 @@ export function useManualAiAction({
   }, [action, appLanguage, enabled, language, prompt, trimmedText]);
 
   function updateText(nextText: string): void {
-    setText(nextText.slice(0, MANUAL_AI_MAX_LENGTH));
+    setText(nextText.slice(0, TEXT_INPUT_MAX_LENGTH));
   }
 
   async function copyResult(): Promise<void> {

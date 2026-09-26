@@ -1,9 +1,24 @@
 import { afterEach, beforeEach, expect, mock, test } from 'bun:test';
 
 const values = new Map();
+const readerMessages = [];
+let rejectReaderTab = false;
+let readerAccepted = true;
 let locale = 'en-US';
 mock.module('#imports', () => ({
-  browser: { i18n: { getUILanguage: () => locale, getMessage: () => '' } },
+  browser: {
+    i18n: { getUILanguage: () => locale, getMessage: () => '' },
+    runtime: { getURL: (path) => `chrome-extension://test${path}` },
+    tabs: {
+      query: async () => [{ id: 17 }],
+      sendMessage: async (id, message, options) => {
+        if (rejectReaderTab) throw new Error('Tab unavailable');
+        readerMessages.push({ id, message, options });
+        return { ok: readerAccepted };
+      },
+      create: async () => { throw new Error('Must not open a tab'); },
+    },
+  },
   storage: {
     defineItem: (key, { fallback }) => ({
       getValue: async () => structuredClone(values.get(key) ?? fallback),
@@ -16,7 +31,7 @@ mock.module('#imports', () => ({
 
 const { DEFAULT_SETTINGS, getSettings, normalizeSettings } = await import('../lib/settings');
 const { resolvePreferredLanguage } = await import('../lib/languages');
-const { getManualLanguages } = await import('../entrypoints/popup/hooks/useManualTranslation');
+const { getManualLanguages } = await import('../lib/translation-draft');
 const { AiModelCatalog } = await import('../lib/ai/model-catalog');
 const { AiTextActionService } = await import('../lib/ai/service');
 const { AiProviderError } = await import('../lib/ai/types');
@@ -44,6 +59,9 @@ const settings = () =>
   });
 beforeEach(() => {
   values.clear();
+  readerMessages.length = 0;
+  readerAccepted = true;
+  rejectReaderTab = false;
   locale = 'en-US';
 });
 afterEach(() => {
@@ -426,4 +444,126 @@ test('fallback records the successful user action once, but never follows partia
   expect(values.get('local:aiHistory').entries).toHaveLength(1);
   expect((await service.run({ action: 'explain', text: 'Partial' }, { onTextDelta: () => {} })).ok).toBe(false);
   expect(calls).toEqual(['test', 'second', 'test']);
+});
+
+
+const { openTranslationReader } = await import('../lib/reader-handoff');
+const { parseTranslationDraft, getManualRequestKey } = await import('../lib/translation-draft');
+const draft = () => ({
+  texts: { source: 'Original text', target: 'نص مترجم' },
+  edit: { side: 'source', text: 'Original text' },
+  response: { ok: true, translatedText: 'نص مترجم', targetLanguage: 'ar', fromCache: false },
+  requestKey: 'request',
+});
+
+test('reader layouts preserve old defaults and normalize invalid saved values', () => {
+  expect(normalizeSettings({}).readerLayout).toBe('stacked');
+  expect(normalizeSettings({ readerLayout: 'invalid' }).readerLayout).toBe('stacked');
+  expect(normalizeSettings({ readerLayout: 'columns' }).readerLayout).toBe('columns');
+});
+
+test('reader handoff targets the existing page and preserves a completed translation', async () => {
+  const input = draft();
+  input.requestKey = getManualRequestKey(input.edit, settings());
+  await openTranslationReader(input, settings());
+  expect(readerMessages).toHaveLength(1);
+  expect(readerMessages[0]).toEqual({ id: 17, options: { frameId: 0 }, message: {
+    type: 'SHOW_TRANSLATION_READER', text: input.edit.text, sourceLanguage: 'auto', targetLanguage: 'ar', response: input.response,
+  } });
+});
+
+test('reader handoff preserves reverse direction and retries stale or pending results', async () => {
+  const input = { ...draft(), edit: { side: 'target', text: 'نص مترجم' }, response: null };
+  await openTranslationReader(input, settings());
+  expect(readerMessages[0].message).toEqual({ type: 'SHOW_TRANSLATION_READER', text: 'نص مترجم', sourceLanguage: 'ar', targetLanguage: 'en', response: undefined });
+  await openTranslationReader(draft(), settings());
+  expect(readerMessages[1].message.response).toBeUndefined();
+});
+
+test('reader handoff requires page acknowledgment and rejects inaccessible pages or empty text', async () => {
+  rejectReaderTab = true;
+  await expect(openTranslationReader(draft(), settings())).rejects.toThrow('Tab unavailable');
+  rejectReaderTab = false;
+  readerAccepted = false;
+  await expect(openTranslationReader(draft(), settings())).rejects.toThrow('Reader unavailable');
+  await expect(openTranslationReader({ ...draft(), edit: { side: 'source', text: ' ' } }, settings())).rejects.toThrow('Empty reader text');
+});
+
+test('reader drafts reject malformed input and enforce the 15,000-character input limit', () => {
+  for (const value of [null, {}, { ...draft(), edit: { side: 'other', text: '' } },
+    { ...draft(), edit: { side: 'source', text: 'different text' } },
+    { ...draft(), texts: { source: 'x'.repeat(15001), target: '' }, edit: { side: 'source', text: 'x'.repeat(15001) } }]) {
+    expect(parseTranslationDraft(value)).toBeUndefined();
+  }
+  expect(parseTranslationDraft({ ...draft(), response: { ok: true } }).response).toBeNull();
+  const long = 'x'.repeat(15000);
+  expect(parseTranslationDraft({ ...draft(), texts: { source: long, target: '' }, edit: { side: 'source', text: long } }).edit.text).toBe(long);
+});
+
+test('reader request identities track languages and edited side without storing provider credentials', () => {
+  const config = normalizeSettings({ providers: [{ id: 'google', type: 'google-v2', name: 'Google', apiKey: 'private-key' }], targetLanguage: 'ar' });
+  const key = getManualRequestKey(draft().edit, config);
+  expect(key).not.toContain('private-key');
+  expect(getManualRequestKey(draft().edit, { ...config, targetLanguage: 'fr' })).not.toBe(key);
+  expect(getManualRequestKey({ side: 'target', text: 'Original text' }, config)).not.toBe(key);
+});
+
+const { TranslationAlternativesService } = await import('../lib/ai/alternatives');
+const alternativeRequest = { type: 'TRANSLATION_ALTERNATIVES', text: 'مرحبا', context: 'مرحبا بك', language: 'ar' };
+const alternativeResult = { resultText: JSON.stringify({ alternatives: [{ text: 'أهلًا', explanation: 'A warm greeting.' }] }), model: 'test-model' };
+
+test('alternatives use the saved provider independently of rewrite/explain toggles and do not write history', async () => {
+  values.set('local:settings', { ...settings(), aiRewriteEnabled: false, aiExplainEnabled: false, aiGlossary: 'Keep product names' });
+  const requests = [];
+  const service = new TranslationAlternativesService({ createProvider: () => ({ providerName: 'Test', runTextAction: async (request, options) => { requests.push(request); expect(options.abortSignal).toBeInstanceOf(AbortSignal); return alternativeResult; } }) });
+  const result = await service.run(alternativeRequest);
+  expect(result.ok).toBe(true);
+  expect(result.alternatives[0].text).toBe('أهلًا');
+  expect(requests[0].action).toBe('alternatives');
+  expect(requests[0].language).toBe('ar');
+  expect(requests[0].prompt).toContain('Keep product names');
+  expect(JSON.parse(requests[0].text).translatedContext).toBe('مرحبا بك');
+  expect([...values.keys()].filter(key => key.toLowerCase().includes('history'))).toHaveLength(0);
+});
+
+test('alternatives handle missing configuration, malformed output and provider fallback', async () => {
+  const attempts = [];
+  const service = new TranslationAlternativesService({ createProvider: config => ({ providerName: config.name, runTextAction: async () => { attempts.push(config.id); return config.id === 'test' ? { resultText: 'Not JSON', model: 'bad' } : alternativeResult; } }) });
+  values.set('local:settings', { ...settings(), aiProviders: [] });
+  expect((await service.run(alternativeRequest)).error.code).toBe('missing-api-key');
+  expect(attempts).toHaveLength(0);
+  values.set('local:settings', { ...settings(), providerFallbackEnabled: false });
+  expect((await service.run(alternativeRequest)).error.code).toBe('provider');
+  expect(attempts).toEqual(['test']);
+  attempts.length = 0;
+  values.set('local:settings', { ...settings(), providerFallbackEnabled: true, aiProviders: [provider, { ...provider, id: 'backup' }] });
+  expect((await service.run(alternativeRequest)).ok).toBe(true);
+  expect(attempts).toEqual(['test', 'backup']);
+  attempts.length = 0;
+  expect((await service.run({ ...alternativeRequest, text: 'x'.repeat(501) })).ok).toBe(false);
+  expect(attempts).toHaveLength(0);
+});
+
+test('toolbar reader requests render the existing reader immediately, including while loading', async () => {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { FloatingPopup } = await import('../entrypoints/content/FloatingPopup');
+  const previousWindow = globalThis.window;
+  globalThis.window = { innerWidth: 1280, innerHeight: 900 };
+  try {
+    const props = { className: 'translation-card', closeLabel: 'Close', collapseReaderLabel: 'Collapse',
+      dir: 'ltr', lang: 'en', position: { left: 20, top: 20 }, readerLabel: 'Open reader',
+      readerModeSize: 85, readerLayout: 'columns', appLanguage: 'en', resizeLabel: 'Resize',
+      size: { width: 400, height: 450 }, themeMode: 'light', title: 'Translation', allowReaderMode: true,
+      onClose() {}, onMove() {}, onResize() {}, children: 'Translation content' };
+    const floating = renderToStaticMarkup(createElement(FloatingPopup, props));
+    expect(floating).not.toContain('role="dialog"');
+    const reader = renderToStaticMarkup(createElement(FloatingPopup, { ...props, readerRequestId: 1 }));
+    expect(reader).toContain('role="dialog"');
+    expect(reader).toContain('data-reader-layout="columns"');
+    expect(reader).toContain('Translation content');
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  }
 });

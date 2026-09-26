@@ -7,6 +7,7 @@ import type { ThemeMode } from './theme';
 
 export type TriggerMode = 'click' | 'instant';
 export type PopupMode = 'bubble' | 'dictionary';
+export type ReaderLayout = 'stacked' | 'columns';
 export type ReaderModeSize = 'medium' | 'large' | 'full';
 export type ProviderType = 'google-v2';
 export type AiProviderType = 'deepseek' | 'openrouter' | 'kimi';
@@ -61,7 +62,13 @@ export type ExtensionSettings = {
   historyLimit: number;
   resultPopupSize: ResultPopupSize;
   readerModeSize: ReaderModeSize;
+  readerLayout: ReaderLayout;
 };
+
+export type SettingUpdateHandler = <TKey extends keyof ExtensionSettings>(
+  key: TKey,
+  value: ExtensionSettings[TKey],
+) => void;
 
 export const RESULT_POPUP_SIZE_LIMITS = {
   minWidth: 280,
@@ -122,6 +129,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     height: RESULT_POPUP_SIZE_LIMITS.defaultHeight,
   },
   readerModeSize: 'large',
+  readerLayout: 'stacked',
 };
 
 export const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {
@@ -181,6 +189,7 @@ export function normalizeSettings(settings: Partial<ExtensionSettings>): Extensi
     aiHistoryLimit: clampHistoryLimit(currentSettings.aiHistoryLimit ?? DEFAULT_SETTINGS.aiHistoryLimit),
     resultPopupSize: normalizeResultPopupSize(currentSettings.resultPopupSize),
     readerModeSize: normalizeReaderModeSize(currentSettings.readerModeSize),
+    readerLayout: currentSettings.readerLayout === 'columns' ? 'columns' : 'stacked',
   };
 }
 

@@ -1,3 +1,6 @@
+import { TEXT_INPUT_MAX_LENGTH } from './text-limits';
+import type { AlternativeSelection, TranslationAlternative } from './translation-alternatives';
+import { ALTERNATIVE_TEXT_LIMIT, ALTERNATIVE_CONTEXT_LIMIT } from './translation-alternatives';
 import type { AiModel } from './ai/types';
 import type { AiProviderType, ExtensionSettings } from './settings';
 
@@ -62,7 +65,22 @@ export type RunAiActionMessage = {
   recordHistory?: boolean;
 };
 
+export type TranslationAlternativesMessage = AlternativeSelection & { type: 'TRANSLATION_ALTERNATIVES' };
+export type TranslationAlternativesResponse = {
+  ok: true; alternatives: TranslationAlternative[]; providerName: string; model: string;
+} | AiActionFailure;
+
+export type ShowTranslationReaderMessage = {
+  type: 'SHOW_TRANSLATION_READER';
+  text: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  response?: TranslationSuccess;
+};
+
 export type RuntimeMessage =
+  | ShowTranslationReaderMessage
+  | TranslationAlternativesMessage
   | ListAiModelsMessage
   | TranslateTextMessage
   | ShowContextTranslationMessage
@@ -109,7 +127,7 @@ export type AiActionSuccess = {
   fromCache?: boolean;
 };
 
-type AiActionFailure = {
+export type AiActionFailure = {
   ok: false;
   error: {
     code: AiActionErrorCode;
@@ -129,6 +147,14 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
   if (!isRecord(value)) return false;
 
   switch (value.type) {
+    case 'SHOW_TRANSLATION_READER':
+      return typeof value.text === 'string' && Boolean(value.text.trim()) && value.text.length <= TEXT_INPUT_MAX_LENGTH
+        && typeof value.sourceLanguage === 'string' && typeof value.targetLanguage === 'string'
+        && (value.response === undefined || (isRecord(value.response)
+          && value.response.ok === true && typeof value.response.translatedText === 'string'
+          && value.response.targetLanguage === value.targetLanguage
+          && typeof value.response.fromCache === 'boolean'
+          && isOptionalString(value.response.detectedSourceLanguage)));
     case 'GET_SELECTED_TEXT':
       return true;
     case 'SHOW_CONTEXT_TRANSLATION':
@@ -141,6 +167,12 @@ export function isRuntimeMessage(value: unknown): value is RuntimeMessage {
         && isOptionalString(value.targetLanguage)
         && isOptionalString(value.providerId)
         && isOptionalBoolean(value.recordHistory);
+    case 'TRANSLATION_ALTERNATIVES':
+      return typeof value.text === 'string' && value.text.trim().length > 0
+        && value.text.length <= ALTERNATIVE_TEXT_LIMIT
+        && typeof value.context === 'string' && value.context.length <= ALTERNATIVE_CONTEXT_LIMIT
+        && isOptionalString(value.language)
+        && (value.language === undefined || (value.language as string).length <= 50);
     case 'RUN_AI_ACTION':
       return isAiAction(value.action)
         && typeof value.text === 'string'

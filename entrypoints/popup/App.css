@@ -1913,3 +1913,5 @@ p {
     transform: rotate(360deg);
   }
 }
+
+.manual-translator__icon-button:disabled { opacity: 0.5; cursor: default; }

@@ -1,16 +1,16 @@
 import { getAiActionCacheKey, getCachedAiAction, setCachedAiAction } from '@/lib/cache';
 import { addAiHistoryEntry } from '@/lib/history';
 import { t } from '@/lib/i18n';
-import type { AiActionErrorCode, AiActionResponse, AiActionSuccess, AiActionType } from '@/lib/messages';
+import type { AiActionResponse, AiActionSuccess, AiActionType } from '@/lib/messages';
 import {
   DEFAULT_AI_EXPLAIN_PROMPT,
   DEFAULT_AI_REWRITE_PROMPT,
-  getDefaultAiProvider,
   getSettings,
   type AiProviderConfig,
   type ExtensionSettings,
 } from '@/lib/settings';
 
+import { getRequestedAiProviders, providerFailure, failure } from './provider-utils';
 import { AiProviderFactory } from './factory';
 import type { AiTextActionProviderResult, AiTextActionRunOptions, IAiProvider } from './types';
 import { AiProviderError } from './types';
@@ -224,26 +224,6 @@ async function recordAiHistory(
   }
 }
 
-function getRequestedAiProviders(
-  settings: ExtensionSettings,
-  providerId: string | undefined,
-): AiProviderConfig[] {
-  if (providerId) {
-    const provider = settings.aiProviders.find((candidate) => candidate.id === providerId);
-    return provider ? [provider] : [];
-  }
-
-  const defaultProvider = getDefaultAiProvider(settings);
-  if (!defaultProvider) {
-    return [];
-  }
-
-  return [
-    defaultProvider,
-    ...settings.aiProviders.filter((provider) => provider.id !== defaultProvider.id),
-  ];
-}
-
 function isActionEnabled(action: AiActionType, settings: ExtensionSettings): boolean {
   return action === 'rewrite' ? settings.aiRewriteEnabled : settings.aiExplainEnabled;
 }
@@ -268,22 +248,4 @@ function getActionLanguage(
   }
 
   return request.language?.trim() || settings.aiExplanationLanguage || settings.targetLanguage;
-}
-
-function providerFailure(error: unknown, settings: ExtensionSettings): AiActionResponse {
-  if (error instanceof AiProviderError) {
-    return failure(
-      error.code,
-      error.providerMessage ?? t(error.messageKey, undefined, settings.appLanguage),
-    );
-  }
-
-  return failure('unknown', t('errorAiProviderFailed', undefined, settings.appLanguage));
-}
-
-function failure(code: AiActionErrorCode, message: string): AiActionResponse {
-  return {
-    ok: false,
-    error: { code, message },
-  };
 }

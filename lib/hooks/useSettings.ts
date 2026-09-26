@@ -10,7 +10,7 @@ import {
   type ExtensionSettings,
 } from '@/lib/settings';
 
-import type { SaveState } from '../types';
+export type SaveState = 'idle' | 'saved';
 
 export function useSettings() {
   const [settings, setSettings] = useState<ExtensionSettings>(DEFAULT_SETTINGS);
@@ -32,7 +32,7 @@ export function useSettings() {
 
     const unwatch = settingsItem.watch((nextSettings) => {
       if (active) {
-        setSettings({ ...DEFAULT_SETTINGS, ...nextSettings });
+        setSettings(normalizeSettings(nextSettings));
       }
     });
 

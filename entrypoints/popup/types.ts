@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
-import type { ExtensionSettings } from '@/lib/settings';
+export type { SettingUpdateHandler } from '@/lib/settings';
+export type { SaveState } from '@/lib/hooks/useSettings';
 
 export type Screen =
   | 'home'
@@ -25,13 +26,6 @@ export type SettingsScreen = Exclude<Screen, 'home' | 'settings' | 'storage' | '
 export type AiSettingsScreen = Extract<Screen, 'ai-behavior' | 'ai-rewrite' | 'ai-explain' | 'ai-providers'>;
 
 export type NavigationDirection = 'forward' | 'back';
-
-export type SaveState = 'idle' | 'saved';
-
-export type SettingUpdateHandler = <TKey extends keyof ExtensionSettings>(
-  key: TKey,
-  value: ExtensionSettings[TKey],
-) => void;
 
 export type NavItem = {
   screen: Exclude<Screen, 'home'>;

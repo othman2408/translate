@@ -193,6 +193,7 @@ export const overlayCss = `
   }
 
   .translation-card--reader {
+    container: reader / inline-size;
     position: relative;
     inset: auto;
     flex: 0 0 auto;
@@ -616,6 +617,130 @@ export const overlayCss = `
       padding: 12px;
     }
   }
+
+
+  .reader-layout-control { display: flex; gap: 2px; }
+  .reader-layout-control button[aria-pressed="true"] {
+    background: var(--translate-hover);
+    color: var(--translate-blue);
+  }
+  .translation-card--reader .reader-panels {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+  }
+  .translation-card--reader .translation-card__text-block {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  @container reader (min-width: 640px) {
+    .translation-card--reader[data-reader-layout="columns"] .reader-panels {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: minmax(0, 1fr);
+    }
+  }
+
+  .reader-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--translate-border-soft);
+    color: var(--translate-muted);
+    font-size: 12px;
+  }
+  .reader-tools input {
+    min-width: 60px;
+    width: 100%;
+    flex: 1;
+    padding: 7px 9px;
+    border: 1px solid var(--translate-border);
+    border-radius: 6px;
+    background: var(--translate-soft-surface);
+    color: var(--translate-text);
+    font: inherit;
+  }
+  .reader-tools__hint { flex-basis: 100%; font-size: 11px; }
+  .reader-tools input::-webkit-search-cancel-button { -webkit-appearance: none; }
+  .reader-tools .icon-control { flex: 0 0 30px; }
+  .reader-tools .icon-control[aria-pressed="true"] {
+    background: var(--translate-hover);
+    color: var(--translate-blue);
+  }
+  .reader-tools .icon-control:disabled { opacity: 0.4; cursor: default; }
+  .reader-tools__count { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .reader-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .translation-card__text-block-header { flex: 0 0 auto; }
+  .reader-search-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    text-align: start;
+    font-size: 16px;
+    line-height: 1.65;
+    padding: 6px 0;
+    color: var(--translate-text);
+  }
+  .reader-search-text mark {
+    color: #172033;
+    background: #ffe082;
+    border-radius: 2px;
+  }
+  .reader-search-text mark[data-active="true"] {
+    background: #ffac33;
+    outline: 2px solid #a34c00;
+    outline-offset: 1px;
+  }
+  .reader-tools input:focus-visible,
+  .reader-tools button:focus-visible {
+    outline: 2px solid var(--translate-blue);
+    outline-offset: 2px;
+  }
+
+
+  .reader-alternatives__action {
+    border: 1px solid var(--translate-border);
+    border-radius: 6px;
+    background: var(--translate-soft-surface);
+    color: var(--translate-text);
+    padding: 7px 9px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .reader-alternatives__action:disabled { opacity: 0.5; cursor: default; }
+  .reader-alternatives {
+    flex: 0 0 auto;
+    max-height: 35vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--translate-border);
+    background: var(--translate-soft-surface);
+    color: var(--translate-text);
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .reader-alternatives__header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .reader-alternatives .icon-control { flex: 0 0 30px; }
+  .reader-alternatives p { margin: 4px 0; }
+  .reader-alternatives__selection { color: var(--translate-muted); white-space: pre-wrap; }
+  .reader-alternatives ul { margin: 8px 0; padding: 0; list-style: none; }
+  .reader-alternatives li { padding: 8px 0; border-top: 1px solid var(--translate-border-soft); }
+  .reader-alternatives small { color: var(--translate-muted); }
+  .reader-alternatives button:focus-visible { outline: 2px solid var(--translate-blue); outline-offset: 2px; }
 
   .spin {
     animation: translate-bubble-spin 800ms linear infinite;

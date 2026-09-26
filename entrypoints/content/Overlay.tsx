@@ -1,3 +1,4 @@
+import { ReaderPanel } from '@/lib/components/ReaderTools';
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import {
   AlertCircle,
@@ -80,7 +81,7 @@ export function TranslateOverlay({
   const uiDirection = getUiDirection(uiLanguage);
   const originalLanguageCode = !isAiAction && state.translation?.ok && state.translation.detectedSourceLanguage
     ? state.translation.detectedSourceLanguage
-    : state.settings.sourceLanguage;
+    : state.sourceLanguage ?? state.settings.sourceLanguage;
   const originalDirection = getTextDirection(state.selectedText, originalLanguageCode);
   const originalLanguage = getTextLanguage(originalLanguageCode);
   const resultText = getOverlayResultText(state);
@@ -175,12 +176,15 @@ export function TranslateOverlay({
 
   return (
     <FloatingPopup
-      allowReaderMode={state.status === 'result' && Boolean(resultText)}
+      readerRequestId={state.readerRequestId}
+      allowReaderMode={state.readerRequestId !== undefined || (state.status === 'result' && Boolean(resultText))}
       className={`translation-card translation-card--${state.status}`}
       closeLabel={t('actionClose', undefined, state.settings.appLanguage)}
       collapseReaderLabel={t('actionCloseReader', undefined, state.settings.appLanguage)}
       readerLabel={t('actionOpenReader', undefined, state.settings.appLanguage)}
       readerModeSize={state.settings.readerModeSize}
+      readerLayout={state.settings.readerLayout}
+      appLanguage={state.settings.appLanguage}
       resizeLabel={t('actionResizePopup', undefined, state.settings.appLanguage)}
       dir={uiDirection}
       lang={uiLanguage}
@@ -210,7 +214,7 @@ export function TranslateOverlay({
 
       {(state.status === 'result' || showStreamingResult) && resultText && (
         <>
-          <div className="translation-card__body translation-card__body--result">
+          <div className="translation-card__body translation-card__body--result reader-panels">
             <TokenTextBlock
               alignment={isAiAction ? undefined : state.alignment}
               className="translation-card__original"
@@ -457,6 +461,7 @@ function TokenTextBlock({
         <span className="translation-card__text-label">{label}</span>
         {readControl}
       </div>
+      <ReaderPanel selectionStart={selectedRange ? parts.filter((part) => part.partIndex < selectedRange.startPartIndex).map((part) => part.text).join('').length : undefined} selectedText={onRangeSelected ? parts.filter((part) => isPartInRange(part, selectedRange)).map((part) => part.text).join('') : undefined} label={label} id={side} text={rawText ?? parts.map((part) => part.text).join('')} direction={direction} language={language}>
       {markdown ? (
         <MarkdownText
           className="translation-card__markdown"
@@ -480,6 +485,7 @@ function TokenTextBlock({
           }))}
         </p>
       )}
+      </ReaderPanel>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { t } from '@/lib/i18n';
 import type { ExtensionSettings } from '@/lib/settings';
 import { LOCAL_FILES_SITE_KEY } from '@/lib/sites';
 
-import { ManualTranslator } from '../components/ManualTranslator';
+import { ManualTranslator } from '@/lib/components/ManualTranslator';
 import { NavigationList } from '../components/NavigationList';
 import { useCurrentSiteToggle } from '../hooks/useCurrentSiteToggle';
 import type { Screen, SettingUpdateHandler } from '../types';

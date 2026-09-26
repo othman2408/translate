@@ -1,5 +1,6 @@
 import { browser, defineBackground } from '#imports';
 
+import { TranslationAlternativesService } from '@/lib/ai/alternatives';
 import { AiTextActionService } from '@/lib/ai/service';
 import { AiModelCatalog } from '@/lib/ai/model-catalog';
 import { t } from '@/lib/i18n';
@@ -7,6 +8,7 @@ import {
   AI_ACTION_STREAM_PORT,
   isRuntimeMessage,
   type AiActionResponse,
+  type TranslationAlternativesResponse,
   type AiActionStreamEvent,
   type TranslationResponse,
   type ListAiModelsResponse,
@@ -21,6 +23,7 @@ let contextMenuSetupPromise = Promise.resolve();
 export default defineBackground(() => {
   const translationService = new TranslationService();
   const aiTextActionService = new AiTextActionService();
+  const alternativesService = new TranslationAlternativesService();
   const aiModelCatalog = new AiModelCatalog();
 
   queueContextMenuSetup();
@@ -115,7 +118,7 @@ export default defineBackground(() => {
     });
   });
 
-  browser.runtime.onMessage.addListener((message, sender): Promise<AiActionResponse | TranslationResponse | ListAiModelsResponse> | undefined => {
+  browser.runtime.onMessage.addListener((message, sender): Promise<TranslationAlternativesResponse | AiActionResponse | TranslationResponse | ListAiModelsResponse> | undefined => {
     if (!isRuntimeMessage(message)) {
       return undefined;
     }
@@ -125,6 +128,10 @@ export default defineBackground(() => {
         return undefined;
       }
       return aiModelCatalog.list(message);
+    }
+
+    if (message.type === 'TRANSLATION_ALTERNATIVES') {
+      return alternativesService.run(message);
     }
 
     if (message.type === 'TRANSLATE_TEXT') {

@@ -1,13 +1,16 @@
 import {
   useEffect,
-  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from 'react';
 import { Maximize2, Minimize2, MoveDiagonal2, X } from 'lucide-react';
 
-import type { ReaderModeSize, ResultPopupSize } from '@/lib/settings';
+import type { ReaderLayout, ReaderModeSize, ResultPopupSize } from '@/lib/settings';
+
+import { ReaderFrame } from '@/lib/components/ReaderFrame';
+import { ReaderLayoutControl } from '@/lib/components/ReaderLayoutControl';
+import { t, type AppLanguage } from '@/lib/i18n';
 
 import type { ResizeEdges } from './floating-geometry';
 import type { OverlayPosition } from './types';
@@ -23,11 +26,14 @@ type FloatingPopupProps = {
   position: OverlayPosition;
   readerLabel: string;
   readerModeSize: ReaderModeSize;
+  readerLayout: ReaderLayout;
+  appLanguage: AppLanguage;
   resizeLabel: string;
   size: ResultPopupSize;
   themeMode: string;
   title: ReactNode;
   allowReaderMode: boolean;
+  readerRequestId?: number;
   onClose: () => void;
   onMove: (position: OverlayPosition) => void;
   onResize: (size: ResultPopupSize, position: OverlayPosition) => void;
@@ -60,17 +66,22 @@ export function FloatingPopup({
   position,
   readerLabel,
   readerModeSize,
+  readerLayout,
+  appLanguage,
   resizeLabel,
   size,
   themeMode,
   title,
   allowReaderMode,
+  readerRequestId,
   onClose,
   onMove,
   onResize,
 }: FloatingPopupProps) {
-  const [readerMode, setReaderMode] = useState(false);
-  const readerRef = useRef<HTMLElement>(null);
+  const [readerMode, setReaderMode] = useState(readerRequestId !== undefined);
+  useEffect(() => { if (readerRequestId !== undefined) setReaderMode(true); }, [readerRequestId]);
+  const [layout, setLayout] = useState(readerLayout);
+  useEffect(() => setLayout(readerLayout), [readerLayout]);
   const interaction = useFloatingPopupInteraction({ position, size, onMove, onResize });
 
   useEffect(() => {
@@ -79,29 +90,11 @@ export function FloatingPopup({
     }
   }, [allowReaderMode]);
 
-  useEffect(() => {
-    if (!readerMode) {
-      return;
-    }
-
-    readerRef.current?.focus({ preventScroll: true });
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setReaderMode(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [readerMode]);
-
-  const cardContent = (
-    <>
+  const cardHeader = (
       <header
         className="translation-card__header"
         onPointerDown={(event) => {
-          if (!isInteractiveTarget(event.target)) {
+          if (!readerMode && !isInteractiveTarget(event.target)) {
             interaction.startDrag(event);
           }
         }}
@@ -113,6 +106,7 @@ export function FloatingPopup({
       >
         <div className="translation-card__title">{title}</div>
         <div className="translation-card__header-actions">
+          {readerMode && <ReaderLayoutControl value={layout} onChange={setLayout} appLanguage={appLanguage} />}
           {allowReaderMode && (
             <button
               className="icon-control"
@@ -135,36 +129,25 @@ export function FloatingPopup({
           </button>
         </div>
       </header>
-      {children}
-    </>
   );
+  const cardContent = <>{cardHeader}{children}</>;
 
   if (readerMode) {
     return (
-      <div
-        className="translation-reader-layer"
-        data-reader-size={readerModeSize}
-        data-theme-mode={themeMode}
-        onPointerDown={(event) => {
-          if (event.target === event.currentTarget) {
-            setReaderMode(false);
-          }
-        }}
+      <ReaderFrame
+        header={cardHeader}
+        appLanguage={appLanguage}
+        className={className}
+        size={readerModeSize}
+        layout={layout}
+        themeMode={themeMode}
+        dir={dir}
+        lang={lang}
+        label={t('actionOpenReader', undefined, appLanguage)}
+        onDismiss={() => setReaderMode(false)}
       >
-        <section
-          ref={readerRef}
-          className={`${className} translation-card--reader`}
-          data-theme-mode={themeMode}
-          role="dialog"
-          aria-modal="true"
-          aria-live="polite"
-          tabIndex={-1}
-          dir={dir}
-          lang={lang}
-        >
-          {cardContent}
-        </section>
-      </div>
+        {children}
+      </ReaderFrame>
     );
   }
 

@@ -34,6 +34,8 @@ export type OverlayState = {
   action: OverlayAction;
   position: OverlayPosition;
   selectedText: string;
+  readerRequestId?: number;
+  sourceLanguage?: string;
   translation?: TranslationResponse;
   ai?: AiActionResponse;
   streamedText?: string;
