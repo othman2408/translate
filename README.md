@@ -109,3 +109,10 @@ API key** queries only the configured provider using the current saved or draft
 key; draft keys are not saved by discovery. Failed requests leave the current list
 and selected model intact. Custom model IDs remain available because public
 catalogs may lag releases or omit account-specific models.
+
+### Reading and setup feedback
+
+- Tab enters each reader text panel once. Use Left/Right to move between words (following text direction), Home/End to jump, Enter/Space to select, and Shift+Left/Right to extend a selection.
+- Setup and translation errors offer **Try again**, preserving the original text. Save provider changes before retrying.
+- Toolbar panels show copy confirmation and a 15,000-character counter; oversized pastes report when text is clipped.
+- Provider editors include collapsible setup instructions, visible Save/Cancel actions while scrolling, and an optional **Test connection** for draft credentials. Testing sends a small request to the provider without saving the draft or adding history; usage charges may apply.

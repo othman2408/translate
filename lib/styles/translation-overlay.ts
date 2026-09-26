@@ -304,6 +304,14 @@ export const overlayCss = `
     align-items: flex-start;
   }
 
+  .translation-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .translation-error-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .translation-error-actions p { flex-basis: 100%; }
+  .translation-error-actions button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--translate-border); border-radius: 8px; background: var(--translate-soft-surface); color: var(--translate-text); cursor: pointer; font: inherit; }
+  .translation-error-actions button:focus-visible { outline: 2px solid var(--translate-blue); outline-offset: 2px; }
+  .translation-card--error .translation-card__body--center { flex-direction: column; }
+  .provider-setup button.provider-setup__secondary { color: var(--translate-text); background: var(--translate-hover); }
+  .reader-tools__selection { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--translate-text); font-size: 12px; }
   .translation-card__body--setup { align-items: center; justify-content: center; }
   .provider-setup { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 340px; margin: auto; padding: 20px 12px; text-align: center; }
   .provider-setup__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--translate-hover); color: var(--translate-blue); }

@@ -1,3 +1,4 @@
+import { ProviderSettingsButton } from './ProviderSettingsButton';
 import { browser } from '#imports';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Copy, X } from 'lucide-react';
@@ -45,7 +46,7 @@ export function useTranslationAlternatives() {
 type AlternativesState = ReturnType<typeof useTranslationAlternatives>;
 export function AlternativesButton({ state, appLanguage }: { state: AlternativesState; appLanguage: AppLanguage }) {
   const tooLong = (state.selection?.text.length ?? 0) > ALTERNATIVE_TEXT_LIMIT;
-  const hint = t(tooLong ? 'alternativesTooLong' : 'alternativesSelectionHint', undefined, appLanguage);
+  const hint = t(tooLong ? 'alternativesTooLong' : 'alternativesShortHint', undefined, appLanguage);
   return <button ref={state.triggerRef} type="button" className="reader-alternatives__action" disabled={!state.selection || tooLong || state.loading}
     title={hint} aria-expanded={state.open} onClick={() => void state.request(appLanguage)}>
     {t('alternativesShow', undefined, appLanguage)}
@@ -66,7 +67,11 @@ export function TranslationAlternatives({ state, appLanguage }: { state: Alterna
     </div>
     <p className="reader-alternatives__selection" dir="auto">{state.selection?.text}</p>
     {state.loading && <p role="status">{label('alternativesLoading')}</p>}
-    {state.response && !state.response.ok && <p role="alert">{state.response.error.message}</p>}
+    {state.response && !state.response.ok && <div className="translation-error-actions">
+      <p role="alert">{state.response.error.message}</p>
+      {(state.response.error.code === 'missing-api-key' || state.response.error.code === 'auth') && <ProviderSettingsButton ai appLanguage={appLanguage} />}
+      <button type="button" onClick={() => void state.request(appLanguage)}>{label('actionRetry')}</button>
+    </div>}
     {state.response?.ok && <>
       <ul>{state.response.alternatives.map((alternative) => <li key={alternative.text}>
         <div className="reader-alternatives__header">

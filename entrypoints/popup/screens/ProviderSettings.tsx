@@ -1,3 +1,4 @@
+import { ProviderConnectionTest } from '@/lib/components/ProviderConnectionTest';
 import { Button, Field, Input } from '@base-ui/react';
 import { Check, ExternalLink, Pencil, Plus, ShieldCheck, Star, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -279,9 +280,10 @@ function ProviderEditor({
         </div>
       </div>
 
-      <div className="provider-setup-guide">
-        <div className="provider-setup-guide__header">
+      <details className="provider-setup-guide">
+        <summary className="provider-setup-guide__header">
           <strong>{t('providerSetupTitle')}</strong>
+        </summary>
           <a
             className="provider-setup-link"
             href={GOOGLE_TRANSLATE_SETUP_URL}
@@ -291,13 +293,12 @@ function ProviderEditor({
             {t('providerSetupOpenConsole')}
             <ExternalLink size={13} aria-hidden="true" />
           </a>
-        </div>
         <ol className="provider-setup-steps">
           <li>{t('providerSetupStepProject')}</li>
           <li>{t('providerSetupStepApi')}</li>
           <li>{t('providerSetupStepKey')}</li>
         </ol>
-      </div>
+      </details>
 
       <Field.Root className="provider-editor">
         <Field.Label className="setting-label">{t('labelApiKey')}</Field.Label>
@@ -314,6 +315,8 @@ function ProviderEditor({
           onValueChange={(apiKey) => onChange({ ...draft, apiKey })}
         />
 
+      </Field.Root>
+      <Field.Root className="provider-editor">
         <Field.Label className="setting-label">{t('labelProviderNameOptional')}</Field.Label>
         <Input
           className="text-input"
@@ -324,7 +327,8 @@ function ProviderEditor({
         />
       </Field.Root>
 
-      <div className="provider-actions provider-actions--even">
+      <ProviderConnectionTest credentials={draft} />
+      <div className="provider-actions provider-actions--even provider-actions--sticky">
         <Button
           className="provider-action-button provider-action-button--primary"
           type="button"

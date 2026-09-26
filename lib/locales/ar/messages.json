@@ -698,6 +698,18 @@
   "setupTranslationDescription": {"message": "أضف مفتاح واجهة Google Cloud Translation لبدء الترجمة."},
   "setupAiDescription": {"message": "أضف مفتاح واجهة مزوّد الذكاء الاصطناعي المفضل لديك للبدء."},
   "setupOpenSettings": {"message": "فتح إعدادات مفتاح الواجهة"},
-  "setupReturnHint": {"message": "احفظ المفتاح، ثم عد إلى هنا وترجم مجددًا."},
-  "setupOpenFailed": {"message": "تعذّر فتح الإعدادات. افتح الإضافة من شريط الأدوات وانتقل إلى إعدادات المزوّدين."}
+  "setupReturnHint": {"message": "احفظ المفتاح، ثم عد إلى هنا واختر «حاول مجددًا»."},
+  "setupOpenFailed": {"message": "تعذّر فتح الإعدادات. افتح الإضافة من شريط الأدوات وانتقل إلى إعدادات المزوّدين."},
+  "actionRetry": {"message": "حاول مجددًا"},
+  "feedbackCopied": {"message": "تم النسخ"},
+  "feedbackCopyFailed": {"message": "تعذّر النسخ. حاول مجددًا."},
+  "textCharacterCount": {"message": "$1 / $2 حرف"},
+  "textPasteTruncated": {"message": "تم لصق النص الذي يتسع ضمن حد 15,000 حرف فقط."},
+  "readerNoMatches": {"message": "لا توجد نتائج"},
+  "readerKeyboardHint": {"message": "استخدم الأسهم للتنقل بين الكلمات، وEnter للتحديد، وShift مع الأسهم لتحديد عبارة."},
+  "alternativesShortHint": {"message": "حدد نصًا مترجمًا لعرض البدائل."},
+  "providerTest": {"message": "اختبار الاتصال"},
+  "providerTesting": {"message": "جارٍ الاختبار…"},
+  "providerTestSuccess": {"message": "تم التحقق من الاتصال. احفظ للاحتفاظ بالإعدادات."},
+  "providerTestHint": {"message": "يرسل طلب اختبار صغيرًا. قد تُطبق رسوم استخدام المزوّد."}
 }

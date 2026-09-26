@@ -1,6 +1,8 @@
+import { navigateToken } from '@/lib/token-navigation';
+import { ProviderSettingsButton } from '@/lib/components/ProviderSettingsButton';
 import { ProviderSetupPrompt } from '@/lib/components/ProviderSetupPrompt';
 import { ReaderPanel } from '@/lib/components/ReaderTools';
-import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import {
   AlertCircle,
   BookOpen,
@@ -54,6 +56,7 @@ export function TranslateOverlay({
   onCopy,
   onReplace,
   onUndo,
+  onRetry,
 }: {
   state: OverlayState;
   onTranslate: () => void;
@@ -71,6 +74,7 @@ export function TranslateOverlay({
   onCopy: () => void;
   onReplace: () => void;
   onUndo: () => void;
+  onRetry?: () => void;
 }) {
   const style = {
     transform: `translate3d(${state.position.left}px, ${state.position.top}px, 0)`,
@@ -326,11 +330,16 @@ export function TranslateOverlay({
 
       {state.status === 'error' && errorText && (
         <div className={`translation-card__body translation-card__body--center${needsProviderSetup ? ' translation-card__body--setup' : ''}`}>
-          {needsProviderSetup ? <ProviderSetupPrompt ai={isAiAction} appLanguage={state.settings.appLanguage} /> : <div className="translation-card__error">
+          {needsProviderSetup ? <ProviderSetupPrompt onRetry={onRetry} ai={isAiAction} appLanguage={state.settings.appLanguage} /> : <div className="translation-card__error">
             <AlertCircle size={18} />
             <p dir={errorDirection} lang="en" style={{ textAlign: getTextAlign(errorDirection) }}>
               {errorText}
             </p>
+          </div>}
+          {!needsProviderSetup && <div className="translation-error-actions">
+            {onRetry && <button type="button" onClick={onRetry}>{t('actionRetry', undefined, state.settings.appLanguage)}</button>}
+            {errorResponse?.ok === false && (errorResponse.error.code === 'auth' || errorResponse.error.code === 'quota') &&
+              <ProviderSettingsButton ai={isAiAction} appLanguage={state.settings.appLanguage} />}
           </div>}
         </div>
       )}
@@ -457,6 +466,11 @@ function TokenTextBlock({
   const [dragRange, setDragRange] = useState<TokenRange | undefined>();
   const selectedRange = getSideRange(alignment, side, 'selected');
   const matchedRange = getSideRange(alignment, side, 'matched');
+  const [focusedPart, setFocusedPart] = useState<number>();
+  const selectionAnchor = useRef<number | undefined>(undefined);
+  const keyboardHintId = useId();
+  const words = parts.filter((part) => part.isWordLike).map((part) => part.partIndex);
+  const activePart = focusedPart !== undefined && words.includes(focusedPart) ? focusedPart : words[0];
 
   return (
     <div className={`${className} translation-card__text-block`}>
@@ -464,6 +478,7 @@ function TokenTextBlock({
         <span className="translation-card__text-label">{label}</span>
         {readControl}
       </div>
+      <span id={keyboardHintId} className="translation-sr-only">{t('readerKeyboardHint')}</span>
       <ReaderPanel selectionStart={selectedRange ? parts.filter((part) => part.partIndex < selectedRange.startPartIndex).map((part) => part.text).join('').length : undefined} selectedText={onRangeSelected ? parts.filter((part) => isPartInRange(part, selectedRange)).map((part) => part.text).join('') : undefined} label={label} id={side} text={rawText ?? parts.map((part) => part.text).join('')} direction={direction} language={language}>
       {markdown ? (
         <MarkdownText
@@ -474,8 +489,27 @@ function TokenTextBlock({
           text={rawText ?? parts.map((part) => part.text).join('')}
         />
       ) : (
-        <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}>
+        <p dir={direction} lang={language} style={{ textAlign: getTextAlign(direction) }}
+          onKeyDown={(event) => {
+            if (!onRangeSelected || !(event.target instanceof HTMLElement) || !event.target.hasAttribute('data-part-index')) return;
+            const current = Number(event.target.dataset.partIndex);
+            const next = navigateToken(words, current, event.key, direction === 'rtl');
+            if (next === undefined) return;
+            event.preventDefault();
+            if (event.shiftKey) {
+              selectionAnchor.current ??= current;
+              onRangeSelected(side, normalizeRange({ startPartIndex: selectionAnchor.current, endPartIndex: next }), originalParts, translationParts);
+            } else {
+              selectionAnchor.current = next;
+            }
+            setFocusedPart(next);
+            event.currentTarget.querySelector<HTMLElement>(`[data-part-index="${next}"]`)?.focus();
+          }}>
           {parts.map((part) => renderTokenPart({
+            activePart,
+            onSelectPart: (index) => { selectionAnchor.current = index; },
+            onFocusPart: setFocusedPart,
+            keyboardHintId,
             dragRange,
             matchedRange,
             onRangeSelected,
@@ -522,6 +556,10 @@ function ReadAloudButton({
 }
 
 function renderTokenPart({
+  activePart,
+  onFocusPart,
+  onSelectPart,
+  keyboardHintId,
   dragRange,
   matchedRange,
   onRangeSelected,
@@ -532,6 +570,10 @@ function renderTokenPart({
   side,
   translationParts,
 }: {
+  activePart?: number;
+  onFocusPart: (index: number) => void;
+  onSelectPart: (index: number) => void;
+  keyboardHintId: string;
   dragRange?: TokenRange;
   matchedRange?: TokenRange;
   onRangeSelected?: (
@@ -567,6 +609,7 @@ function renderTokenPart({
   ].filter(Boolean).join(' ');
 
   const selectRange = (range: TokenRange) => {
+    onSelectPart(range.startPartIndex);
     setDragRange(undefined);
     onRangeSelected(side, normalizeRange(range), originalParts, translationParts);
   };
@@ -576,7 +619,10 @@ function renderTokenPart({
       key={part.partIndex}
       className={className}
       role="button"
-      tabIndex={0}
+      tabIndex={part.partIndex === activePart ? 0 : -1}
+      data-part-index={part.partIndex}
+      aria-describedby={keyboardHintId}
+      onFocus={() => onFocusPart(part.partIndex)}
       onKeyDown={(event) => {
         if (event.key !== 'Enter' && event.key !== ' ') {
           return;
@@ -587,6 +633,7 @@ function renderTokenPart({
       onPointerCancel={() => setDragRange(undefined)}
       onPointerDown={(event) => {
         event.preventDefault();
+        event.currentTarget.focus({ preventScroll: true });
         setDragRange(ownRange);
       }}
       onPointerEnter={() => {

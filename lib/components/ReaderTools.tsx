@@ -86,7 +86,7 @@ export function ReaderToolsToolbar({ tools, appLanguage, editable }: { tools: Re
           }
         }} />
       <span className="reader-tools__count" role="status" aria-live="polite">
-        {tools.query ? t('readerMatchCount', [String(tools.total ? tools.activeIndex + 1 : 0), String(tools.total)], appLanguage) : ''}
+        {tools.query ? tools.total ? t('readerMatchCount', [String(tools.activeIndex + 1), String(tools.total)], appLanguage) : label('readerNoMatches') : ''}
       </span>
       <button className="icon-control" type="button" disabled={!tools.total}
         aria-label={label('readerPreviousMatch')} title={label('readerPreviousMatch')} onClick={() => tools.next(-1)}><ArrowUp size={16} /></button>
@@ -95,7 +95,11 @@ export function ReaderToolsToolbar({ tools, appLanguage, editable }: { tools: Re
       {tools.query && <button className="icon-control" type="button" aria-label={label('readerClearSearch')}
         title={label('readerClearSearch')} onClick={() => { tools.setQuery(''); tools.searchRef.current?.focus(); }}><X size={16} /></button>}
       <AlternativesButton state={tools.alternatives} appLanguage={appLanguage} />
-      <span className="reader-tools__hint">{label((tools.alternatives.selection?.text.length ?? 0) > ALTERNATIVE_TEXT_LIMIT ? 'alternativesTooLong' : 'alternativesSelectionHint')}</span>
+      {!tools.alternatives.selection && <span className="reader-tools__hint">{label('alternativesShortHint')}</span>}
+      {tools.alternatives.selection && <span className="reader-tools__selection" dir="auto" title={tools.alternatives.selection.text}>
+        {tools.alternatives.selection.text}
+      </span>}
+      {(tools.alternatives.selection?.text.length ?? 0) > ALTERNATIVE_TEXT_LIMIT && <span role="status" className="reader-tools__hint">{label('alternativesTooLong')}</span>}
       {tools.query && editable && <span className="reader-tools__hint" id={hintId}>{label('readerSearchEditHint')}</span>}
     </div>
   );

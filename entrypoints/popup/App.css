@@ -169,14 +169,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: 8px;
   padding-block: var(--space-2) var(--space-3);
 }
 
 .home-brand__logo {
   display: block;
-  width: 54px;
-  height: 54px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
 }
 
@@ -208,7 +208,7 @@
   color: var(--color-secondary);
   cursor: pointer;
   overflow: hidden;
-  padding: 0 9px;
+  padding: 0 6px;
   font-size: 0.71875rem;
   font-weight: 650;
   line-height: 1;
@@ -432,8 +432,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -1099,7 +1099,7 @@ p {
 
 .provider-card {
   gap: var(--space-4);
-  overflow: hidden;
+  overflow: clip;
   padding: var(--space-4);
 }
 
@@ -1915,3 +1915,64 @@ p {
 }
 
 .manual-translator__icon-button:disabled { opacity: 0.5; cursor: default; }
+
+.manual-translator__feedback {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding: 4px 10px 7px;
+  color: var(--color-secondary);
+  font-size: 11px;
+}
+
+.manual-translator__feedback [role="alert"] {
+  flex-basis: 100%;
+  color: var(--color-orange);
+}
+
+.manual-translator__feedback [role="status"] {
+  color: var(--color-blue);
+}
+
+.manual-translator__count {
+  font-variant-numeric: tabular-nums;
+}
+
+.provider-actions--sticky {
+  position: sticky;
+  bottom: 0;
+  padding: 10px 0;
+  background: var(--color-card);
+  border-top: 1px solid var(--color-separator-soft);
+  z-index: 2;
+}
+
+.provider-setup-guide summary {
+  cursor: pointer;
+}
+
+.provider-setup-guide summary::after {
+  content: '+';
+  margin-inline-start: auto;
+}
+
+.provider-setup-guide[open] summary::after {
+  content: '−';
+}
+
+.provider-connection {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px;
+  font-size: 12px;
+}
+
+.provider-connection p {
+  margin: 0;
+  color: var(--color-secondary);
+}
+
+.provider-connection [role="alert"] {
+  color: var(--color-red);
+}

@@ -698,6 +698,18 @@
   "setupTranslationDescription": {"message": "Add your Google Cloud Translation API key to start translating."},
   "setupAiDescription": {"message": "Add an API key for your preferred AI provider to get started."},
   "setupOpenSettings": {"message": "Open API key settings"},
-  "setupReturnHint": {"message": "Save your key, then return here and translate again."},
-  "setupOpenFailed": {"message": "Could not open settings. Open the extension toolbar and go to Settings → Providers."}
+  "setupReturnHint": {"message": "Save your key, then return here and choose Try again."},
+  "setupOpenFailed": {"message": "Could not open settings. Open the extension toolbar and go to Settings → Providers."},
+  "actionRetry": {"message": "Try again"},
+  "feedbackCopied": {"message": "Copied"},
+  "feedbackCopyFailed": {"message": "Could not copy. Try again."},
+  "textCharacterCount": {"message": "$1 / $2 characters"},
+  "textPasteTruncated": {"message": "Only the text that fits the 15,000-character limit was pasted."},
+  "readerNoMatches": {"message": "No matches"},
+  "readerKeyboardHint": {"message": "Use arrow keys to move between words, Enter to select, and Shift with arrow keys to select a phrase."},
+  "alternativesShortHint": {"message": "Select translated text for alternatives."},
+  "providerTest": {"message": "Test connection"},
+  "providerTesting": {"message": "Testing…"},
+  "providerTestSuccess": {"message": "Connection verified. Save to keep these settings."},
+  "providerTestHint": {"message": "Sends a small test request. Provider usage charges may apply."}
 }

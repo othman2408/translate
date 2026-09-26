@@ -1,11 +1,13 @@
+import { useId, useState } from 'react';
+import { useCopyText } from '@/lib/hooks/useCopyText';
 import { ReaderPanel } from './ReaderTools';
 import { Button } from '@base-ui/react';
-import { Copy, Loader2, Maximize2, Volume2, VolumeX, X } from 'lucide-react';
+import { Check, Copy, Loader2, Maximize2, Volume2, VolumeX, X } from 'lucide-react';
 
 import { t } from '@/lib/i18n';
 import { getTextAlign, getTextDirection, getTextLanguage } from '@/lib/text-direction';
 
-import { TEXT_INPUT_MAX_LENGTH } from '@/lib/text-limits';
+import { TEXT_INPUT_MAX_LENGTH, insertLimitedText } from '@/lib/text-limits';
 
 export function TranslationTextPanel({
   label,
@@ -32,6 +34,9 @@ export function TranslationTextPanel({
   onChange: (text: string) => void;
   onCompositionChange: (composing: boolean) => void;
 }) {
+  const copy = useCopyText(text);
+  const [truncated, setTruncated] = useState(false);
+  const feedbackId = useId();
   const direction = getTextDirection(text, language);
   return (
     <div className="translation-text-panel">
@@ -65,17 +70,17 @@ export function TranslationTextPanel({
               )}
               <Button
                 className="manual-translator__icon-button"
-                aria-label={t('actionCopyText')}
-                title={t('actionCopyText')}
-                onClick={() => void navigator.clipboard.writeText(text).catch(() => undefined)}
+                aria-label={t(copy.status === 'copied' ? 'feedbackCopied' : 'actionCopyText')}
+                title={t(copy.status === 'copied' ? 'feedbackCopied' : 'actionCopyText')}
+                onClick={() => void copy.copy()}
               >
-                <Copy size={13} />
+                {copy.status === 'copied' ? <Check size={13} /> : <Copy size={13} />}
               </Button>
               <Button
                 className="manual-translator__icon-button"
                 aria-label={t('actionClearText')}
                 title={t('actionClearText')}
-                onClick={() => onChange('')}
+                onClick={() => { setTruncated(false); onChange(''); }}
               >
                 <X size={13} />
               </Button>
@@ -88,6 +93,7 @@ export function TranslationTextPanel({
         className="manual-translator__input"
         aria-label={label}
         aria-busy={loading}
+        aria-describedby={feedbackId}
         value={text}
         rows={5}
         maxLength={TEXT_INPUT_MAX_LENGTH}
@@ -96,11 +102,25 @@ export function TranslationTextPanel({
         lang={getTextLanguage(language)}
         style={{ textAlign: getTextAlign(direction) }}
         placeholder={t('manualInputPlaceholder')}
-        onChange={(event) => onChange(event.currentTarget.value)}
+        onPaste={(event) => {
+          const input = event.currentTarget;
+          const result = insertLimitedText(text, input.selectionStart, input.selectionEnd, event.clipboardData.getData('text/plain'));
+          if (result.truncated) {
+            event.preventDefault();
+            setTruncated(true);
+            onChange(result.text);
+          } else { setTruncated(false); }
+        }}
+        onChange={(event) => { setTruncated(false); onChange(event.currentTarget.value); }}
         onCompositionStart={() => onCompositionChange(true)}
         onCompositionEnd={() => onCompositionChange(false)}
       />
       </ReaderPanel>
+      <div id={feedbackId} className="manual-translator__feedback">
+        <span className="manual-translator__count">{t('textCharacterCount', [text.length.toLocaleString(), TEXT_INPUT_MAX_LENGTH.toLocaleString()])}</span>
+        <span role="status">{copy.status === 'copied' ? t('feedbackCopied') : copy.status === 'failed' ? t('feedbackCopyFailed') : ''}</span>
+        {truncated && <span role="alert">{t('textPasteTruncated')}</span>}
+      </div>
     </div>
   );
 }

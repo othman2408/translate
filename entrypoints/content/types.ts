@@ -36,6 +36,7 @@ export type OverlayState = {
   selectedText: string;
   readerRequestId?: number;
   sourceLanguage?: string;
+  targetLanguage?: string;
   translation?: TranslationResponse;
   ai?: AiActionResponse;
   streamedText?: string;

@@ -426,6 +426,7 @@ export function createContentOverlayController(
       status: 'loading',
       readerRequestId: reader ? requestId : undefined,
       sourceLanguage,
+      targetLanguage,
       action: 'translate',
       position: popupGeometry.position,
       popupSize: popupGeometry.size,
@@ -607,6 +608,7 @@ export function createContentOverlayController(
       status: 'hidden',
       readerRequestId: undefined,
       sourceLanguage: undefined,
+      targetLanguage: undefined,
       action: 'translate',
       position: HIDDEN_POSITION,
       selectedText: '',
@@ -621,6 +623,27 @@ export function createContentOverlayController(
     });
   }
 
+  async function retryOverlayAction(): Promise<void> {
+    suppressSelectionHandling();
+    const snapshot = overlayState;
+    const requestId = latestRequestId;
+    await refreshSettingsSafely();
+    if (!contentScriptActive || requestId !== latestRequestId) return;
+
+    if (snapshot.action !== 'translate') {
+      await requestAiAction(snapshot.action);
+      return;
+    }
+
+    const reader = snapshot.readerRequestId !== undefined ? {
+      type: 'SHOW_TRANSLATION_READER' as const,
+      text: snapshot.selectedText,
+      sourceLanguage: snapshot.sourceLanguage ?? settings.sourceLanguage,
+      targetLanguage: snapshot.targetLanguage ?? settings.targetLanguage,
+    } : undefined;
+    await requestTranslation(snapshot.selectedText, snapshot.position, reader);
+  }
+
   function renderOverlay(): void {
     if (!contentScriptActive) {
       return;
@@ -628,6 +651,7 @@ export function createContentOverlayController(
 
     reactRoot?.render(createElement(TranslateOverlay, {
       state: overlayState,
+      onRetry: () => void retryOverlayAction(),
       onTranslate: () => {
         suppressSelectionHandling();
         void requestTranslation();

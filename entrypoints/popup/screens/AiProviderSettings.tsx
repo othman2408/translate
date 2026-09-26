@@ -1,3 +1,4 @@
+import { ProviderConnectionTest } from '@/lib/components/ProviderConnectionTest';
 import { Button, Field, Input } from '@base-ui/react';
 import {
   Check,
@@ -427,7 +428,8 @@ function AiProviderEditor({
         />
       </div>
 
-      <div className="provider-actions provider-actions--even">
+      <ProviderConnectionTest credentials={draft} />
+      <div className="provider-actions provider-actions--even provider-actions--sticky">
         <Button
           className="provider-action-button provider-action-button--primary"
           type="button"
