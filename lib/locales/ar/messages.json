@@ -711,5 +711,8 @@
   "providerTest": {"message": "اختبار الاتصال"},
   "providerTesting": {"message": "جارٍ الاختبار…"},
   "providerTestSuccess": {"message": "تم التحقق من الاتصال. احفظ للاحتفاظ بالإعدادات."},
-  "providerTestHint": {"message": "يرسل طلب اختبار صغيرًا. قد تُطبق رسوم استخدام المزوّد."}
+  "providerTestHint": {"message": "يرسل طلب اختبار صغيرًا. قد تُطبق رسوم استخدام المزوّد."},
+  "typographySaveFailed": {"message": "تعذر حفظ تفضيلاتك. حاول مرة أخرى."},
+  "textSizeDecrease": {"message": "تصغير النص"},
+  "textSizeIncrease": {"message": "تكبير النص"}
 }

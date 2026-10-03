@@ -116,3 +116,4 @@ catalogs may lag releases or omit account-specific models.
 - Setup and translation errors offer **Try again**, preserving the original text. Save provider changes before retrying.
 - Toolbar panels show copy confirmation and a 15,000-character counter; oversized pastes report when text is clipped.
 - Provider editors include collapsible setup instructions, visible Save/Cancel actions while scrolling, and an optional **Test connection** for draft credentials. Testing sends a small request to the provider without saving the draft or adding history; usage charges may apply.
+- Translation popups include **− / +** buttons in the header to adjust text size (12–28 px). The size applies to both text panels and reader view and is saved locally for future popups.

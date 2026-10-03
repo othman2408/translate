@@ -711,5 +711,8 @@
   "providerTest": {"message": "Test connection"},
   "providerTesting": {"message": "Testing…"},
   "providerTestSuccess": {"message": "Connection verified. Save to keep these settings."},
-  "providerTestHint": {"message": "Sends a small test request. Provider usage charges may apply."}
+  "providerTestHint": {"message": "Sends a small test request. Provider usage charges may apply."},
+  "typographySaveFailed": {"message": "Could not save your preference. Please try again."},
+  "textSizeDecrease": {"message": "Decrease text size"},
+  "textSizeIncrease": {"message": "Increase text size"}
 }

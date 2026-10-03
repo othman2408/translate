@@ -4,8 +4,10 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import { Maximize2, Minimize2, MoveDiagonal2, X } from 'lucide-react';
+import { Maximize2, Minimize2, Minus, MoveDiagonal2, Plus, X } from 'lucide-react';
 
+import { useTypography } from '@/lib/hooks/useTypography';
+import { MAX_TEXT_SIZE, MIN_TEXT_SIZE } from '@/lib/typography';
 import type { ReaderLayout, ReaderModeSize, ResultPopupSize } from '@/lib/settings';
 
 import { ReaderFrame } from '@/lib/components/ReaderFrame';
@@ -78,6 +80,13 @@ export function FloatingPopup({
   onMove,
   onResize,
 }: FloatingPopupProps) {
+  const typography = useTypography();
+  const typographyStyle = {
+    '--reading-size': `${typography.value.size}px`,
+  } as CSSProperties;
+  const saveError = typography.failed && (
+    <p className="text-size-error" role="alert">{t('typographySaveFailed', undefined, appLanguage)}</p>
+  );
   const [readerMode, setReaderMode] = useState(readerRequestId !== undefined);
   useEffect(() => { if (readerRequestId !== undefined) setReaderMode(true); }, [readerRequestId]);
   const [layout, setLayout] = useState(readerLayout);
@@ -106,6 +115,20 @@ export function FloatingPopup({
       >
         <div className="translation-card__title">{title}</div>
         <div className="translation-card__header-actions">
+          <button type="button" className="icon-control"
+            aria-label={t('textSizeDecrease', undefined, appLanguage)}
+            title={t('textSizeDecrease', undefined, appLanguage)}
+            disabled={typography.value.size <= MIN_TEXT_SIZE}
+            onClick={() => typography.update({ size: typography.value.size - 1 })}>
+            <Minus size={16} aria-hidden="true" />
+          </button>
+          <button type="button" className="icon-control"
+            aria-label={t('textSizeIncrease', undefined, appLanguage)}
+            title={t('textSizeIncrease', undefined, appLanguage)}
+            disabled={typography.value.size >= MAX_TEXT_SIZE}
+            onClick={() => typography.update({ size: typography.value.size + 1 })}>
+            <Plus size={16} aria-hidden="true" />
+          </button>
           {readerMode && <ReaderLayoutControl value={layout} onChange={setLayout} appLanguage={appLanguage} />}
           {allowReaderMode && (
             <button
@@ -130,12 +153,13 @@ export function FloatingPopup({
         </div>
       </header>
   );
-  const cardContent = <>{cardHeader}{children}</>;
+  const cardContent = <>{cardHeader}{saveError}{children}</>;
 
   if (readerMode) {
     return (
       <ReaderFrame
-        header={cardHeader}
+        header={<>{cardHeader}{saveError}</>}
+        style={typographyStyle}
         appLanguage={appLanguage}
         className={className}
         size={readerModeSize}
@@ -152,6 +176,7 @@ export function FloatingPopup({
   }
 
   const style: CSSProperties = {
+    ...typographyStyle,
     transform: `translate3d(${interaction.geometry.position.left}px, ${interaction.geometry.position.top}px, 0)`,
     width: interaction.geometry.size.width,
     height: interaction.geometry.size.height,

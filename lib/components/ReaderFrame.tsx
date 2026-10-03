@@ -1,12 +1,13 @@
 import { TranslationAlternatives } from './TranslationAlternatives';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { ReaderToolsContext, ReaderToolsToolbar, useReaderToolsState } from './ReaderTools';
 import type { AppLanguage } from '@/lib/i18n';
 import type { ReaderModeSize, ReaderLayout } from '@/lib/settings';
 
 // Text direction is owned by each panel; surrounding reader controls follow
 // the app language.
-export function ReaderFrame({ children, header, appLanguage, className = '', size, layout, themeMode, dir, lang, label, onDismiss, modal = true }: {
+export function ReaderFrame({ children, header, appLanguage, className = '', size, layout, themeMode, dir, lang, label, onDismiss, modal = true, style }: {
+  style?: CSSProperties;
   children: ReactNode;
   header: ReactNode;
   appLanguage: AppLanguage;
@@ -43,6 +44,7 @@ export function ReaderFrame({ children, header, appLanguage, className = '', siz
     >
       <section
         ref={ref}
+        style={style}
         className={`translation-card translation-card--reader ${className}`}
         data-theme-mode={themeMode}
         data-reader-layout={layout}

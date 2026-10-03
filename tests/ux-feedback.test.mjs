@@ -28,3 +28,12 @@ test('connection tests require valid draft credentials and AI model', () => {
     expect(isRuntimeMessage(message(credentials))).toBe(false);
   }
 });
+
+test('typography preferences normalize old, invalid, and out-of-range values', async () => {
+  const { normalizeTypography, DEFAULT_TYPOGRAPHY } = await import('../lib/typography');
+  expect(normalizeTypography(undefined)).toEqual(DEFAULT_TYPOGRAPHY);
+  expect(normalizeTypography({ size: Infinity, font: 'remote-font', lineHeight: -1 })).toEqual(DEFAULT_TYPOGRAPHY);
+  expect(normalizeTypography({ size: 40, font: 'serif', lineHeight: 2 })).toEqual({ size: 28 });
+  expect(normalizeTypography({ size: 1, font: 'mono', lineHeight: 1.4 }).size).toBe(12);
+  expect(normalizeTypography({ size: 17.8 }).size).toBe(18);
+});

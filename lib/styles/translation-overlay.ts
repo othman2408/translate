@@ -770,4 +770,14 @@ export const overlayCss = `
       transform: rotate(360deg);
     }
   }
+
+  .translation-card__header-actions .icon-control:disabled { opacity: 0.4; cursor: default; }
+  .text-size-error { margin: 0; padding: 8px 12px; color: var(--translate-muted); font-size: 12px; }
+  .translation-card .translation-card__text-block p,
+  .translation-card .translation-card__markdown,
+  .translation-card .reader-search-text {
+    font-size: var(--reading-size, 16px);
+    line-height: 1.6;
+  }
+  .translation-card .translation-card__markdown :is(h1, h2, h3) { font-size: 1.1em; }
 `;
